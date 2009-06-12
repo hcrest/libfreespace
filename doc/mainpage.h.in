@@ -1,0 +1,10 @@
+/**
+ * @mainpage @PACKAGE@ @VERSION@ Documentation
+ *
+ * See @PACKAGE@ website for more information and FAQ
+ *
+ * \version 0.3 - Windows support, device discovery, and bug fixes
+ * \version 0.2 - libusb 1.0
+ * \version 0.1 - Initial Linux/libusb 0.9 release
+ *
+ */

@@ -1,0 +1,101 @@
+Post 0.3:
+Add and install pkg_config information
+Update OpenEmbedded .bb files
+Add state queue to collect commands to send as soon as Freespace wakes up
+   - Battery status - collect events
+   - Motion control
+Add firmware update support
+Create python binding
+Create Java binding
+Do we need a separate package for utilities?  I.e. how often will these be installed?
+
+Utilities:
+
+---
+freespace_frsget [-f <device ID>] [-b] [-v] <target> <record type>
+
+-b print out the record contents as binary
+-f use the specified device.  If unspecified the first one found is used.
+-v verbose output
+
+target is:
+    LOOP
+    DONGLE
+    EFLASH
+
+record type is:
+    DCD
+    SCD_BACKUP
+    SCD_ACTIVE
+    TRACKING_NUM
+    NETID_SELF
+    NETID_PARTNER
+    CONFIG_SENSOR
+    CONFIG_BUTTON
+    CONFIG_LED
+    BEHAVIOR_LED
+    MAP_BUTTON
+    BEHAVIOR_PAIR
+    EXTERNAL_IMAGE
+    MISCELLANEOUS
+    DEVICEID
+    0xnnnn
+   
+--- 
+freespace_frsset [-f <device ID>] [-b] [-v] <target> <record type> [value]
+
+If value is not specified, it is read from stdin.
+Arguments are similar to frsget.
+
+---
+freespace_fwupdate [-f <device ID>] [-v] <firmware image>
+
+Program the specified firmware image to the freespace device.
+
+---
+freespace_netid [-f <device ID>] [-v] <High prime> <Mid prime> <Low prime>
+
+Configure the network ID on the dongle.  Previously called "configure-fpb".
+
+NOTE: Is this needed now that there's freespace_frsset or is it still
+      useful for backward compatibility and ease of setting the netid?
+
+---
+freespace_compliance [-f <device ID>] [-r]
+
+Run a Freespace compliance test.  Previously called "compliance".
+
+ -r Run the radiated immunity test
+
+---
+freespace_util [-f <device ID>] <command>
+
+Send a command or check the status of a device.  Previous functionality
+found in "hcursor-util"
+
+Commands:
+battery			Get battery status
+alwayson		Force Loop device to always be on
+link			Get the current link status
+fixedfrequency <c1> <c2> <c3> <c4> <c5> <device>	Force the device to
+				use a fixed set of frequencies
+reset <device>	Reset the device
+disablerf		Disable RF
+
+NOTE: What parameters are actually used?  Does the asymmetry in options
+      matter?  Does it make sense to have a catch-all command?
+      
+
+
+
+
+
+
+
+-----------
+Utilities TODO
+
+1.  Specify which Freespace device to address.
+
+
+

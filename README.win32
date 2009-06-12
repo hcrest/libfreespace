@@ -1,0 +1,53 @@
+README.win32
+
+The tools required to fully build libfreespace on MS Windows are:
+    MS Visual Studio 2005
+    git     http://code.google.com/p/msysgit/
+    Doxygen http://www.doxygen.org/
+    Windows Driver Development Kit (WDK)
+
+The WDK can be obtained from Microsoft by following the instructions at:
+    http://www.microsoft.com/whdc/DevTools/WDK/WDKpkg.mspx
+
+The project files are currently configured to look for the DDK in the 
+default installation location of C:\WinDDK\6001.18002. If you install
+the DDK elsewhere, you will need to update the include file and library
+paths.
+
+
+The build process on MS Windows relies upon a fixed directory structure between
+the different projects.  The structure should be:
+    <base>/jfreespace
+    <base>/libfreespace
+    <base>/libfreespace-examples
+    <base>/pyfreespace
+where <base> represents your fully-qualified base directory.  For example, you 
+could use <base> = c:/libfreespace/. Note that the packaged source releases
+contain version numbers in their names. To build under Windows, you need
+to remove those numbers. If you are building from the git repository,
+you do not need to make any changes.
+
+
+To correctly check out all of the repositories, start git, change to the <base>
+directory, and then run the following checkout.sh script:
+    #!/bin/sh
+    git clone git@github.com:jrenbaum/libfreespace.git
+    git clone git@github.com:jrenbaum/freespace-examples.git
+    git clone git@github.com:jrenbaum/pyfreespace.git
+    git clone git@github.com:jrenbaum/jfreespace.git
+    
+    # Rename the freespace-examples repository for now
+    mv freespace-examples libfreespace-examples
+
+
+To check out a branch, cd to the repository directory and use:
+    git checkout --track -b <branchName> origin/<branchName>
+
+
+Several different MS Visual Studio solutions exist:
+    <base>/libfreespace/win32/libfreespace.sln
+        Build the libfreespace project only.
+    <base>/libfreespace-examples/src/examples.sln
+        Build libfreespace and all of the examples.
+    <base>/jfreespace/native/jfreespace.sln
+        Build the jfreespace Java native interface library. (FUTURE)
