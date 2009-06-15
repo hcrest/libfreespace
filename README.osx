@@ -1,0 +1,18 @@
+README.osx
+
+Requirements for building and running libfreespace on OS X:
+1. Mac OS X 10.5
+2. Mac running on an Intel processor
+3. libusb-1.0.2
+4. Have the FreespaceLoopDriver kernel extension installed
+
+
+To install the FreespaceLoopDriver:
+    Copy libfreespace/osx/FreespaceLoopDriver.osx to /System/Library/Extensions/
+       - You will need Adminstrator access for this step.
+    Restart computer
+
+The FreespaceLoopDriver is a codeless kernel extension which contains a plist file
+that has a set of properties which the kernel uses to determine if it should
+load a kernel driver for the USB device or not.
+
