@@ -468,7 +468,6 @@ void freespace_closeDevice(FreespaceDeviceId id) {
     device = findDeviceById(id);
     if (device != NULL && device->handle_ != NULL) {
         libusb_release_interface(device->handle_, device->api_->controlInterfaceNumber_);
-        libusb_close(device->handle_);
 
         // Re-attach the kernel driver if we detached it before.
         if (device->kernelDriverDetached_) {
@@ -476,6 +475,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
             // can do.
             libusb_attach_kernel_driver(device->handle_, device->api_->controlInterfaceNumber_);
         }
+        libusb_close(device->handle_);
         device->handle_ = NULL;
 
         if (device->state_ == FREESPACE_DISCONNECTED) {
