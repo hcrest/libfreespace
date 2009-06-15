@@ -65,11 +65,10 @@ int freespace_private_discoveryThreadExit() {
     }
 
     // Delete the window
-    SendMessage(freespace_instance_->window_, WM_DESTROY, 0, 0);
-    CloseHandle(freespace_instance_->discoveryEvent_);
-
-    freespace_instance_->window_ = NULL;
-    freespace_instance_->discoveryEvent_ = NULL;
+    SendMessage(freespace_instance_->window_, WM_CLOSE, 0, 0);
+    while (freespace_instance_->window_ != NULL) {
+        Sleep(1);
+    }
 
     return FREESPACE_SUCCESS;
 }
@@ -99,13 +98,23 @@ int freespace_private_discoveryGetThreadStatus() {
 }
 
 LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam) {
+    if (nMsg == WM_CLOSE) {
+        DestroyWindow(hwnd);
+        return DefWindowProc(hwnd,	nMsg, wParam, lParam);
+    }
+
     if (nMsg == WM_DESTROY) {
         // Remove the device notification
         UnregisterDeviceNotification(freespace_instance_->windowEvent_);
         freespace_instance_->windowEvent_ = NULL;
 
+        CloseHandle(freespace_instance_->discoveryEvent_);
+        freespace_instance_->discoveryEvent_ = NULL;
+
+        PostQuitMessage(0);
         return DefWindowProc(hwnd,	nMsg, wParam, lParam);
     }
+
     if (nMsg == WM_DEVICECHANGE) {
         // Only handle all devices arrived or all devices removed.
         if ((LOWORD(wParam) != DBT_DEVICEARRIVAL) &&
@@ -129,10 +138,9 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     MSG event;
     WNDCLASSEX* wndclass = freespace_instance_->wndclass_;
 
+    // Register the hidden window class
     if (wndclass == NULL) {
         wndclass = (WNDCLASSEX*) malloc(sizeof(WNDCLASSEX));
-        // The name of the main window class
-
         memset (wndclass, 0, sizeof(WNDCLASSEX));
         wndclass->cbSize = sizeof(WNDCLASSEX);
         wndclass->style = CS_HREDRAW | CS_VREDRAW;
@@ -172,7 +180,7 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     }
 
     /* Hide the window.  Have to manually close it later by posting a
-     * WM_DESTROY event
+     * WM_CLOSE event
      */
     ShowWindow (freespace_instance_->window_, SW_HIDE /*SW_SHOW*/);
     UpdateWindow (freespace_instance_->window_);
@@ -209,6 +217,14 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
         TranslateMessage(&event);
         DispatchMessage(&event);
     }
+
+    // Unregister the hidden window class
+    if (!UnregisterClass(freespace_instance_->wndclass_->lpszClassName, 
+                         freespace_instance_->wndclass_->hInstance)) {
+        DEBUG_PRINTF("Could not unregister window: %d\n", GetLastError());
+    }
+
+    freespace_instance_->window_ = NULL;
 
     return 0;
 }

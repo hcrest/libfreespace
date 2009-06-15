@@ -100,9 +100,6 @@ int freespace_private_freeDevice(struct FreespaceDeviceStruct* device) {
         if (s->devicePath != NULL) {
             free(s->devicePath);
         }
-        if (device->handle_[idx].readOverlapped_.hEvent != NULL) {
-            CloseHandle(device->handle_[idx].readOverlapped_.hEvent);
-        }
     }
 
     // Free up everything allocated by freespace_private_createDevice
@@ -274,6 +271,7 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
         return FREESPACE_ERROR_BUSY;
     }
 
+
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->handle_ != NULL) {
@@ -301,6 +299,16 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
             return FREESPACE_ERROR_NO_DEVICE;
         }
 
+        // Create the read event.
+        s->readOverlapped_.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+        if (s->readOverlapped_.hEvent == NULL) {
+            return FREESPACE_ERROR_UNEXPECTED;
+        }
+        s->readOverlapped_.Offset = 0;
+        s->readOverlapped_.OffsetHigh = 0;
+        s->readStatus_ = FALSE;
+
+        // Register the read event.
         if (freespace_instance_->fdAddedCallback_) {
             freespace_instance_->fdAddedCallback_(s->readOverlapped_.hEvent, 1);
         }
@@ -349,6 +357,7 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         finalizeSendStruct(&device->send_[idx], TRUE);
     }
 
+    // Free all read events
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->handle_ != NULL) {
@@ -357,6 +366,12 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         }
         if (freespace_instance_->fdRemovedCallback_) {
             freespace_instance_->fdRemovedCallback_(s->readOverlapped_.hEvent);
+        }
+
+        if (s->readOverlapped_.hEvent != NULL) {
+            s->readStatus_ = FALSE;
+            CloseHandle(s->readOverlapped_.hEvent);
+            s->readOverlapped_.hEvent = NULL;
         }
     }
     device->isOpened_ = FALSE;

@@ -71,6 +71,10 @@ LIBFREESPACE_API int freespace_init() {
 LIBFREESPACE_API void freespace_exit() {
     int i;
 
+    if (freespace_instance_ == NULL) {
+        return;
+    }
+
     // Shut down the discovery code.
     if (freespace_instance_->fdRemovedCallback_) {
         freespace_instance_->fdRemovedCallback_(freespace_private_discoveryEventObject());
@@ -203,23 +207,6 @@ LIBFREESPACE_API int freespace_getDeviceList(FreespaceDeviceId* list, int listSi
 }
 
 int freespace_private_addDevice(struct FreespaceDeviceStruct* device) {
-    int idx;
-
-    // Initialize the overlapped I/O
-    for (idx = 0; idx < device->handleCount_; idx++) {
-        HANDLE waitEvent;
-        struct FreespaceSubStruct* s = &device->handle_[idx];
-
-        waitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-        if (waitEvent == NULL) {
-            return FREESPACE_ERROR_UNEXPECTED;
-        }
-        s->readOverlapped_.hEvent = waitEvent;
-        s->readOverlapped_.Offset = 0;
-        s->readOverlapped_.OffsetHigh = 0;
-        s->readStatus_ = FALSE;
-    }
-
     // Add the device to list.
     freespace_instance_->devices_[freespace_instance_->deviceCount_] = device;
     freespace_instance_->deviceCount_++;
