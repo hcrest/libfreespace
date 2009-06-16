@@ -2,7 +2,7 @@ README.win32
 
 The tools required to fully build libfreespace on MS Windows are:
     MS Visual Studio 2005
-    git     http://code.google.com/p/msysgit/
+    bazaar  http://bazaar-vcs.org/WindowsDownloads
     Doxygen http://www.doxygen.org/
     Windows Driver Development Kit (WDK)
 
@@ -24,26 +24,19 @@ the different projects.  The structure should be:
 where <base> represents your fully-qualified base directory.  For example, you 
 could use <base> = c:/libfreespace/. Note that the packaged source releases
 contain version numbers in their names. To build under Windows, you need
-to remove those numbers. If you are building from the git repository,
+to remove those numbers. If you are building from the bazaar repository,
 you do not need to make any changes.
 
 
-To correctly check out all of the repositories, start git, change to the <base>
+To correctly check out all of the repositories, change to the <base>
 directory, and then run the following checkout.sh script:
     #!/bin/sh
-    git clone git@github.com:jrenbaum/libfreespace.git
-    git clone git@github.com:jrenbaum/freespace-examples.git
-    git clone git@github.com:jrenbaum/pyfreespace.git
-    git clone git@github.com:jrenbaum/jfreespace.git
+    bzr branch lp:libfreespace
+    bzr branch lp:libfreespace-examples
+    bzr branch lp:pyfreespace      # if you want the python bindings 
+    bzr branch lp:jfreespace       # if you want the Java bindings
+    bzr branch lp:libfreespace.net # if you want the C# bindings
     
-    # Rename the freespace-examples repository for now
-    mv freespace-examples libfreespace-examples
-
-
-To check out a branch, cd to the repository directory and use:
-    git checkout --track -b <branchName> origin/<branchName>
-
-
 Several different MS Visual Studio solutions exist:
     <base>/libfreespace/win32/libfreespace.sln
         Build the libfreespace project only.
