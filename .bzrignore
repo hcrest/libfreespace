@@ -41,3 +41,6 @@ win32/Release
 win32/libfreespace.vcproj.*.user
 *.ncb
 *.suo
+.project
+.pydevproject
+.cproject
