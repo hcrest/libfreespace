@@ -21,3 +21,6 @@ EXTRA_DIST = Doxyfile.in
 docs: Doxyfile
 	doxygen $^
 
+deploy: Doxyfile
+	( cat Doxyfile ; echo "HTML_FOOTER=footer.html" ) | doxygen -	
+	./deploy.sh
