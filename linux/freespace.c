@@ -27,6 +27,8 @@
 #include <poll.h>
 #include <string.h>
 
+#define FREESPACE_RECEIVE_QUEUE_SIZE 10 /* Just needs to be >8 to be able to drain the HW queues in one go around */
+
 /**
  * Figure out which API to use depending on the reported
  * Freespace version.
@@ -81,6 +83,11 @@ enum FreespaceDeviceState {
 /**
  * FreespaceDevice internal data.
  */
+struct FreespaceReceiveTransfer {
+    struct libusb_transfer* transfer_;
+    unsigned char buffer_[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+};
+
 struct FreespaceDevice {
     FreespaceDeviceId id_;
     enum FreespaceDeviceState state_;
@@ -102,8 +109,8 @@ struct FreespaceDevice {
 
     freespace_receiveCallback receiveCallback_;
     void* receiveCookie_;
-    struct libusb_transfer* receiveTransfer_;
-    unsigned char receiveBuffer_[48];
+
+    struct FreespaceReceiveTransfer receiveQueue_[FREESPACE_RECEIVE_QUEUE_SIZE];
 };
 
 static struct FreespaceDevice* devices[FREESPACE_MAXIMUM_DEVICE_COUNT];
@@ -377,12 +384,55 @@ static void receiveCallback(struct libusb_transfer* transfer) {
     struct FreespaceDevice* device = (struct FreespaceDevice*) transfer->user_data;
     if (device->receiveCallback_ != NULL) {
         int rc = libusb_transfer_status_to_freespace_error(transfer->status);
-        device->receiveCallback_(device->id_, (const char*) device->receiveBuffer_, transfer->actual_length, device->receiveCookie_, rc);
+        device->receiveCallback_(device->id_, (const char*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
     }
 
     // Re-submit the transfer for the to get the next receive going.
     // NOTE: Can't handle any error returns here.
-    libusb_submit_transfer(device->receiveTransfer_);
+    libusb_submit_transfer(transfer);
+}
+
+int freespace_terminateReceiveTransfers(struct FreespaceDevice* device) {
+    int rc = LIBUSB_SUCCESS;
+    int i;
+
+    for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
+        struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
+        if (rt->transfer_ != NULL) {
+            rc = libusb_cancel_transfer(rt->transfer_);
+
+            // Do not free the transfer here. Transfer cancels are
+            // asynchronous. The callback will know what to do.
+            rt->transfer_ = NULL;
+        }
+    }
+
+    return libusb_to_freespace_error(rc);
+}
+
+int freespace_initiateReceiveTransfers(struct FreespaceDevice* device) {
+    int rc = LIBUSB_SUCCESS;
+    int i;
+
+    for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
+        struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
+        rt->transfer_ = libusb_alloc_transfer(0);
+        libusb_fill_interrupt_transfer(rt->transfer_,
+                                       device->handle_,
+                                       device->readEndpointAddress_,
+                                       rt->buffer_,
+                                       device->maxReadSize_,
+                                       receiveCallback,
+                                       device,
+                                       0);
+        rc = libusb_submit_transfer(rt->transfer_);
+        if (rc != LIBUSB_SUCCESS) {
+            freespace_terminateReceiveTransfers(device);
+            break;
+        }
+    }
+
+    return libusb_to_freespace_error(rc);
 }
 
 int freespace_openDevice(FreespaceDeviceId id) {
@@ -445,18 +495,8 @@ int freespace_openDevice(FreespaceDeviceId id) {
     // If the user has a receiveCallback register then start
     // up the async receives.
     if (device->receiveCallback_ != NULL) {
-        device->receiveTransfer_ = libusb_alloc_transfer(0);
-        libusb_fill_interrupt_transfer(device->receiveTransfer_,
-                                       device->handle_,
-                                       device->readEndpointAddress_,
-                                       device->receiveBuffer_,
-                                       device->maxReadSize_,
-                                       receiveCallback,
-                                       device,
-                                       0);
-
-        rc = libusb_submit_transfer(device->receiveTransfer_);
-        return libusb_to_freespace_error(rc);
+        rc = freespace_initiateReceiveTransfers(device);
+        return rc;
     } else {
         // Success.
         return FREESPACE_SUCCESS;
@@ -535,7 +575,12 @@ int freespace_read(FreespaceDeviceId id,
         return FREESPACE_ERROR_RECEIVE_BUFFER_TOO_SMALL;
     }
 
-    rc = libusb_interrupt_transfer(device->handle_, device->readEndpointAddress_, (unsigned char*) message, maxLength, actualLength, timeoutMs);
+    rc = libusb_interrupt_transfer(device->handle_,
+                                   device->readEndpointAddress_,
+                                   (unsigned char*) message,
+                                   maxLength,
+                                   actualLength,
+                                   timeoutMs);
     return libusb_to_freespace_error(rc);
 }
 
@@ -548,7 +593,7 @@ int freespace_flush(FreespaceDeviceId id) {
     for (;;) {
         rc = libusb_interrupt_transfer(device->handle_,
                                        device->readEndpointAddress_,
-                                       device->receiveBuffer_,
+                                       device->receiveQueue_[0].buffer_,
                                        device->maxReadSize_,
                                        &length,
                                        1);
@@ -721,23 +766,12 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
     device->receiveCallback_ = callback;
     device->receiveCookie_ = cookie;
 
-    if (callback != NULL && device->handle_ != NULL && device->receiveTransfer_ == NULL) {
-        device->receiveTransfer_ = libusb_alloc_transfer(0);
-        libusb_fill_interrupt_transfer(device->receiveTransfer_,
-                                       device->handle_,
-                                       device->readEndpointAddress_,
-                                       device->receiveBuffer_,
-                                       device->maxReadSize_,
-                                       receiveCallback,
-                                       device,
-                                       0);
-
-        rc = libusb_submit_transfer(device->receiveTransfer_);
-    } else if (callback == NULL && device->handle_ != NULL && device->receiveTransfer_ != NULL) {
-        rc = libusb_cancel_transfer(device->receiveTransfer_);
-        device->receiveTransfer_ = NULL;
+    if (callback != NULL && device->handle_ != NULL && device->receiveQueue_[0].transfer_ == NULL) {
+        rc = freespace_initiateReceiveTransfers(device);
+    } else if (callback == NULL && device->handle_ != NULL && device->receiveQueue_[0].transfer_ != NULL) {
+        rc = freespace_terminateReceiveTransfers(device);
     } else {
-        rc = LIBUSB_SUCCESS;
+        rc = FREESPACE_SUCCESS;
     }
-    return libusb_to_freespace_error(rc);
+    return rc;
 }
