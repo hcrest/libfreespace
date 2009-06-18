@@ -69,7 +69,10 @@ extern "C" {
 
 /* Define the types */
 #ifdef WIN32
+#ifdef _MSC_VER
 #include "win32_stdint.h"
+#endif
+
 typedef void* FreespaceFileHandleType;
 
 // All files within this DLL are compiled with the LIBFREESPACE_EXPORTS
