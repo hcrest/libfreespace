@@ -84,8 +84,18 @@ enum FreespaceDeviceState {
  * FreespaceDevice internal data.
  */
 struct FreespaceReceiveTransfer {
+    // Convenience backpointer to the device data structure.
+    struct FreespaceDevice* device_;
+
+    // Transfer information
     struct libusb_transfer* transfer_;
     unsigned char buffer_[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+
+    // Synchronous interface usage for the state of the
+    // queue.
+    int submitted_;
+    int rc_;
+    int actualLength_;
 };
 
 struct FreespaceDevice {
@@ -110,6 +120,7 @@ struct FreespaceDevice {
     freespace_receiveCallback receiveCallback_;
     void* receiveCookie_;
 
+    int receiveQueueHead_;
     struct FreespaceReceiveTransfer receiveQueue_[FREESPACE_RECEIVE_QUEUE_SIZE];
 };
 
@@ -160,6 +171,7 @@ static int libusb_transfer_status_to_freespace_error(enum libusb_transfer_status
     default: return FREESPACE_ERROR_UNEXPECTED;
     }
 }
+
 int freespace_init() {
     int rc;
 
@@ -374,6 +386,10 @@ int freespace_getDeviceInfo(FreespaceDeviceId id,
 }
 
 static void receiveCallback(struct libusb_transfer* transfer) {
+    struct FreespaceReceiveTransfer* rt = (struct FreespaceReceiveTransfer*) transfer->user_data;
+    struct FreespaceDevice* device = rt->device_;
+    int rc;
+
     if (transfer->status == LIBUSB_TRANSFER_CANCELLED) {
         // Canceled.  This only happens when the receive callback
         // is NULLed out, so free up the transfer.
@@ -381,15 +397,20 @@ static void receiveCallback(struct libusb_transfer* transfer) {
         return;
     }
 
-    struct FreespaceDevice* device = (struct FreespaceDevice*) transfer->user_data;
+    rc = libusb_transfer_status_to_freespace_error(transfer->status);
     if (device->receiveCallback_ != NULL) {
-        int rc = libusb_transfer_status_to_freespace_error(transfer->status);
+        // Using async interface, so call user back immediately.
         device->receiveCallback_(device->id_, (const char*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
-    }
 
-    // Re-submit the transfer for the to get the next receive going.
-    // NOTE: Can't handle any error returns here.
-    libusb_submit_transfer(transfer);
+        // Re-submit the transfer for the to get the next receive going.
+        // NOTE: Can't handle any error returns here.
+        libusb_submit_transfer(transfer);
+    } else {
+        // Using sync interface, so queue.
+        rt->submitted_ = 0;
+        rt->rc_ = rc;
+        rt->actualLength_ = transfer->actual_length;
+    }
 }
 
 int freespace_terminateReceiveTransfers(struct FreespaceDevice* device) {
@@ -399,11 +420,17 @@ int freespace_terminateReceiveTransfers(struct FreespaceDevice* device) {
     for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
         struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
         if (rt->transfer_ != NULL) {
-            rc = libusb_cancel_transfer(rt->transfer_);
+            if (rt->submitted_) {
+                rc = libusb_cancel_transfer(rt->transfer_);
 
-            // Do not free the transfer here. Transfer cancels are
-            // asynchronous. The callback will know what to do.
+                // Do not free the transfer here. Transfer cancels are
+                // asynchronous. The callback will know what to do.
+            } else {
+                // Not submitted to libusb, so this can be freed immediatedly.
+                libusb_free_transfer(rt->transfer_);
+            }
             rt->transfer_ = NULL;
+            rt->submitted_ = 0;
         }
     }
 
@@ -414,8 +441,10 @@ int freespace_initiateReceiveTransfers(struct FreespaceDevice* device) {
     int rc = LIBUSB_SUCCESS;
     int i;
 
+    device->receiveQueueHead_ = 0;
     for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
         struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
+        rt->device_ = device;
         rt->transfer_ = libusb_alloc_transfer(0);
         libusb_fill_interrupt_transfer(rt->transfer_,
                                        device->handle_,
@@ -423,13 +452,15 @@ int freespace_initiateReceiveTransfers(struct FreespaceDevice* device) {
                                        rt->buffer_,
                                        device->maxReadSize_,
                                        receiveCallback,
-                                       device,
+                                       rt,
                                        0);
         rc = libusb_submit_transfer(rt->transfer_);
         if (rc != LIBUSB_SUCCESS) {
             freespace_terminateReceiveTransfers(device);
             break;
         }
+
+        rt->submitted_ = 1;
     }
 
     return libusb_to_freespace_error(rc);
@@ -492,21 +523,21 @@ int freespace_openDevice(FreespaceDeviceId id) {
 
     device->state_ = FREESPACE_OPENED;
 
-    // If the user has a receiveCallback register then start
-    // up the async receives.
-    if (device->receiveCallback_ != NULL) {
-        rc = freespace_initiateReceiveTransfers(device);
-        return rc;
-    } else {
-        // Success.
-        return FREESPACE_SUCCESS;
-    }
+    // Start the receive queue working.
+    rc = freespace_initiateReceiveTransfers(device);
+    return rc;
 }
 
 void freespace_closeDevice(FreespaceDeviceId id) {
     struct FreespaceDevice* device;
     device = findDeviceById(id);
     if (device != NULL && device->handle_ != NULL) {
+        // Stop receives.
+        freespace_terminateReceiveTransfers(device);
+
+        // Should we wait until everything terminates cleanly?
+
+        // Release our lock on the interface.
         libusb_release_interface(device->handle_, device->api_->controlInterfaceNumber_);
 
         // Re-attach the kernel driver if we detached it before.
@@ -534,6 +565,10 @@ int freespace_send(FreespaceDeviceId id,
     struct FreespaceDevice* device;
     device = findDeviceById(id);
 
+    if (device == NULL || device->state_ != FREESPACE_OPENED) {
+        return FREESPACE_ERROR_NOT_FOUND;
+    }
+
     if (length > device->maxWriteSize_) {
         // Can't write more than the max allowed size, so fail rather than send a partial packet.
         return FREESPACE_ERROR_SEND_TOO_LARGE;
@@ -556,55 +591,93 @@ int freespace_read(FreespaceDeviceId id,
                    int maxLength,
                    unsigned int timeoutMs,
                    int* actualLength) {
-    struct FreespaceDevice* device;
-    device = findDeviceById(id);
+    struct FreespaceDevice* device = findDeviceById(id);
+    struct FreespaceReceiveTransfer* rt;
     int rc;
 
-    if (maxLength > device->maxReadSize_) {
-        // Don't allow reads of more than read size bytes.
-        // The device won't send more than this and worse, this may cause overflows.
-        // When the buffer size is bigger than the max read size, it looks like the Linux kernel
-        // tries to fill the it with more than one packet.  Inevitably, the last packet won't
-        // fit, and then the kernel signals overflow.  From then on, things usually are out
-        // of sync.
-        maxLength = device->maxReadSize_;
+    if (device == NULL || device->state_ != FREESPACE_OPENED) {
+        return FREESPACE_ERROR_NOT_FOUND;
     }
+
     if (maxLength < device->maxReadSize_) {
         // Don't risk causing an overflow due to too small
         // a receive buffer.
         return FREESPACE_ERROR_RECEIVE_BUFFER_TOO_SMALL;
     }
 
-    rc = libusb_interrupt_transfer(device->handle_,
-                                   device->readEndpointAddress_,
-                                   (unsigned char*) message,
-                                   maxLength,
-                                   actualLength,
-                                   timeoutMs);
-    return libusb_to_freespace_error(rc);
+    rt = &device->receiveQueue_[device->receiveQueueHead_];
+
+    // Check if we need to wait.
+    if (rt->submitted_ != 0) {
+        struct timeval tv;
+
+        tv.tv_sec = timeoutMs / 1000;
+        tv.tv_usec = (timeoutMs % 1000) * 1000;
+
+        // Wait.
+        do {
+            rc = libusb_handle_events_timeout(freespace_libusb_context, &tv);
+            if (rc != LIBUSB_SUCCESS) {
+                return libusb_to_freespace_error(rc);
+            }
+
+            // Keep trying until something has been received.
+            // Note that libusb_handle_events_timeout could return
+            // without a receive if it ends up doing some other
+            // processing such as an async send completion or
+            // something on another device.
+
+            // TODO: update tv with time left.
+        } while (rt->submitted_ != 0);
+    }
+
+    // Copy the message out.
+    memcpy(message, rt->buffer_, rt->actualLength_);
+    *actualLength = rt->actualLength_;
+    rc = rt->rc_;
+
+    // Resubmit the transfer
+    rt->submitted_ = 1;
+    libusb_submit_transfer(rt->transfer_);
+    device->receiveQueueHead_++;
+    if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
+        device->receiveQueueHead_ = 0;
+    }
+
+    return rc;
 }
 
 int freespace_flush(FreespaceDeviceId id) {
-    struct FreespaceDevice* device;
-    device = findDeviceById(id);
-    int length;
-    int rc;
+    struct FreespaceDevice* device = findDeviceById(id);
+    struct FreespaceReceiveTransfer* rt;
+    struct timeval tv;
 
-    for (;;) {
-        rc = libusb_interrupt_transfer(device->handle_,
-                                       device->readEndpointAddress_,
-                                       device->receiveQueue_[0].buffer_,
-                                       device->maxReadSize_,
-                                       &length,
-                                       1);
-        if (rc == LIBUSB_ERROR_TIMEOUT) {
-            // No more messages
-            return FREESPACE_SUCCESS;
-        } else if (rc != 0 && rc != LIBUSB_ERROR_OVERFLOW) {
-            // Some other error.
-            return libusb_to_freespace_error(rc);
-        }
+    if (device == NULL || device->state_ != FREESPACE_OPENED) {
+        return FREESPACE_ERROR_NOT_FOUND;
     }
+
+
+    // Poll libusb to give it a chance to unload as many
+    // events as possible.
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+    libusb_handle_events_timeout(freespace_libusb_context, &tv);
+
+    // Clear out our queue.
+    rt = &device->receiveQueue_[device->receiveQueueHead_];
+    while (rt->submitted_ == 0) {
+        rt->submitted_ = 1;
+        libusb_submit_transfer(rt->transfer_);
+        device->receiveQueueHead_++;
+        if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
+            device->receiveQueueHead_ = 0;
+        }
+
+        rt = &device->receiveQueue_[device->receiveQueueHead_];
+        printf("Flushed\n");
+    }
+
+    return FREESPACE_SUCCESS;
 }
 
 struct SendTransferInfo {
@@ -642,6 +715,10 @@ int freespace_sendAsync(FreespaceDeviceId id,
     device = findDeviceById(id);
     struct libusb_transfer* transfer;
     int rc;
+
+    if (device == NULL || device->state_ != FREESPACE_OPENED) {
+        return FREESPACE_ERROR_NOT_FOUND;
+    }
 
     if (length > device->maxWriteSize_) {
         return FREESPACE_ERROR_SEND_TOO_LARGE;
@@ -759,19 +836,39 @@ int freespace_syncFileDescriptors() {
 int freespace_setReceiveCallback(FreespaceDeviceId id,
                                  freespace_receiveCallback callback,
                                  void* cookie) {
-    struct FreespaceDevice* device;
-    device = findDeviceById(id);
-    int rc;
+    struct FreespaceDevice* device = findDeviceById(id);
+    int wereInSyncMode;
 
+    if (device == NULL) {
+        return FREESPACE_ERROR_NOT_FOUND;
+    }
+
+    wereInSyncMode = (device->receiveCallback_ == NULL);
     device->receiveCallback_ = callback;
     device->receiveCookie_ = cookie;
 
-    if (callback != NULL && device->handle_ != NULL && device->receiveQueue_[0].transfer_ == NULL) {
-        rc = freespace_initiateReceiveTransfers(device);
-    } else if (callback == NULL && device->handle_ != NULL && device->receiveQueue_[0].transfer_ != NULL) {
-        rc = freespace_terminateReceiveTransfers(device);
-    } else {
-        rc = FREESPACE_SUCCESS;
+    if (callback != NULL && wereInSyncMode && device->state_ == FREESPACE_OPENED) {
+        // Transition from sync mode to async mode.
+
+        // Need to run the callback on all received messages.
+        struct FreespaceReceiveTransfer* rt;
+        rt = &device->receiveQueue_[device->receiveQueueHead_];
+        while (rt->submitted_ == 0) {
+            callback(device->id_,
+                     (const char*) rt->buffer_,
+                     rt->transfer_->actual_length,
+                     cookie,
+                     libusb_transfer_status_to_freespace_error(rt->transfer_->status));
+
+            rt->submitted_ = 1;
+            libusb_submit_transfer(rt->transfer_);
+            device->receiveQueueHead_++;
+            if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
+                device->receiveQueueHead_ = 0;
+            }
+
+            rt = &device->receiveQueue_[device->receiveQueueHead_];
+        }
     }
-    return rc;
+    return FREESPACE_SUCCESS;
 }
