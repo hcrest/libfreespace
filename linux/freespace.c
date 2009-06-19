@@ -388,9 +388,8 @@ static void receiveCallback(struct libusb_transfer* transfer) {
     struct FreespaceDevice* device = rt->device_;
 
     if (transfer->status == LIBUSB_TRANSFER_CANCELLED) {
-        // Canceled.  This only happens when the receive callback
-        // is NULLed out, so free up the transfer.
-        libusb_free_transfer(transfer);
+        // Canceled. This only happens on cleanup. Don't report errors or resubmit.
+        rt->submitted_ = 0;
         return;
     }
 
@@ -411,7 +410,10 @@ static void receiveCallback(struct libusb_transfer* transfer) {
 int freespace_terminateReceiveTransfers(struct FreespaceDevice* device) {
     int rc = LIBUSB_SUCCESS;
     int i;
+    int canceledCount = 0;
+    int retries;
 
+    // Cancel all submitted transfers.
     for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
         struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
         if (rt->transfer_ != NULL) {
@@ -420,12 +422,57 @@ int freespace_terminateReceiveTransfers(struct FreespaceDevice* device) {
 
                 // Do not free the transfer here. Transfer cancels are
                 // asynchronous. The callback will know what to do.
+
+                if (rc == LIBUSB_SUCCESS) {
+                    canceledCount++;
+                } else {
+                    // Force free on error.
+                    libusb_free_transfer(rt->transfer_);
+                    rt->transfer_ = NULL;
+                    rt->submitted_ = 0;
+                }
             } else {
                 // Not submitted to libusb, so this can be freed immediatedly.
                 libusb_free_transfer(rt->transfer_);
+                rt->transfer_ = NULL;
             }
+        }
+    }
+
+    // Wait for the cancellation to finish up. libusb seems to cancel
+    // one transfer per call to libusb_handle_events_timeout, so make the
+    // retries take that into account and add slack.
+    retries = canceledCount * 3;
+    while (canceledCount > 0 && retries > 0) {
+        struct timeval tv;
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 100000;
+
+        rc = libusb_handle_events_timeout(freespace_libusb_context, &tv);
+        if (rc != LIBUSB_SUCCESS) {
+            break;
+        }
+
+        for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
+            struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
+            if (rt->transfer_ != NULL && rt->submitted_ == 0) {
+                // Cancel completed.
+                libusb_free_transfer(rt->transfer_);
+                rt->transfer_ = NULL;
+                canceledCount--;
+            }
+        }
+
+        retries--;
+    }
+
+    // Force clean any left.
+    for (i = 0; i < FREESPACE_RECEIVE_QUEUE_SIZE; i++) {
+        struct FreespaceReceiveTransfer* rt = &device->receiveQueue_[i];
+        if (rt->transfer_ != NULL) {
+            libusb_free_transfer(rt->transfer_);
             rt->transfer_ = NULL;
-            rt->submitted_ = 0;
         }
     }
 
@@ -669,7 +716,6 @@ int freespace_flush(FreespaceDeviceId id) {
         }
 
         rt = &device->receiveQueue_[device->receiveQueueHead_];
-        printf("Flushed\n");
     }
 
     return FREESPACE_SUCCESS;
