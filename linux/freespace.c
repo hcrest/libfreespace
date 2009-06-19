@@ -94,8 +94,6 @@ struct FreespaceReceiveTransfer {
     // Synchronous interface usage for the state of the
     // queue.
     int submitted_;
-    int rc_;
-    int actualLength_;
 };
 
 struct FreespaceDevice {
@@ -388,7 +386,6 @@ int freespace_getDeviceInfo(FreespaceDeviceId id,
 static void receiveCallback(struct libusb_transfer* transfer) {
     struct FreespaceReceiveTransfer* rt = (struct FreespaceReceiveTransfer*) transfer->user_data;
     struct FreespaceDevice* device = rt->device_;
-    int rc;
 
     if (transfer->status == LIBUSB_TRANSFER_CANCELLED) {
         // Canceled.  This only happens when the receive callback
@@ -397,9 +394,9 @@ static void receiveCallback(struct libusb_transfer* transfer) {
         return;
     }
 
-    rc = libusb_transfer_status_to_freespace_error(transfer->status);
     if (device->receiveCallback_ != NULL) {
         // Using async interface, so call user back immediately.
+        int rc = libusb_transfer_status_to_freespace_error(transfer->status);
         device->receiveCallback_(device->id_, (const char*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
 
         // Re-submit the transfer for the to get the next receive going.
@@ -408,8 +405,6 @@ static void receiveCallback(struct libusb_transfer* transfer) {
     } else {
         // Using sync interface, so queue.
         rt->submitted_ = 0;
-        rt->rc_ = rc;
-        rt->actualLength_ = transfer->actual_length;
     }
 }
 
@@ -632,9 +627,9 @@ int freespace_read(FreespaceDeviceId id,
     }
 
     // Copy the message out.
-    memcpy(message, rt->buffer_, rt->actualLength_);
-    *actualLength = rt->actualLength_;
-    rc = rt->rc_;
+    *actualLength = rt->transfer_->actual_length;
+    memcpy(message, rt->buffer_, *actualLength);
+    rc = libusb_transfer_status_to_freespace_error(rt->transfer_->status);
 
     // Resubmit the transfer
     rt->submitted_ = 1;
