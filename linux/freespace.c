@@ -27,7 +27,7 @@
 #include <poll.h>
 #include <string.h>
 
-#define FREESPACE_RECEIVE_QUEUE_SIZE 10 /* Just needs to be >8 to be able to drain the HW queues in one go around */
+#define FREESPACE_RECEIVE_QUEUE_SIZE 8 // Could be tuned better. 3-4 might be good enough
 
 /**
  * Figure out which API to use depending on the reported
@@ -670,7 +670,11 @@ int freespace_read(FreespaceDeviceId id,
             // something on another device.
 
             // TODO: update tv with time left.
-        } while (rt->submitted_ != 0);
+        } while (rt->submitted_ != 0 && timeoutMs > 0);
+
+        if (rt->submitted_ != 0) {
+            return LIBUSB_ERROR_TIMEOUT;
+        }
     }
 
     // Copy the message out.
@@ -693,30 +697,40 @@ int freespace_flush(FreespaceDeviceId id) {
     struct FreespaceDevice* device = findDeviceById(id);
     struct FreespaceReceiveTransfer* rt;
     struct timeval tv;
+    int repeat;
+    int maxRepeats = FREESPACE_RECEIVE_QUEUE_SIZE * 2;
 
     if (device == NULL || device->state_ != FREESPACE_OPENED) {
         return FREESPACE_ERROR_NOT_FOUND;
     }
 
 
-    // Poll libusb to give it a chance to unload as many
-    // events as possible.
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-    libusb_handle_events_timeout(freespace_libusb_context, &tv);
+    // As long as there's work, try again.
+    do {
+        // Poll libusb to give it a chance to unload as many
+        // events as possible.
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        libusb_handle_events_timeout(freespace_libusb_context, &tv);
 
-    // Clear out our queue.
-    rt = &device->receiveQueue_[device->receiveQueueHead_];
-    while (rt->submitted_ == 0) {
-        rt->submitted_ = 1;
-        libusb_submit_transfer(rt->transfer_);
-        device->receiveQueueHead_++;
-        if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
-            device->receiveQueueHead_ = 0;
+        repeat = 0;
+
+        // Clear out our queue.
+        rt = &device->receiveQueue_[device->receiveQueueHead_];
+        while (rt->submitted_ == 0) {
+            rt->submitted_ = 1;
+            libusb_submit_transfer(rt->transfer_);
+            device->receiveQueueHead_++;
+            if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
+                device->receiveQueueHead_ = 0;
+            }
+
+            rt = &device->receiveQueue_[device->receiveQueueHead_];
+            repeat = 1;
         }
 
-        rt = &device->receiveQueue_[device->receiveQueueHead_];
-    }
+        maxRepeats--;
+    } while (repeat > 0 && maxRepeats > 0);
 
     return FREESPACE_SUCCESS;
 }
