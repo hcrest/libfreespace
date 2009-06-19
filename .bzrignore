@@ -44,3 +44,4 @@ win32/libfreespace.vcproj.*.user
 .project
 .pydevproject
 .cproject
+*.zip
