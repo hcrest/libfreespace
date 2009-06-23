@@ -68,7 +68,7 @@ extern "C" {
  */
 
 /* Define the types */
-#ifdef WIN32
+#ifdef _WIN32
 #include "win32_stdint.h"
 typedef void* FreespaceFileHandleType;
 

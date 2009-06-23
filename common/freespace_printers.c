@@ -134,7 +134,7 @@ LIBFREESPACE_API int freespace_printMouseMovementStr(char* dest, int maxlen, con
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "MouseMovement(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel);
 #else
     n = sprintf(dest, "MouseMovement(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel);
@@ -164,7 +164,7 @@ LIBFREESPACE_API int freespace_printConsumerControlStr(char* dest, int maxlen, c
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ConsumerControl(usageID=%d usageID11_8=%d numPad=%d functionButtons=%d)", s->usageID, s->usageID11_8, s->numPad, s->functionButtons);
 #else
     n = sprintf(dest, "ConsumerControl(usageID=%d usageID11_8=%d numPad=%d functionButtons=%d)", s->usageID, s->usageID11_8, s->numPad, s->functionButtons);
@@ -194,7 +194,7 @@ LIBFREESPACE_API int freespace_printKeyboardReportStr(char* dest, int maxlen, co
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "KeyboardReport(LCtrl=%d LShift=%d LAlt=%d LGui=%d RCtrl=%d RShift=%d RAlt=%d RGui=%d keyID=%d)", s->LCtrl, s->LShift, s->LAlt, s->LGui, s->RCtrl, s->RShift, s->RAlt, s->RGui, s->keyID);
 #else
     n = sprintf(dest, "KeyboardReport(LCtrl=%d LShift=%d LAlt=%d LGui=%d RCtrl=%d RShift=%d RAlt=%d RGui=%d keyID=%d)", s->LCtrl, s->LShift, s->LAlt, s->LGui, s->RCtrl, s->RShift, s->RAlt, s->RGui, s->keyID);
@@ -224,7 +224,7 @@ LIBFREESPACE_API int freespace_printCoprocessorOutReportStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "CoprocessorOutReport(payloadLength=%d)", s->payloadLength);
 #else
     n = sprintf(dest, "CoprocessorOutReport(payloadLength=%d)", s->payloadLength);
@@ -254,7 +254,7 @@ LIBFREESPACE_API int freespace_printCoprocessorInReportStr(char* dest, int maxle
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "CoprocessorInReport(payloadLength=%d)", s->payloadLength);
 #else
     n = sprintf(dest, "CoprocessorInReport(payloadLength=%d)", s->payloadLength);
@@ -284,7 +284,7 @@ LIBFREESPACE_API int freespace_printConfigurationMessageStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ConfigurationMessage(SDA=%d)", s->SDA);
 #else
     n = sprintf(dest, "ConfigurationMessage(SDA=%d)", s->SDA);
@@ -314,7 +314,7 @@ LIBFREESPACE_API int freespace_printFactoryCalibrationReadRequestStr(char* dest,
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FactoryCalibrationReadRequest(wordOffsetRequested=%d)", s->wordOffsetRequested);
 #else
     n = sprintf(dest, "FactoryCalibrationReadRequest(wordOffsetRequested=%d)", s->wordOffsetRequested);
@@ -344,7 +344,7 @@ LIBFREESPACE_API int freespace_printDongleResetStr(char* dest, int maxlen, const
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "DongleReset(loaderKey=%d)", s->loaderKey);
 #else
     n = sprintf(dest, "DongleReset(loaderKey=%d)", s->loaderKey);
@@ -374,7 +374,7 @@ LIBFREESPACE_API int freespace_printFTDongleStatusRequestStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FTDongleStatusRequest(power=%d reset=%d presence=%d operation=%d)", s->power, s->reset, s->presence, s->operation);
 #else
     n = sprintf(dest, "FTDongleStatusRequest(power=%d reset=%d presence=%d operation=%d)", s->power, s->reset, s->presence, s->operation);
@@ -404,7 +404,7 @@ LIBFREESPACE_API int freespace_printZebraSystemTestStr(char* dest, int maxlen, c
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ZebraSystemTest(reset=%d mode=%d pcSequence=%d)", s->reset, s->mode, s->pcSequence);
 #else
     n = sprintf(dest, "ZebraSystemTest(reset=%d mode=%d pcSequence=%d)", s->reset, s->mode, s->pcSequence);
@@ -434,7 +434,7 @@ LIBFREESPACE_API int freespace_printLoopLEDSetRequestStr(char* dest, int maxlen,
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "LoopLEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
 #else
     n = sprintf(dest, "LoopLEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
@@ -464,7 +464,7 @@ LIBFREESPACE_API int freespace_printFrequencyFixRequestStr(char* dest, int maxle
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
 #else
     n = sprintf(dest, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
@@ -494,7 +494,7 @@ LIBFREESPACE_API int freespace_printSoftwareResetMessageStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "SoftwareResetMessage(device=%d)", s->device);
 #else
     n = sprintf(dest, "SoftwareResetMessage(device=%d)", s->device);
@@ -524,7 +524,7 @@ LIBFREESPACE_API int freespace_printDongleRFSupressHomeFrequencyMessageStr(char*
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
 #else
     n = sprintf(dest, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
@@ -554,7 +554,7 @@ LIBFREESPACE_API int freespace_printSPIOperationMessageStr(char* dest, int maxle
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "SPIOperationMessage(byte0=%d byte1=%d byte2=%d byte3=%d byte4=%d byte5=%d)", s->byte0, s->byte1, s->byte2, s->byte3, s->byte4, s->byte5);
 #else
     n = sprintf(dest, "SPIOperationMessage(byte0=%d byte1=%d byte2=%d byte3=%d byte4=%d byte5=%d)", s->byte0, s->byte1, s->byte2, s->byte3, s->byte4, s->byte5);
@@ -584,7 +584,7 @@ LIBFREESPACE_API int freespace_printEventReportConfigSetRequestStr(char* dest, i
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "EventReportConfigSetRequest(intc=%d xyMov=%d acSt=%d reset=%d motDr=%d wom=%d motOv=%d acEv=%d sdaDr=%d sdaOv=%d cfgSt=%d)", s->intc, s->xyMov, s->acSt, s->reset, s->motDr, s->wom, s->motOv, s->acEv, s->sdaDr, s->sdaOv, s->cfgSt);
 #else
     n = sprintf(dest, "EventReportConfigSetRequest(intc=%d xyMov=%d acSt=%d reset=%d motDr=%d wom=%d motOv=%d acEv=%d sdaDr=%d sdaOv=%d cfgSt=%d)", s->intc, s->xyMov, s->acSt, s->reset, s->motDr, s->wom, s->motOv, s->acEv, s->sdaDr, s->sdaOv, s->cfgSt);
@@ -614,7 +614,7 @@ LIBFREESPACE_API int freespace_printUnknownCRSNotificationStr(char* dest, int ma
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "UnknownCRSNotification(unknownReportID=%d unknownSubMessageID=%d)", s->unknownReportID, s->unknownSubMessageID);
 #else
     n = sprintf(dest, "UnknownCRSNotification(unknownReportID=%d unknownSubMessageID=%d)", s->unknownReportID, s->unknownSubMessageID);
@@ -644,7 +644,7 @@ LIBFREESPACE_API int freespace_printFRSLoopReadRequestStr(char* dest, int maxlen
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSLoopReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
 #else
     n = sprintf(dest, "FRSLoopReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
@@ -674,7 +674,7 @@ LIBFREESPACE_API int freespace_printFRSLoopWriteRequestStr(char* dest, int maxle
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSLoopWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
 #else
     n = sprintf(dest, "FRSLoopWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
@@ -704,7 +704,7 @@ LIBFREESPACE_API int freespace_printFRSLoopWriteDataStr(char* dest, int maxlen, 
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSLoopWriteData(wordOffset=%d)", s->wordOffset);
 #else
     n = sprintf(dest, "FRSLoopWriteData(wordOffset=%d)", s->wordOffset);
@@ -734,7 +734,7 @@ LIBFREESPACE_API int freespace_printFRSDongleReadRequestStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSDongleReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
 #else
     n = sprintf(dest, "FRSDongleReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
@@ -764,7 +764,7 @@ LIBFREESPACE_API int freespace_printFRSDongleWriteRequestStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSDongleWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
 #else
     n = sprintf(dest, "FRSDongleWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
@@ -794,7 +794,7 @@ LIBFREESPACE_API int freespace_printFRSDongleWriteDataStr(char* dest, int maxlen
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSDongleWriteData(wordOffset=%d)", s->wordOffset);
 #else
     n = sprintf(dest, "FRSDongleWriteData(wordOffset=%d)", s->wordOffset);
@@ -824,7 +824,7 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadRequestStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
 #else
     n = sprintf(dest, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d)", s->wordOffset, s->FRStype);
@@ -854,7 +854,7 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteRequestStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSEFlashWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
 #else
     n = sprintf(dest, "FRSEFlashWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
@@ -884,7 +884,7 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteDataStr(char* dest, int maxlen
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSEFlashWriteData(wordOffset=%d)", s->wordOffset);
 #else
     n = sprintf(dest, "FRSEFlashWriteData(wordOffset=%d)", s->wordOffset);
@@ -914,7 +914,7 @@ LIBFREESPACE_API int freespace_printLoopBootloaderCommandStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "LoopBootloaderCommand(loaderKeyCommand=%d)", s->loaderKeyCommand);
 #else
     n = sprintf(dest, "LoopBootloaderCommand(loaderKeyCommand=%d)", s->loaderKeyCommand);
@@ -944,7 +944,7 @@ LIBFREESPACE_API int freespace_printGen4SDAFormatStr(char* dest, int maxlen, con
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "Gen4SDAFormat(reportCount=%d left=%d right=%d scroll=%d hold=%d triangle=%d deltaWheel=%d accelX=%d accelY=%d accelZ=%d rotationX=%d rotationY=%d rotationZ=%d xMov=%d yMov=%d sampleBase=%d command=%d)", s->reportCount, s->left, s->right, s->scroll, s->hold, s->triangle, s->deltaWheel, s->accelX, s->accelY, s->accelZ, s->rotationX, s->rotationY, s->rotationZ, s->xMov, s->yMov, s->sampleBase, s->command);
 #else
     n = sprintf(dest, "Gen4SDAFormat(reportCount=%d left=%d right=%d scroll=%d hold=%d triangle=%d deltaWheel=%d accelX=%d accelY=%d accelZ=%d rotationX=%d rotationY=%d rotationZ=%d xMov=%d yMov=%d sampleBase=%d command=%d)", s->reportCount, s->left, s->right, s->scroll, s->hold, s->triangle, s->deltaWheel, s->accelX, s->accelY, s->accelZ, s->rotationX, s->rotationY, s->rotationZ, s->xMov, s->yMov, s->sampleBase, s->command);
@@ -974,7 +974,7 @@ LIBFREESPACE_API int freespace_printFactoryCalibrationReadDataStr(char* dest, in
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FactoryCalibrationReadData(wordOffset=%d dataLength=%d)", s->wordOffset, s->dataLength);
 #else
     n = sprintf(dest, "FactoryCalibrationReadData(wordOffset=%d dataLength=%d)", s->wordOffset, s->dataLength);
@@ -1004,7 +1004,7 @@ LIBFREESPACE_API int freespace_printFTDongleStatusResponseStr(char* dest, int ma
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FTDongleStatusResponse(power=%d reset=%d presence=%d status=%d)", s->power, s->reset, s->presence, s->status);
 #else
     n = sprintf(dest, "FTDongleStatusResponse(power=%d reset=%d presence=%d status=%d)", s->power, s->reset, s->presence, s->status);
@@ -1034,7 +1034,7 @@ LIBFREESPACE_API int freespace_printStatisticsResponseStr(char* dest, int maxlen
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "StatisticsResponse(stackSpace=%d runTime=%d)", s->stackSpace, s->runTime);
 #else
     n = sprintf(dest, "StatisticsResponse(stackSpace=%d runTime=%d)", s->stackSpace, s->runTime);
@@ -1064,7 +1064,7 @@ LIBFREESPACE_API int freespace_printZebraSystemTestResponseStr(char* dest, int m
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ZebraSystemTestResponse(reset=%d mode=%d pcSequence=%d dongleOutSequence=%d rfSequence=%d dongleInSequence=%d)", s->reset, s->mode, s->pcSequence, s->dongleOutSequence, s->rfSequence, s->dongleInSequence);
 #else
     n = sprintf(dest, "ZebraSystemTestResponse(reset=%d mode=%d pcSequence=%d dongleOutSequence=%d rfSequence=%d dongleInSequence=%d)", s->reset, s->mode, s->pcSequence, s->dongleOutSequence, s->rfSequence, s->dongleInSequence);
@@ -1094,7 +1094,7 @@ LIBFREESPACE_API int freespace_printProductIDResponseStr(char* dest, int maxlen,
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d hwPlatformID=%d hwRevision=%d serialNumber=%d deviceClass=%d invalidNS=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->hwPlatformID, s->hwRevision, s->serialNumber, s->deviceClass, s->invalidNS);
 #else
     n = sprintf(dest, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d hwPlatformID=%d hwRevision=%d serialNumber=%d deviceClass=%d invalidNS=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->hwPlatformID, s->hwRevision, s->serialNumber, s->deviceClass, s->invalidNS);
@@ -1124,7 +1124,7 @@ LIBFREESPACE_API int freespace_printLinkStatusStr(char* dest, int maxlen, const 
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "LinkStatus(status=%d mode=%d resetStatus=%d)", s->status, s->mode, s->resetStatus);
 #else
     n = sprintf(dest, "LinkStatus(status=%d mode=%d resetStatus=%d)", s->status, s->mode, s->resetStatus);
@@ -1154,7 +1154,7 @@ LIBFREESPACE_API int freespace_printSPIOperationResponseStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "SPIOperationResponse(byte0=%d byte1=%d byte2=%d byte3=%d byte4=%d byte5=%d byte6=%d byte7=%d byte8=%d byte9=%d byte10=%d byte11=%d byte12=%d byte13=%d byte14=%d byte15=%d byte16=%d byte17=%d byte18=%d byte19=%d byte20=%d byte21=%d byte22=%d byte23=%d length=%d)", s->byte0, s->byte1, s->byte2, s->byte3, s->byte4, s->byte5, s->byte6, s->byte7, s->byte8, s->byte9, s->byte10, s->byte11, s->byte12, s->byte13, s->byte14, s->byte15, s->byte16, s->byte17, s->byte18, s->byte19, s->byte20, s->byte21, s->byte22, s->byte23, s->length);
 #else
     n = sprintf(dest, "SPIOperationResponse(byte0=%d byte1=%d byte2=%d byte3=%d byte4=%d byte5=%d byte6=%d byte7=%d byte8=%d byte9=%d byte10=%d byte11=%d byte12=%d byte13=%d byte14=%d byte15=%d byte16=%d byte17=%d byte18=%d byte19=%d byte20=%d byte21=%d byte22=%d byte23=%d length=%d)", s->byte0, s->byte1, s->byte2, s->byte3, s->byte4, s->byte5, s->byte6, s->byte7, s->byte8, s->byte9, s->byte10, s->byte11, s->byte12, s->byte13, s->byte14, s->byte15, s->byte16, s->byte17, s->byte18, s->byte19, s->byte20, s->byte21, s->byte22, s->byte23, s->length);
@@ -1184,7 +1184,7 @@ LIBFREESPACE_API int freespace_printEventReportConfigurationResponseStr(char* de
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "EventReportConfigurationResponse(intc=%d xyMov=%d acSt=%d reset=%d motDr=%d wom=%d motOv=%d acEv=%d sdaDr=%d sdaOv=%d cfgSt=%d)", s->intc, s->xyMov, s->acSt, s->reset, s->motDr, s->wom, s->motOv, s->acEv, s->sdaDr, s->sdaOv, s->cfgSt);
 #else
     n = sprintf(dest, "EventReportConfigurationResponse(intc=%d xyMov=%d acSt=%d reset=%d motDr=%d wom=%d motOv=%d acEv=%d sdaDr=%d sdaOv=%d cfgSt=%d)", s->intc, s->xyMov, s->acSt, s->reset, s->motDr, s->wom, s->motOv, s->acEv, s->sdaDr, s->sdaOv, s->cfgSt);
@@ -1214,7 +1214,7 @@ LIBFREESPACE_API int freespace_printEventReportStr(char* dest, int maxlen, const
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "EventReport(register0=%d register1=%d register2=%d register3=%d register4=%d register5=%d register6=%d register7=%d)", s->register0, s->register1, s->register2, s->register3, s->register4, s->register5, s->register6, s->register7);
 #else
     n = sprintf(dest, "EventReport(register0=%d register1=%d register2=%d register3=%d register4=%d register5=%d register6=%d register7=%d)", s->register0, s->register1, s->register2, s->register3, s->register4, s->register5, s->register6, s->register7);
@@ -1244,7 +1244,7 @@ LIBFREESPACE_API int freespace_printUnknownCRSNotificationResponseStr(char* dest
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "UnknownCRSNotificationResponse(unknownReportID=%d unknownSubMessageID=%d)", s->unknownReportID, s->unknownSubMessageID);
 #else
     n = sprintf(dest, "UnknownCRSNotificationResponse(unknownReportID=%d unknownSubMessageID=%d)", s->unknownReportID, s->unknownSubMessageID);
@@ -1274,7 +1274,7 @@ LIBFREESPACE_API int freespace_printFRSLoopReadResponseStr(char* dest, int maxle
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSLoopReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
 #else
     n = sprintf(dest, "FRSLoopReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
@@ -1304,7 +1304,7 @@ LIBFREESPACE_API int freespace_printFRSLoopWriteResponseStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
     n = sprintf(dest, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
@@ -1334,7 +1334,7 @@ LIBFREESPACE_API int freespace_printFRSDongleReadResponseStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSDongleReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
 #else
     n = sprintf(dest, "FRSDongleReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
@@ -1364,7 +1364,7 @@ LIBFREESPACE_API int freespace_printFRSDongleWriteResponseStr(char* dest, int ma
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
     n = sprintf(dest, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
@@ -1394,7 +1394,7 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadResponseStr(char* dest, int max
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSEFlashReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
 #else
     n = sprintf(dest, "FRSEFlashReadResponse(wordOffset=%d status=%d dataLength=%d)", s->wordOffset, s->status, s->dataLength);
@@ -1424,7 +1424,7 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteResponseStr(char* dest, int ma
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
     n = sprintf(dest, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
@@ -1454,7 +1454,7 @@ LIBFREESPACE_API int freespace_printFSP2CoprocessorMessageStr(char* dest, int ma
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "FSP2CoprocessorMessage(length=%d)", s->length);
 #else
     n = sprintf(dest, "FSP2CoprocessorMessage(length=%d)", s->length);
@@ -1484,7 +1484,7 @@ LIBFREESPACE_API int freespace_printLoopBootloaderStatusStr(char* dest, int maxl
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "LoopBootloaderStatus(normalLaunch=%d internalAppValid=%d internalAppNotValid=%d flashProtectionChanged=%d upgradeStarted=%d validateStarted=%d errorOccured=%d errorCode=%d)", s->normalLaunch, s->internalAppValid, s->internalAppNotValid, s->flashProtectionChanged, s->upgradeStarted, s->validateStarted, s->errorOccured, s->errorCode);
 #else
     n = sprintf(dest, "LoopBootloaderStatus(normalLaunch=%d internalAppValid=%d internalAppNotValid=%d flashProtectionChanged=%d upgradeStarted=%d validateStarted=%d errorOccured=%d errorCode=%d)", s->normalLaunch, s->internalAppValid, s->internalAppNotValid, s->flashProtectionChanged, s->upgradeStarted, s->validateStarted, s->errorOccured, s->errorCode);
@@ -1514,7 +1514,7 @@ LIBFREESPACE_API int freespace_printBatteryLevelStr(char* dest, int maxlen, cons
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "BatteryLevel(batteryStrength=%d)", s->batteryStrength);
 #else
     n = sprintf(dest, "BatteryLevel(batteryStrength=%d)", s->batteryStrength);
@@ -1544,7 +1544,7 @@ LIBFREESPACE_API int freespace_printBodyFrameStr(char* dest, int maxlen, const s
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
 #else
     n = sprintf(dest, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
@@ -1574,7 +1574,7 @@ LIBFREESPACE_API int freespace_printUserFrameStr(char* dest, int maxlen, const s
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
 #else
     n = sprintf(dest, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
@@ -1604,7 +1604,7 @@ LIBFREESPACE_API int freespace_printDataMotionControlStr(char* dest, int maxlen,
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
 #else
     n = sprintf(dest, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
@@ -1634,7 +1634,7 @@ LIBFREESPACE_API int freespace_printButtonStateStr(char* dest, int maxlen, const
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ButtonState(leftButton=%d rightButton=%d scrollButton=%d park=%d)", s->leftButton, s->rightButton, s->scrollButton, s->park);
 #else
     n = sprintf(dest, "ButtonState(leftButton=%d rightButton=%d scrollButton=%d park=%d)", s->leftButton, s->rightButton, s->scrollButton, s->park);
@@ -1664,7 +1664,7 @@ LIBFREESPACE_API int freespace_printScrollMotionStr(char* dest, int maxlen, cons
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "ScrollMotion(deltaWheel=%d)", s->deltaWheel);
 #else
     n = sprintf(dest, "ScrollMotion(deltaWheel=%d)", s->deltaWheel);

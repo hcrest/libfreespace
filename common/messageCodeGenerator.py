@@ -42,7 +42,7 @@ class MessageCodeGenerator:
         codecsCFile = open("freespace_codecs.c", "w")
         self.writeCFileHeader(codecsCFile, 'freespace_codecs')
         codecsCFile.write('#include <stdio.h>\n')
-        codecsCFile.write('\n#ifdef WIN32\n')
+        codecsCFile.write('\n#ifdef _WIN32\n')
         codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
         codecsCFile.write('#else\n')
         codecsCFile.write('#define STRICT_DECODE_LENGTH -1\n')
@@ -623,7 +623,7 @@ LIBFREESPACE_API int freespace_print%(name)sStr(char* dest, int maxlen, const st
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
-#ifdef WIN32
+#ifdef _WIN32
     n = sprintf_s(dest, maxlen, "%(name)s('''%{'name':message.name})
     printStrHelper(message, outFile)
     outFile.write('''
