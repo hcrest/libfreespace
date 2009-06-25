@@ -8,7 +8,7 @@ Requirements for building and running libfreespace on OS X:
 
 
 To install the FreespaceLoopDriver:
-    Copy libfreespace/osx/FreespaceLoopDriver.osx to /System/Library/Extensions/
+    Copy libfreespace/osx/FreespaceLoopDriver.kext to /System/Library/Extensions/
        - You will need Adminstrator access for this step.
     Restart computer
 
