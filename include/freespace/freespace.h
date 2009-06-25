@@ -29,8 +29,8 @@ extern "C" {
  * Freespace(r) C API
  */
 
-#define FREESPACE_MAX_INPUT_MESSAGE_SIZE 100
-#define FREESPACE_MAX_OUTPUT_MESSAGE_SIZE 100
+#define FREESPACE_MAX_INPUT_MESSAGE_SIZE 64
+#define FREESPACE_MAX_OUTPUT_MESSAGE_SIZE 64
 #define FREESPACE_MAXIMUM_DEVICE_COUNT 128
 
 /**
@@ -69,7 +69,10 @@ extern "C" {
 
 /* Define the types */
 #ifdef WIN32
+#ifdef _MSC_VER
 #include "win32_stdint.h"
+#endif
+
 typedef void* FreespaceFileHandleType;
 
 // All files within this DLL are compiled with the LIBFREESPACE_EXPORTS
