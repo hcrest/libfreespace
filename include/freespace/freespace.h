@@ -242,7 +242,7 @@ LIBFREESPACE_API int freespace_init();
  * Return a human readable string with the version of libfreespace
  * being used.
  *
- * @return FREESPACE_SUCCESS on success
+ * @return version string
  */
 LIBFREESPACE_API const char* freespace_version();
 

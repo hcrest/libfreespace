@@ -1,6 +1,9 @@
 @echo off
 
+REM Update config-win32.h and the line below when the version changes.
 SET RELEASE_VERSION=0.3rc2
+
+
 SET WORKDIR=libfreespace
 SET ZIPNAME=libfreespace-%RELEASE_VERSION%-win32
 
