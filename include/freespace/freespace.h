@@ -96,7 +96,7 @@ typedef int FreespaceDeviceId;
 
 struct FreespaceDeviceInfo {
     /** The user-meaningful name for the device. */
-    const char*    name;
+    const char* name;
 
     /** Device vendor ID code */
     uint16_t vendor;
@@ -221,14 +221,16 @@ typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
 typedef void (*freespace_pollfdAddedCallback)(FreespaceFileHandleType fd, short events);
 
 /** @ingroup async
- * Callback for when file descriptors should be removed from
- * the poll or select fd sets
+ *
+ * Callback for when file descriptors should be removed from the poll
+ * or select fd sets
  *
  * @param fd the file descriptor
  */
 typedef void (*freespace_pollfdRemovedCallback)(FreespaceFileHandleType fd);
 
 /** @ingroup initialization
+ *
  * Initialize the Freespace library.
  *
  * @return FREESPACE_SUCCESS on success
@@ -236,22 +238,33 @@ typedef void (*freespace_pollfdRemovedCallback)(FreespaceFileHandleType fd);
 LIBFREESPACE_API int freespace_init();
 
 /** @ingroup initialization
+ *
+ * Return a human readable string with the version of libfreespace
+ * being used.
+ *
+ * @return FREESPACE_SUCCESS on success
+ */
+LIBFREESPACE_API const char* freespace_version();
+
+/** @ingroup initialization
+ *
  * Finalize the Freespace library.
  */
 LIBFREESPACE_API void freespace_exit();
 
 /** @ingroup discovery
+ *
  * Set a callback for whenever a Freespace device gets added or
- * removed from the system. This is only called when using
- * the asynchronous API functions. Synchronous API users can
- * call freespace_getDeviceList() periodically to discover
- * device insertions or freespace_perform() if they want
- * hotplug event callbacks.
+ * removed from the system. This is only called when using the
+ * asynchronous API functions. Synchronous API users can call
+ * freespace_getDeviceList() periodically to discover device
+ * insertions or freespace_perform() if they want hotplug event
+ * callbacks.
  *
  * Note: The device list is only rescanned on calls to
  * freespace_getDeviceList() and freespace_perform(), so registering a
- * callback between freespace_init() and either of those calls will cause
- * the callback to be called for all existing devices.
+ * callback between freespace_init() and either of those calls will
+ * cause the callback to be called for all existing devices.
  *
  * @param callback the hotplug callback or NULL to stop callbacks.
  * @param cookie user data
@@ -261,6 +274,7 @@ LIBFREESPACE_API int freespace_setDeviceHotplugCallback(freespace_hotplugCallbac
                                                         void* cookie);
 
 /** @ingroup discovery
+ *
  * Get the list of attached devices.
  *
  * @param list where to store the list of inserted devices
@@ -273,6 +287,7 @@ LIBFREESPACE_API int freespace_getDeviceList(FreespaceDeviceId* list,
                                              int* listSizeOut);
 
 /** @ingroup device
+ *
  * Return information about the Freespace device.
  *
  * @param id which device
@@ -283,10 +298,11 @@ LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id,
                                              struct FreespaceDeviceInfo* info);
 
 /** @ingroup device
+ *
  * Open a Freespace device for use. A device must be in the opened
  * state before most other commands in this API can be called. This
- * internally allocates the resources needed to communicate with
- * the device. freespace_closeDevice frees those resources.
+ * internally allocates the resources needed to communicate with the
+ * device. freespace_closeDevice frees those resources.
  *
  * @param id The FreespaceDeviceID of an attached device to open
  * @return FREESPACE_SUCCESS if no errors
@@ -294,6 +310,7 @@ LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id,
 LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id);
 
 /** @ingroup synchronous
+ *
  * Send a message to the specified Freespace device synchronously.
  *
  * @param id the FreespaceDeviceId of the device to send message to
@@ -306,9 +323,9 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
                                     int length);
 
 /** @ingroup synchronous
- * Read a message from the specified device.  This function
- * blocks until a message is received, there's a timeout or
- * an error.
+ *
+ * Read a message from the specified device.  This function blocks
+ * until a message is received, there's a timeout or an error.
  *
  * @param id the FreespaceDeviceId of the device to read from
  * @param message where to put the received message
@@ -324,11 +341,13 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
                                     int* actualLength);
 
 /** @ingroup synchronous
+ *
  * Flush all of the messages out of any receive queues.  libfreespace
  * doesn't have a receive queue, but some of the lower levels do and
- * messages can queue up.  If enough queue up, messages can be dropped.
- * This is only a problem for the first messages assuming that the
- * application regularly calls freespace_read or has a receive callback.
+ * messages can queue up.  If enough queue up, messages can be
+ * dropped.  This is only a problem for the first messages assuming
+ * that the application regularly calls freespace_read or has a
+ * receive callback.
  *
  * @param id the FreespaceDeviceId of the device whose messages should be flushed
  * @return FREESPACE_SUCCESS or an error
@@ -336,6 +355,7 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
 LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id);
 
 /** @ingroup async
+ *
  * Register a callback function to handle received HID messages.
  *
  * @param id the FreespaceDeviceId of the device
@@ -348,6 +368,7 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
                                                   void* cookie);
 
 /** @ingroup async
+ *
  * Send a message to the specified Freespace device, but do not block.
  *
  * @param id the FreespaceDeviceId of the device to send message to
@@ -366,6 +387,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
                                          void* cookie);
 
 /** @ingroup async
+ *
  * Get the next timeout for a call to select or poll.
  *
  * @param timeoutMsOut where to store the timeout (<0 is infinite)
@@ -374,14 +396,16 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
 LIBFREESPACE_API int freespace_getNextTimeout(int* timeoutMsOut);
 
 /** @ingroup async
- * After select or poll returns, call this to allow libfreespace
- * to service all of its active file descriptors.
+ *
+ * After select or poll returns, call this to allow libfreespace to
+ * service all of its active file descriptors.
  *
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_perform();
 
 /** @ingroup async
+ *
  * Set callback functions for when file descriptors need to be added
  * or removed from the select/poll list.
  *
@@ -390,17 +414,20 @@ LIBFREESPACE_API int freespace_perform();
  */
 LIBFREESPACE_API void freespace_setFileDescriptorCallbacks(freespace_pollfdAddedCallback addedCallback,
                                                            freespace_pollfdRemovedCallback removedCallback);
+
 /** @ingroup async
- * Call the file descriptor added callback function for each
- * internal file descriptor that is in use. This should be called
- * after freespace_setFileDescriptorCallbacks so that the app
- * can get in sync with the current active set.
+ *
+ * Call the file descriptor added callback function for each internal
+ * file descriptor that is in use. This should be called after
+ * freespace_setFileDescriptorCallbacks so that the app can get in
+ * sync with the current active set.
  *
  * @return FREESPACE_SUCCESS on success
  */
 LIBFREESPACE_API int freespace_syncFileDescriptors();
 
 /** @ingroup device
+ *
  * Close a Freespace device.
  *
  * @param id the Freespace device id to close
