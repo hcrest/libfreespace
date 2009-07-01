@@ -24,6 +24,7 @@
 #include "freespace_discoveryDetail.h"
 #include <strsafe.h>
 #include <malloc.h>
+#include "../config-win32.h"
 
 //#define FREESPACE_DISCOVERY_DEBUG
 struct LibfreespaceData* freespace_instance_ = NULL;
@@ -45,6 +46,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
             break;
 	}
     return TRUE;
+}
+
+LIBFREESPACE_API const char* freespace_version() {
+	return VERSION;
 }
 
 LIBFREESPACE_API int freespace_init() {

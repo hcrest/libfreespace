@@ -20,6 +20,7 @@
 
 #include "../include/freespace/freespace.h"
 #include "hotplug.h"
+#include "../config.h"
 
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
@@ -168,6 +169,10 @@ static int libusb_transfer_status_to_freespace_error(enum libusb_transfer_status
     case LIBUSB_TRANSFER_OVERFLOW: return FREESPACE_ERROR_UNEXPECTED; // libfreespace should protect against this.
     default: return FREESPACE_ERROR_UNEXPECTED;
     }
+}
+
+const char* freespace_version() {
+    return VERSION;
 }
 
 int freespace_init() {

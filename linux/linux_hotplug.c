@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #define FREESPACE_HOTPLUG_SETTLING_TIME 100 /*ms*/
 
@@ -51,12 +52,21 @@ int freespace_hotplug_init() {
     }
 
     // Set the group and bind
+    memset(&snl, 0, sizeof(struct sockaddr_nl));
     snl.nl_family = AF_NETLINK;
     snl.nl_groups = 1;
     rc = bind(sock, (struct sockaddr *)&snl, sizeof(struct sockaddr_nl));
     if (rc < 0) {
+    	if (errno == EPERM) {
+	    // Running with a kernel that doesn't allow non-root users
+	    // to listen to uevents.
+	    // See http://git.kernel.org/?p=linux/kernel/git/gregkh/patches.git;a=blob;f=driver-core.current/driver-core-allow-non-root-users-to-listen-to-uevents.patch;h=ffcbd172f43c5cca6ece0294deb7c88cac8cf641;hb=b4a8f06022ecf4c5c279a61de89a1d3758e08e0e
+	    rc = FREESPACE_ERROR_ACCESS;
+	} else {
+	    rc = FREESPACE_ERROR_UNEXPECTED;
+        }
         close(sock);
-        return FREESPACE_ERROR_UNEXPECTED;
+        return rc;
     }
 
     // Enable credential receiving
