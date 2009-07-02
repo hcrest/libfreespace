@@ -9,6 +9,8 @@ Create python binding
 Create Java binding
 Do we need a separate package for utilities?  I.e. how often will these be installed?
 
+OSX - Distribute universal binaries
+
 Utilities:
 
 ---
