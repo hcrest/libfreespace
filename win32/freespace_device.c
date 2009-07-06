@@ -463,6 +463,7 @@ int initializeSendStruct(struct FreespaceSendStruct* send) {
 
 int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL doClose) {
     send->interface_ = NULL;
+    ResetEvent(send->overlapped_.hEvent);
     if (doClose) {
         // Close the overlapped report event.
         CloseHandle(send->overlapped_.hEvent);
