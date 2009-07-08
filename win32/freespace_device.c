@@ -32,7 +32,7 @@ const unsigned long HID_NUM_INPUT_BUFFERS = 128;
  * @param send The structure to initialize.
  * @return FREESPACE_SUCCESS if ok.
  */
-int initializeSendStruct(struct FreespaceSendStruct* send);
+static int initializeSendStruct(struct FreespaceSendStruct* send);
 
 /**
  * Finalize the send structure.
@@ -43,7 +43,7 @@ int initializeSendStruct(struct FreespaceSendStruct* send);
  * @param isExit True to close all open handles, false to recycle.
  * @return FREESPACE_SUCCESS
  */
-int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL isClose);
+static int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL isClose);
 
 
 int convertGetLastError() {
@@ -165,7 +165,7 @@ static int initiateAsyncReceives(struct FreespaceDeviceStruct* device) {
                 device->receiveCallback_(device->id_, NULL, 0, device->receiveCookie_, rc);
                 DEBUG_PRINTF("initiateAsyncReceives : Error on %d : %d\n", idx, GetLastError());
                 Sleep(0);
-                funcRc = FREESPACE_ERROR_INTERRUPTED;
+                funcRc = FREESPACE_ERROR_IO;
             }
         }
     }
@@ -235,7 +235,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
                 device->receiveCallback_(device->id_, NULL, 0, device->receiveCookie_, FREESPACE_ERROR_NO_DATA);
                 Sleep(0);
                 s->readStatus_ = FALSE;
-                // return FREESPACE_ERROR_INTERRUPTED;
+                // return FREESPACE_ERROR_IO;
             }
         }
     }
@@ -377,7 +377,7 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
     device->isOpened_ = FALSE;
 }
 
-int prepareSend(FreespaceDeviceId id, struct FreespaceSendStruct** sendOut, const char* report, int length) {
+static int prepareSend(FreespaceDeviceId id, struct FreespaceSendStruct** sendOut, const char* report, int length) {
     int idx;
     int retVal;
     struct FreespaceSubStruct* s;
@@ -438,7 +438,7 @@ int prepareSend(FreespaceDeviceId id, struct FreespaceSendStruct** sendOut, cons
     return send->rc_;
 }
 
-int initializeSendStruct(struct FreespaceSendStruct* send) {
+static int initializeSendStruct(struct FreespaceSendStruct* send) {
     if (send == NULL) {
         return FREESPACE_ERROR_BUSY;
     }
@@ -461,18 +461,20 @@ int initializeSendStruct(struct FreespaceSendStruct* send) {
     return FREESPACE_SUCCESS;
 }
 
-int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL doClose) {
+static int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL doClose) {
     send->interface_ = NULL;
     ResetEvent(send->overlapped_.hEvent);
     if (doClose) {
         // Close the overlapped report event.
         CloseHandle(send->overlapped_.hEvent);
         send->overlapped_.hEvent = NULL;
-    }
+	} else {
+	    ResetEvent(send->overlapped_.hEvent);
+	}
     return send->rc_;
 }
 
-int freespace_send_activate(struct FreespaceSendStruct* send) {
+static int freespace_send_activate(struct FreespaceSendStruct* send) {
     int retVal = 0;
     DWORD lastError = 0;
 
@@ -530,8 +532,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 
     if (lastError != WAIT_OBJECT_0) {
         // timed out
-        BOOL overlappedResult = GetOverlappedResult(
-                                                    send->interface_->handle_,
+        BOOL overlappedResult = GetOverlappedResult(send->interface_->handle_,
                                                     &send->overlapped_,
                                                     &send->numBytes_,
                                                     FALSE);
@@ -549,8 +550,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
         }
     } else {
         // success
-        BOOL overlappedResult = GetOverlappedResult(
-                                                    send->interface_->handle_,
+        BOOL overlappedResult = GetOverlappedResult(send->interface_->handle_,
                                                     &send->overlapped_,
                                                     &send->numBytes_,
                                                     TRUE);
@@ -572,7 +572,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 }
 
 LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const char* report,
+                                         const char* message,
                                          int length,
                                          unsigned int timeoutMs,
                                          freespace_sendCallback callback,
@@ -581,7 +581,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
     int retVal = 0;
     DWORD lastError = 0;
 
-    retVal = prepareSend(id, &send, report, length);
+    retVal = prepareSend(id, &send, message, length);
     if (retVal != FREESPACE_SUCCESS) {
         return retVal;
     }
@@ -591,7 +591,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
 
     // Send the message
     retVal = freespace_send_activate(send);
-    if (retVal != FREESPACE_ERROR_IO) {
+    if (retVal != FREESPACE_ERROR_IO) { // FAH: This looks wrong.
         return retVal;
     }
     return FREESPACE_SUCCESS;
@@ -636,7 +636,7 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
                 int rc = convertGetLastError();
                 DEBUG_PRINTF("freespace_read 1: Error on %d : %d\n", idx, GetLastError());
                 Sleep(0);
-                return FREESPACE_ERROR_INTERRUPTED;
+                return FREESPACE_ERROR_IO;
             }
             s->readStatus_ = TRUE;
         }
@@ -646,7 +646,7 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
     bResult = WaitForMultipleObjects(device->handleCount_, waitEvents, FALSE, timeoutMs);
     if (bResult == WAIT_FAILED) {
         DEBUG_PRINTF("Error from WaitForMultipleObjects\n");
-        return FREESPACE_ERROR_INTERRUPTED;
+        return FREESPACE_ERROR_IO;
     } else if (bResult == WAIT_TIMEOUT) {
         return FREESPACE_ERROR_TIMEOUT;
     }
@@ -671,11 +671,11 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
             DEBUG_PRINTF("freespace_read 2 : Error on %d : %d\n", idx, GetLastError());
             Sleep(0);
             s->readStatus_ = FALSE;
-            return FREESPACE_ERROR_INTERRUPTED;
+            return FREESPACE_ERROR_IO;
         }
     }
 
-    return FREESPACE_ERROR_INTERRUPTED;
+    return FREESPACE_ERROR_IO;
 }
 
 
