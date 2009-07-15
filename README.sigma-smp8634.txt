@@ -42,11 +42,14 @@ C. Building libfreespace-examples (requires libfreespace)
             -Wl,-rpath-link,<libfreespace install path>/lib" 
             
    The -rpath-link must be set before configuring or buildng because ld cannot resolve recursive dependencies when cross compiling.
-        
-4) Set LDFLAGS to include the path to the libfreespace libraries:
+
+4) Set LIBS to link with libpthread.  This is necessary or pthread's functions may default to no-ops in uClibc (this is a link ordering issue):
+        export LIBS="-lpthread"
+   
+5) Set LDFLAGS to include the path to the libfreespace libraries:
         export LDFLAGS="-L<libfreespace install path>/lib"
         
-5) Run "configure" and "make" with the appropriate host and prefix arguments:    
+6) Run "configure" and "make" with the appropriate host and prefix arguments:
         ./configure --host=mipsel-linux --prefix=<install path>
         
 Troubleshooting:
