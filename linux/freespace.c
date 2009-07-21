@@ -53,9 +53,17 @@ static struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc007, "FSRK Gen4 Dongle", 0 },
     { 0x1d5a, 0xc008, "FSRK3 SPI to USB adapter board (S)", 0 },
     { 0x1d5a, 0xc009, "FSRK3 Cascade RF to USB adapter board (R)", 0 },
-    { 0x1d5a, 0xc00a, "FSRK3 Co-processor to USB adapter test board (C)", 0 },
-    { 0x1d5a, 0xc00b, "FSRK3 Cascade RF to USB adapter board (R)", 1 },
-    { 0x1d5a, 0xc00c, "FSRK3 SPI to USB adapter board (S)", 1 },
+    { 0x1d5a, 0xc00a, "FSRK3 Co-processor to USB adapter test board (C), USB Composite device", 0 },
+    { 0x1d5a, 0xc00b, "FSRK3 Cascade RF to USB adapter board (R), USB Composite device", 1 },
+    { 0x1d5a, 0xc00c, "FSRK3 SPI to USB adapter board (S), USB Composite device", 1 },
+    { 0x1d5a, 0xc010, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc011, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer", 1 },
+    { 0x1d5a, 0xc012, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Keyboard", 1 },
+    { 0x1d5a, 0xc013, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer, Keyboard", 1 },
+    { 0x1d5a, 0xc020, "FSRK3 SPI to USB adapter (S), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc021, "FSRK3 SPI to USB adapter (S), Usages: Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc030, "FSRK3 Coprocessor adapter (C), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc031, "FSRK3 Coprocessor adapter (C), Usages: Vendor(Multi-axis)", 1 },
 };
 
 /**

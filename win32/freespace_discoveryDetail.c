@@ -64,9 +64,17 @@ static const struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc007, 4, 0xff01, windowsDeviceApiCallback, "FSRK Gen4 Dongle", 0 },
     { 0x1d5a, 0xc008, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter board v0", 0 },
     { 0x1d5a, 0xc009, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v0", 0 },
-    { 0x1d5a, 0xc00a, 4, 0xff01, windowsDeviceApiCallback, "Coprocessor to USB adapter v1", 0 },
-    { 0x1d5a, 0xc00b, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v1", 1 },
-    { 0x1d5a, 0xc00c, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter board v1", 1 },
+    { 0x1d5a, 0xc00a, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Co-processor to USB adapter test board (C), USB Composite device", 0 },
+    { 0x1d5a, 0xc00b, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Cascade RF to USB adapter board (R), USB Composite device", 1 },
+    { 0x1d5a, 0xc00c, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter board (S), USB Composite device", 1 },
+    { 0x1d5a, 0xc010, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc011, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer", 1 },
+    { 0x1d5a, 0xc012, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Keyboard", 1 },
+    { 0x1d5a, 0xc013, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer, Keyboard", 1 },
+    { 0x1d5a, 0xc020, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter (S), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc021, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter (S), Usages: Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc030, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Coprocessor adapter (C), Usages: Mouse, Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc031, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Coprocessor adapter (C), Usages: Vendor(Multi-axis)", 1 },
 };
 
 static WCHAR* dupeWCharString(const WCHAR* input) {
