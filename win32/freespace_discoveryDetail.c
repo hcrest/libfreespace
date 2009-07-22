@@ -51,30 +51,40 @@ struct FreespaceDeviceAPI {
     freespace_deviceApiCallback    callback_;
 
     const char* name_;
-    int controlInterfaceNumber_;
 };
 
+/*
+ * Naming convention:
+ *   UserMeaningfulName vN (XXXX)
+ *   N = USB interface version number
+ *   XXXX = Advertised interfaces:
+ *      M = Mouse
+ *      K = Keyboard
+ *      C = Consumer page
+ *      V = Joined multi-axis and vendor-specific
+ *      A = Separate multi-axis and vendor-specific (deprecated)
+ */
 static const struct FreespaceDeviceAPI deviceAPITable[] = {
-    { 0x1d5a, 0xc001, 4, 0xff01, windowsDeviceApiCallback, "Piranha", 0 },
-    { 0x1d5a, 0xc002, 0, 0, NULL, "Piranha bootloader", 0 },
-    { 0x1d5a, 0xc003, 4, 0xff01, windowsDeviceApiCallback, "Piranha factory test dongle", 0 },
-    { 0x1d5a, 0xc004, 4, 0xff01, NULL, "Piranha sniffer dongle", 0 },
-    { 0x1d5a, 0xc005, 4, 0xff01, windowsDeviceApiCallback, "FSRK STM32F10x eval board (E)", 0 },
-    { 0x1d5a, 0xc006, 0, 0, NULL, "Cortex Bootloader", 0 },
-    { 0x1d5a, 0xc007, 4, 0xff01, windowsDeviceApiCallback, "FSRK Gen4 Dongle", 0 },
-    { 0x1d5a, 0xc008, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter board v0", 0 },
-    { 0x1d5a, 0xc009, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v0", 0 },
-    { 0x1d5a, 0xc00a, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Co-processor to USB adapter test board (C), USB Composite device", 0 },
-    { 0x1d5a, 0xc00b, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Cascade RF to USB adapter board (R), USB Composite device", 1 },
-    { 0x1d5a, 0xc00c, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter board (S), USB Composite device", 1 },
-    { 0x1d5a, 0xc010, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc011, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer", 1 },
-    { 0x1d5a, 0xc012, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Keyboard", 1 },
-    { 0x1d5a, 0xc013, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer, Keyboard", 1 },
-    { 0x1d5a, 0xc020, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter (S), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc021, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 SPI to USB adapter (S), Usages: Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc030, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Coprocessor adapter (C), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc031, 4, 0xff01, windowsDeviceApiCallback, "FSRK3 Coprocessor adapter (C), Usages: Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc001, 4, 0xff01, windowsDeviceApiCallback, "Piranha"},
+    { 0x1d5a, 0xc002, 0, 0, NULL, "Piranha bootloader"},
+    { 0x1d5a, 0xc003, 4, 0xff01, windowsDeviceApiCallback, "Piranha factory test dongle"},
+    { 0x1d5a, 0xc004, 4, 0xff01, NULL, "Piranha sniffer dongle"},
+    { 0x1d5a, 0xc005, 4, 0xff01, windowsDeviceApiCallback, "FSRK STM32F10x eval board (E)"},
+    { 0x1d5a, 0xc006, 0, 0, NULL, "Cortex Bootloader"},
+    { 0x1d5a, 0xc007, 4, 0xff01, windowsDeviceApiCallback, "FSRK Gen4 Dongle"},
+    { 0x1d5a, 0xc008, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter board v0"},
+    { 0x1d5a, 0xc009, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v0"},
+    { 0x1d5a, 0xc00a, 4, 0xff01, windowsDeviceApiCallback, "Coprocessor to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc00b, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v1 (MKCA)"},
+    { 0x1d5a, 0xc00c, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc010, 4, 0xff01, NULL, "USB RF Transceiver v1 (MV)"},
+    { 0x1d5a, 0xc011, 4, 0xff01, NULL, "USB RF Transceiver v1 (MCV)"},
+    { 0x1d5a, 0xc012, 4, 0xff01, NULL, "USB RF Transceiver v1 (MKV)"},
+    { 0x1d5a, 0xc013, 4, 0xff01, NULL, "USB RF Transceiver v1 (MKCV)"},
+    { 0x1d5a, 0xc020, 4, 0xff01, NULL, "SPI to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc021, 4, 0xff01, NULL, "SPI to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc030, 4, 0xff01, NULL, "Coprocessor to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc031, 4, 0xff01, NULL, "Coprocessor to USB adapter v1 (V)"},
 };
 
 static WCHAR* dupeWCharString(const WCHAR* input) {
@@ -94,8 +104,8 @@ static WCHAR* dupeWCharString(const WCHAR* input) {
  */
 static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfaceInfo* info) {
     HIDD_ATTRIBUTES HIDAttrib;
-    HIDP_CAPS				Capabilities;
-    PHIDP_PREPARSED_DATA	HidParsedData;
+    HIDP_CAPS               Capabilities;
+    PHIDP_PREPARSED_DATA    HidParsedData;
     HANDLE hHandle;
 
     hHandle = CreateFile(devicePath,
@@ -226,7 +236,7 @@ int freespace_private_scanAndAddDevices() {
     int rc = FREESPACE_SUCCESS;
     struct FreespaceDeviceInterfaceInfo info;
     struct FreespaceDeviceStruct* device;
-    HDEVINFO hardwareDeviceInfo;				/* handle to structure containing all attached HID Device information */
+    HDEVINFO hardwareDeviceInfo;                /* handle to structure containing all attached HID Device information */
     PSP_DEVICE_INTERFACE_DETAIL_DATA functionClassDeviceData = NULL; /* device info data */
     SP_DEVICE_INTERFACE_DATA deviceInfoData;
     DWORD Index;

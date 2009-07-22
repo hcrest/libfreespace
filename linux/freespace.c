@@ -43,6 +43,17 @@ struct FreespaceDeviceAPI {
     int controlInterfaceNumber_;
 };
 
+/*
+ * Naming convention:
+ *   UserMeaningfulName vN (XXXX)
+ *   N = USB interface version number
+ *   XXXX = Advertised interfaces:
+ *      M = Mouse
+ *      K = Keyboard
+ *      C = Consumer page
+ *      V = Joined multi-axis and vendor-specific
+ *      A = Separate multi-axis and vendor-specific (deprecated)
+ */
 static struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc001, "Piranha", 0 },
     { 0x1d5a, 0xc002, "Piranha bootloader", 0 },
@@ -53,17 +64,17 @@ static struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc007, "FSRK Gen4 Dongle", 0 },
     { 0x1d5a, 0xc008, "FSRK3 SPI to USB adapter board (S)", 0 },
     { 0x1d5a, 0xc009, "FSRK3 Cascade RF to USB adapter board (R)", 0 },
-    { 0x1d5a, 0xc00a, "FSRK3 Co-processor to USB adapter test board (C), USB Composite device", 0 },
-    { 0x1d5a, 0xc00b, "FSRK3 Cascade RF to USB adapter board (R), USB Composite device", 1 },
-    { 0x1d5a, 0xc00c, "FSRK3 SPI to USB adapter board (S), USB Composite device", 1 },
-    { 0x1d5a, 0xc010, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc011, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer", 1 },
-    { 0x1d5a, 0xc012, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Keyboard", 1 },
-    { 0x1d5a, 0xc013, "FSRK3 RF adapter (R), Usages: Mouse, Vendor(Multi-axis), Consumer, Keyboard", 1 },
-    { 0x1d5a, 0xc020, "FSRK3 SPI to USB adapter (S), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc021, "FSRK3 SPI to USB adapter (S), Usages: Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc030, "FSRK3 Coprocessor adapter (C), Usages: Mouse, Vendor(Multi-axis)", 1 },
-    { 0x1d5a, 0xc031, "FSRK3 Coprocessor adapter (C), Usages: Vendor(Multi-axis)", 1 },
+    { 0x1d5a, 0xc00a, "Coprocessor to USB adapter v1 (MA)", 0 },
+    { 0x1d5a, 0xc00b, "USB RF Transceiver v1 (MKCA)", 1 },
+    { 0x1d5a, 0xc00c, "SPI to USB adapter v1 (MA)", 1 },
+    { 0x1d5a, 0xc010, "USB RF Transceiver v1 (MV)", 1 },
+    { 0x1d5a, 0xc011, "USB RF Transceiver v1 (MCV)", 1 },
+    { 0x1d5a, 0xc012, "USB RF Transceiver v1 (MKV)", 1 },
+    { 0x1d5a, 0xc013, "USB RF Transceiver v1 (MKCV)", 1 },
+    { 0x1d5a, 0xc020, "SPI to USB adapter v1 (MV)", 1 },
+    { 0x1d5a, 0xc021, "SPI to USB adapter v1 (V)", 1 },
+    { 0x1d5a, 0xc030, "Coprocessor to USB adapter v1 (MV)", 1 },
+    { 0x1d5a, 0xc031, "Coprocessor to USB adapter v1 (V)", 1 },
 };
 
 /**
