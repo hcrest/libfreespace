@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 AC_INIT([libfreespace],
-        [0.3rc2])
+        [0.4])
 AC_CONFIG_AUX_DIR(config)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE()
@@ -61,7 +61,7 @@ AC_STDC_HEADERS
 
 # Check for libusb 1.0
 AC_CHECK_HEADERS([libusb-1.0/libusb.h], [], [AC_MSG_FAILURE([*** libusb.h header not found.])])
-AC_CHECK_LIB(usb-1.0, libusb_open)
+AC_CHECK_LIB(usb-1.0, libusb_open, [], [AC_MSG_FAILURE([*** libusb_open() not found.])])
 AC_CHECK_HEADERS([sys/time.h], [], [AC_MSG_FAILURE([*** sys/time.h required.])])
 
 # Check for support needed for examples
