@@ -45,6 +45,13 @@ int initializeSendStruct(struct FreespaceSendStruct* send);
  */
 int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL isClose);
 
+/* Callback that is registered with BindIoCompletionCallback */
+static VOID CALLBACK freespace_private_overlappedCallback(DWORD dwErrorCode,
+                                                          DWORD dwNumberOfBytesTransfered,
+                                                          LPOVERLAPPED lpOverlapped)
+{
+    SetEvent(freespace_instance_->performEvent_);
+}
 
 int convertGetLastError() {
     int rc = FREESPACE_ERROR_UNEXPECTED;
@@ -293,6 +300,10 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
             return FREESPACE_ERROR_NO_DEVICE;
         }
 
+        if (!BindIoCompletionCallback(s->handle_, freespace_private_overlappedCallback, 0)) {
+            return FREESPACE_ERROR_UNEXPECTED;
+        }
+
         if (!HidD_SetNumInputBuffers(s->handle_, HID_NUM_INPUT_BUFFERS)) {
             CloseHandle(s->handle_);
             s->handle_ = NULL;
@@ -307,11 +318,6 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
         s->readOverlapped_.Offset = 0;
         s->readOverlapped_.OffsetHigh = 0;
         s->readStatus_ = FALSE;
-
-        // Register the read event.
-        if (freespace_instance_->fdAddedCallback_) {
-            freespace_instance_->fdAddedCallback_(s->readOverlapped_.hEvent, 1);
-        }
     }
 
     device->isOpened_ = TRUE;
@@ -321,9 +327,6 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
         device->send_[idx].overlapped_.hEvent = NULL;
         if (initializeSendStruct(&device->send_[idx]) != FREESPACE_SUCCESS) {
             return FREESPACE_ERROR_UNEXPECTED;
-        }
-        if (freespace_instance_->fdAddedCallback_) {
-            freespace_instance_->fdAddedCallback_(device->send_[idx].overlapped_.hEvent, 1);
         }
     }
 
@@ -351,9 +354,6 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
 
     // Free all send events.
     for (idx = 0; idx < FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT; idx++) {
-        if (freespace_instance_->fdRemovedCallback_) {
-            freespace_instance_->fdRemovedCallback_(device->send_[idx].overlapped_.hEvent);
-        }
         finalizeSendStruct(&device->send_[idx], TRUE);
     }
 
@@ -363,9 +363,6 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         if (s->handle_ != NULL) {
             CloseHandle(s->handle_);
             s->handle_ = NULL;
-        }
-        if (freespace_instance_->fdRemovedCallback_) {
-            freespace_instance_->fdRemovedCallback_(s->readOverlapped_.hEvent);
         }
 
         if (s->readOverlapped_.hEvent != NULL) {
@@ -695,24 +692,6 @@ LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id) {
     return FREESPACE_SUCCESS;
 }
 
-BOOL freespace_private_fdSyncAddFilter(struct FreespaceDeviceStruct* device) {
-    if (device->receiveCallback_ && device->isOpened_) {
-        int idx;
-        for (idx = 0; idx < device->handleCount_; idx++) {
-            freespace_instance_->fdAddedCallback_(device->handle_[idx].readOverlapped_.hEvent, 1);
-        }
-    }
-    return FALSE;
-}
-
-static BOOL fdSyncRemoveFilter(struct FreespaceDeviceStruct* device) {
-    int idx;
-    for (idx = 0; idx < device->handleCount_; idx++) {
-        freespace_instance_->fdRemovedCallback_(device->handle_[idx].readOverlapped_.hEvent);
-    }
-    return FALSE;
-}
-
 LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
                                                   freespace_receiveCallback callback,
                                                   void* cookie) {
@@ -727,15 +706,11 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
             device->receiveCallback_ = NULL;
             device->receiveCookie_ = NULL;
 
-            fdSyncRemoveFilter(device);
-
             return terminateAsyncReceives(device);
         } else if (device->receiveCallback_ == NULL && callback != NULL) {
             // Registering a callback, so initiate a receive
             device->receiveCookie_ = cookie;
             device->receiveCallback_ = callback;
-
-            freespace_private_fdSyncAddFilter(device);
 
             return initiateAsyncReceives(device);
         }

@@ -70,6 +70,12 @@ LIBFREESPACE_API int freespace_init() {
         return rc;
     }
 
+    //freespace_instance_->performEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+    freespace_instance_->performEvent_ = CreateEvent(NULL, FALSE, FALSE, NULL); // Auto reset??
+    if (freespace_instance_->performEvent_ == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+
     return FREESPACE_SUCCESS;
 }
 
@@ -82,6 +88,7 @@ LIBFREESPACE_API void freespace_exit() {
 
     // Shut down the discovery code.
     if (freespace_instance_->fdRemovedCallback_) {
+        freespace_instance_->fdRemovedCallback_(freespace_instance_->performEvent_);
         freespace_instance_->fdRemovedCallback_(freespace_private_discoveryEventObject());
     }
     freespace_private_discoveryThreadExit();
@@ -90,6 +97,9 @@ LIBFREESPACE_API void freespace_exit() {
     for (i = 0; i < freespace_instance_->deviceCount_; i++) {
         freespace_private_freeDevice(freespace_instance_->devices_[i]);
     }
+
+    CloseHandle(freespace_instance_->performEvent_);
+    freespace_instance_->performEvent_ = NULL;
 
     free(freespace_instance_);
     freespace_instance_ = NULL;
@@ -113,6 +123,8 @@ static BOOL performHelper(struct FreespaceDeviceStruct* device) {
 
 LIBFREESPACE_API int freespace_perform() {
     int rc;
+    // Reset the perform event 
+    //ResetEvent(freespace_instance_->performEvent_);
 
     // Check if the device discovery thread has detected any changes
     // and rescan if so.
@@ -137,8 +149,7 @@ LIBFREESPACE_API int freespace_syncFileDescriptors() {
     }
 
     freespace_instance_->fdAddedCallback_(freespace_private_discoveryEventObject(), 1);
-
-    freespace_private_filterDevices(NULL, 0, NULL, freespace_private_fdSyncAddFilter);
+    freespace_instance_->fdAddedCallback_(freespace_instance_->performEvent_, 1);
 
     return FREESPACE_SUCCESS;
 }
