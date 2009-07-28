@@ -19,6 +19,7 @@
  */
 
 #include "freespace_discovery.h"
+#include <stdio.h>
 #include <malloc.h>
 
 static const LPWSTR szMainWndClass = L"FreespaceDiscoveryWindow";
