@@ -272,7 +272,7 @@ int checkDiscovery() {
             int idx;
             for (idx = 0; idx < freespace_instance_->deviceCount_; idx++) {
                 if (list[i] == freespace_instance_->devices_[idx]) {
-                    memcpy(&freespace_instance_->devices_[idx], &freespace_instance_->devices_[idx + 1], (freespace_instance_->deviceCount_ - idx - 1) * sizeof(struct FreespaceDeviceStruct*));
+                    memmove(&freespace_instance_->devices_[idx], &freespace_instance_->devices_[idx + 1], (freespace_instance_->deviceCount_ - idx - 1) * sizeof(struct FreespaceDeviceStruct*));
                     freespace_instance_->deviceCount_--;
                 }
             }
