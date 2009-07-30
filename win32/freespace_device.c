@@ -352,6 +352,8 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         return;
     }
 
+    terminateAsyncReceives(device);
+
     // Free all send events.
     for (idx = 0; idx < FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT; idx++) {
         finalizeSendStruct(&device->send_[idx], TRUE);
