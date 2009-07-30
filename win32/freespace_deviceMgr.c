@@ -70,8 +70,7 @@ LIBFREESPACE_API int freespace_init() {
         return rc;
     }
 
-    //freespace_instance_->performEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
-    freespace_instance_->performEvent_ = CreateEvent(NULL, FALSE, FALSE, NULL); // Auto reset??
+    freespace_instance_->performEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (freespace_instance_->performEvent_ == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
@@ -124,7 +123,7 @@ static BOOL performHelper(struct FreespaceDeviceStruct* device) {
 LIBFREESPACE_API int freespace_perform() {
     int rc;
     // Reset the perform event 
-    //ResetEvent(freespace_instance_->performEvent_);
+    ResetEvent(freespace_instance_->performEvent_);
 
     // Check if the device discovery thread has detected any changes
     // and rescan if so.
