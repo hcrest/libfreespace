@@ -35,14 +35,6 @@ extern "C" {
  */
 int freespace_private_devicePerform(struct FreespaceDeviceStruct* device);
 
-/**
- * Filter for notifying file descriptors in use on a device.
- *
- * @param device which device
- * @return FALSE
- */
-BOOL freespace_private_fdSyncAddFilter(struct FreespaceDeviceStruct* device);
-
 #ifdef __cplusplus
 }
 #endif

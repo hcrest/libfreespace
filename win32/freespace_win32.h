@@ -93,6 +93,9 @@ struct LibfreespaceData {
     HANDLE discoveryEvent_;
 
     int discoveryTheadStatus_;
+
+    // This event gets signaled when freespace_perform should be called
+    HANDLE performEvent_; 
 };
 
 extern struct LibfreespaceData* freespace_instance_;
