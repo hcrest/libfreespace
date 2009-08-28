@@ -30,11 +30,9 @@ ConstantID = 'constID'
 SubMessageID = 'subId'
 Documentation = 'comment'
 
-
 # ---------------------------------------------------------------------------------------
 # -------------------------------- Message Class ----------------------------------------
 # ---------------------------------------------------------------------------------------
-
 
 class Message:
     def __init__(self, name="", encode=False, decode=False, shouldGenerate=True):
@@ -46,6 +44,11 @@ class Message:
         self.enumName = "FREESPACE_MESSAGE_" + self.name.upper()
         self.structName = self.name[0].lower() + self.name[1:]
         self.shouldGenerate = shouldGenerate
+        # Information about firmware versions
+        self.addedVersion = ""      # what is the first firmware version you can use this message on
+        self.deprecatedVersion = "" # when you should stop using this message
+        self.removedVersion = ""    # when the message is no longer in the firmware
+        self.appliesTo = []         # what firmware (i.e. software part numbers) does this message apply to
     
     def getMessageSize(self):
         toRet = 1 # Add one for the opening message type byte
@@ -67,12 +70,15 @@ messages = []
 # ---------------------------------------------------------------------------------------
 # -------------------------------- HID Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
-    
-    
+
 # ---------------------------------------------------------------------------------------
 # Coprocessor Pass-through Out Report
 CoprocessorOutReport = Message("CoprocessorOutReport", encode=True)
 CoprocessorOutReport.Documentation = "Reserved for passing message through from the Freespace coprocessor to the USB host."
+CoprocessorOutReport.addedVersion = "1.0.0"
+CoprocessorOutReport.deprecatedVersion = ""
+CoprocessorOutReport.removedVersion = ""
+CoprocessorOutReport.appliesTo = [10001602]
 CoprocessorOutReport.ID = {
     ConstantID:5
 }
@@ -87,6 +93,10 @@ messages.append(CoprocessorOutReport)
 # Coprocessor Pass-through In Report
 CoprocessorInReport = Message("CoprocessorInReport", decode=True)
 CoprocessorInReport.Documentation = "Used for passing messages through from the USB host to the Freespace coprocessor interface."
+CoprocessorInReport.addedVersion = "1.0.0"
+CoprocessorInReport.deprecatedVersion = ""
+CoprocessorInReport.removedVersion = ""
+CoprocessorInReport.appliesTo = [10001602]
 CoprocessorInReport.ID = {
     ConstantID:6
 }
@@ -101,6 +111,10 @@ messages.append(CoprocessorInReport)
 # Battery Level Request Message
 BatteryLevelRequest = Message("BatteryLevelRequest", encode=True)
 BatteryLevelRequest.Documentation = "Sent by the host to request the battery status of the handheld unit."
+BatteryLevelRequest.addedVersion = "1.0.0"
+BatteryLevelRequest.deprecatedVersion = ""
+BatteryLevelRequest.removedVersion = ""
+BatteryLevelRequest.appliesTo = [10001602]
 BatteryLevelRequest.ID = {
     ConstantID:9
 }
@@ -114,6 +128,10 @@ messages.append(BatteryLevelRequest)
 # Battery Level Message
 BatteryLevel = Message("BatteryLevel", decode=True)
 BatteryLevel.Documentation = "Indicates the battery strength of the handheld unit."
+BatteryLevel.addedVersion = "1.0.0"
+BatteryLevel.deprecatedVersion = ""
+BatteryLevel.removedVersion = ""
+BatteryLevel.appliesTo = [10001602]
 BatteryLevel.ID = {
     ConstantID:10
 }
@@ -128,6 +146,10 @@ messages.append(BatteryLevel)
 # Body Frame Message
 BodyFrameMessage = Message("BodyFrame", decode=True)
 BodyFrameMessage.Documentation = "Conveys the motion relative to the body frame of the Freespace handheld device. \n The data have been processed to remove tremor and other unwanted side effects."
+BodyFrameMessage.addedVersion = "1.0.0"
+BodyFrameMessage.deprecatedVersion = ""
+BodyFrameMessage.removedVersion = ""
+BodyFrameMessage.appliesTo = [10001602, 10001853]
 BodyFrameMessage.ID = {
     ConstantID:32
 }
@@ -151,6 +173,10 @@ messages.append(BodyFrameMessage)
 # User Frame Message
 UserFrameMessage = Message("UserFrame", decode=True)
 UserFrameMessage.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference."
+UserFrameMessage.addedVersion = "1.0.0"
+UserFrameMessage.deprecatedVersion = ""
+UserFrameMessage.removedVersion = ""
+UserFrameMessage.appliesTo = [10001602, 10001853]
 UserFrameMessage.ID = {
     ConstantID:33
 }
@@ -175,6 +201,10 @@ messages.append(UserFrameMessage)
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
+DataMotion.addedVersion = "1.0.0"
+DataMotion.deprecatedVersion = "1.0.5"
+DataMotion.removedVersion = ""
+DataMotion.appliesTo = [10001602, 10001853]
 DataMotion.ID = {
     ConstantID:34
 }
@@ -197,6 +227,10 @@ messages.append(DataMotion)
 # Pairing Message
 PairingMessage = Message("PairingMessage", encode=True)
 PairingMessage.Documentation = "Used by the host to put the dongle into pairing mode."
+PairingMessage.addedVersion = "1.0.0"
+PairingMessage.deprecatedVersion = ""
+PairingMessage.removedVersion = ""
+PairingMessage.appliesTo = [10001853]
 PairingMessage.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:13}
@@ -211,6 +245,10 @@ messages.append(PairingMessage)
 # Product ID Request Message
 ProductIDRequest = Message("ProductIDRequest", encode=True)
 ProductIDRequest.Documentation = "This is sent from the host to the attached device(dongle) to request the product ID information. The dongle will forward this request to the Loop."
+ProductIDRequest.addedVersion = "1.0.0"
+ProductIDRequest.deprecatedVersion = ""
+ProductIDRequest.removedVersion = ""
+ProductIDRequest.appliesTo = [10001602, 10001853]
 ProductIDRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:32}
@@ -225,6 +263,10 @@ messages.append(ProductIDRequest)
 # LED Set Request
 LEDSetRequest = Message("LEDSetRequest", encode=True)
 LEDSetRequest.Documentation = "This request causes the Loop or dongle to set a status LED to a particular value"
+LEDSetRequest.addedVersion = "1.0.0"
+LEDSetRequest.deprecatedVersion = ""
+LEDSetRequest.removedVersion = ""
+LEDSetRequest.appliesTo = [10001602, 10001853]
 LEDSetRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:34}
@@ -241,6 +283,10 @@ messages.append(LEDSetRequest)
 # Link Quality Request Message
 LinkQualityRequest = Message("LinkQualityRequest", encode=True)
 LinkQualityRequest.Documentation = "Controls link quality status reporting"
+LinkQualityRequest.addedVersion = "1.0.0"
+LinkQualityRequest.deprecatedVersion = ""
+LinkQualityRequest.removedVersion = ""
+LinkQualityRequest.appliesTo = [10001853]
 LinkQualityRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:48}
@@ -256,6 +302,10 @@ messages.append(LinkQualityRequest)
 # Always On Request Message
 AlwaysOnRequest = Message("AlwaysOnRequest", encode=True)
 AlwaysOnRequest.Documentation = "This message forces the Loop into an always on state. It is relayed to the Loop from the dongle."
+AlwaysOnRequest.addedVersion = "1.0.0"
+AlwaysOnRequest.deprecatedVersion = ""
+AlwaysOnRequest.removedVersion = ""
+AlwaysOnRequest.appliesTo = [10001602, 10001853]
 AlwaysOnRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:49}
@@ -270,6 +320,10 @@ messages.append(AlwaysOnRequest)
 # Frequency Fix Request Message
 FrequencyFixRequest = Message("FrequencyFixRequest", encode=True)
 FrequencyFixRequest.Documentation = "This message causes the RF frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.\n\t When the loop is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep."
+FrequencyFixRequest.addedVersion = "1.0.0"
+FrequencyFixRequest.deprecatedVersion = ""
+FrequencyFixRequest.removedVersion = ""
+FrequencyFixRequest.appliesTo = [10001602, 10001853]
 FrequencyFixRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:50}
@@ -289,6 +343,10 @@ messages.append(FrequencyFixRequest)
 # Software Reset Message
 SoftwareReset = Message("SoftwareResetMessage", encode=True)
 SoftwareReset.Documentation = "This message causes the dongle to reset itself."
+SoftwareReset.addedVersion = "1.0.0"
+SoftwareReset.deprecatedVersion = ""
+SoftwareReset.removedVersion = ""
+SoftwareReset.appliesTo = [10001853]
 SoftwareReset.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:51}
@@ -304,6 +362,10 @@ messages.append(SoftwareReset)
 # Dongle RF Disable Message
 DongleRFDisableMessage = Message("DongleRFDisableMessage", encode=True)
 DongleRFDisableMessage.Documentation = "This message disables the RF on the dongle."
+DongleRFDisableMessage.addedVersion = "1.0.0"
+DongleRFDisableMessage.deprecatedVersion = ""
+DongleRFDisableMessage.removedVersion = ""
+DongleRFDisableMessage.appliesTo = [10001602, 10001853]
 DongleRFDisableMessage.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:52}
@@ -322,6 +384,10 @@ RFSupressMessage.Documentation = "This message is for RF Home frequency supressi
 Hillcrest adds an extra 1MHz to this boundary, so Low and High should be -12MHz from the center channel of the 802.11\n\t\
 and +12MHz from the center channel of 802.11 respectively. These values must be in the range [1,82].\n\t\
 To disable home frequency suppression, set either Low or High to be out-of-range. 0xFF is the preferred value for disabling suppression."
+RFSupressMessage.addedVersion = "1.0.0"
+RFSupressMessage.deprecatedVersion = ""
+RFSupressMessage.removedVersion = ""
+RFSupressMessage.appliesTo = [10001853]
 RFSupressMessage.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:53}
@@ -338,6 +404,10 @@ messages.append(RFSupressMessage)
 # FRS Loop Read Request Message
 FRSLoopReadRequest = Message("FRSLoopReadRequest", encode=True)
 FRSLoopReadRequest.Documentation = "This is sent from dongle towards the loop to request flash record to be sent.\n\tThe data sent starts from the word offset and continues through to the end of the record."
+FRSLoopReadRequest.addedVersion = "1.0.0"
+FRSLoopReadRequest.deprecatedVersion = ""
+FRSLoopReadRequest.removedVersion = ""
+FRSLoopReadRequest.appliesTo = [10001602, 10001853]
 FRSLoopReadRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:58}
@@ -354,6 +424,10 @@ messages.append(FRSLoopReadRequest)
 # FRS Loop Write Request Message
 FRSLoopWriteRequest = Message("FRSLoopWriteRequest", encode=True)
 FRSLoopWriteRequest.Documentation = "This is sent from the host towards the loop to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
+FRSLoopWriteRequest.addedVersion = "1.0.0"
+FRSLoopWriteRequest.deprecatedVersion = ""
+FRSLoopWriteRequest.removedVersion = ""
+FRSLoopWriteRequest.appliesTo = [10001602, 10001853]
 FRSLoopWriteRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:61}
@@ -370,6 +444,10 @@ messages.append(FRSLoopWriteRequest)
 # FRS Loop Write Data Message
 FRSLoopWriteData = Message("FRSLoopWriteData", encode=True)
 FRSLoopWriteData.Documentation = "This message is sent from the host towards the loop to write data to the record a previous write request indicated."
+FRSLoopWriteData.addedVersion = "1.0.0"
+FRSLoopWriteData.deprecatedVersion = ""
+FRSLoopWriteData.removedVersion = ""
+FRSLoopWriteData.appliesTo = [10001602, 10001853]
 FRSLoopWriteData.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:63}
@@ -384,6 +462,10 @@ messages.append(FRSLoopWriteData)
 # ---------------------------------------------------------------------------------------
 # FRS Dongle Read Request Message
 FRSDongleReadRequest = Message("FRSDongleReadRequest", encode=True)
+FRSDongleReadRequest.addedVersion = "1.0.0"
+FRSDongleReadRequest.deprecatedVersion = ""
+FRSDongleReadRequest.removedVersion = ""
+FRSDongleReadRequest.appliesTo = [10001602, 10001853]
 FRSDongleReadRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:59}
@@ -399,6 +481,10 @@ messages.append(FRSDongleReadRequest)
 # ---------------------------------------------------------------------------------------
 # FRS Dongle Write Request Message
 FRSDongleWriteRequest = Message("FRSDongleWriteRequest", encode=True)
+FRSDongleWriteRequest.addedVersion = "1.0.0"
+FRSDongleWriteRequest.deprecatedVersion = ""
+FRSDongleWriteRequest.removedVersion = ""
+FRSDongleWriteRequest.appliesTo = [10001602, 10001853]
 FRSDongleWriteRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:62}
@@ -414,6 +500,10 @@ messages.append(FRSDongleWriteRequest)
 # ---------------------------------------------------------------------------------------
 # FRS Dongle Write Data Message
 FRSDongleWriteData = Message("FRSDongleWriteData", encode=True)
+FRSDongleWriteData.addedVersion = "1.0.0"
+FRSDongleWriteData.deprecatedVersion = ""
+FRSDongleWriteData.removedVersion = ""
+FRSDongleWriteData.appliesTo = [10001602, 10001853]
 FRSDongleWriteData.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:64}
@@ -428,6 +518,10 @@ messages.append(FRSDongleWriteData)
 # ---------------------------------------------------------------------------------------
 # FRS EFlash Read Request Message
 FRSEFlashReadRequest = Message("FRSEFlashReadRequest", encode=True)
+FRSEFlashReadRequest.addedVersion = "1.0.0"
+FRSEFlashReadRequest.deprecatedVersion = ""
+FRSEFlashReadRequest.removedVersion = ""
+FRSEFlashReadRequest.appliesTo = [10001602, 10001853]
 FRSEFlashReadRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:65}
@@ -443,6 +537,10 @@ messages.append(FRSEFlashReadRequest)
 # ---------------------------------------------------------------------------------------
 # FRS EFlash Write Request Message
 FRSEFlashWriteRequest = Message("FRSEFlashWriteRequest", encode=True)
+FRSEFlashWriteRequest.addedVersion = "1.0.0"
+FRSEFlashWriteRequest.deprecatedVersion = ""
+FRSEFlashWriteRequest.removedVersion = ""
+FRSEFlashWriteRequest.appliesTo = [10001602, 10001853]
 FRSEFlashWriteRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:66}
@@ -458,6 +556,10 @@ messages.append(FRSEFlashWriteRequest)
 # ---------------------------------------------------------------------------------------
 # FRS EFlash Write Data Message
 FRSEFlashWriteData = Message("FRSEFlashWriteData", encode=True)
+FRSEFlashWriteData.addedVersion = "1.0.0"
+FRSEFlashWriteData.deprecatedVersion = ""
+FRSEFlashWriteData.removedVersion = ""
+FRSEFlashWriteData.appliesTo = [10001602, 10001853]
 FRSEFlashWriteData.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:67}
@@ -473,6 +575,10 @@ messages.append(FRSEFlashWriteData)
 # Dongle RF Enable Message
 DongleRFEnableMessage = Message("DongleRFEnableMessage", encode=True)
 DongleRFEnableMessage.Documentation = "This message enables the RF on the dongle."
+DongleRFEnableMessage.addedVersion = "1.0.2"
+DongleRFEnableMessage.deprecatedVersion = ""
+DongleRFEnableMessage.removedVersion = ""
+DongleRFEnableMessage.appliesTo = [10001602, 10001853]
 DongleRFEnableMessage.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:71}
@@ -487,6 +593,10 @@ messages.append(DongleRFEnableMessage)
 # Data Mode Request Message
 DataModeRequest = Message("DataModeRequest", encode=True)
 DataModeRequest.Documentation = "This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
+DataModeRequest.addedVersion = "1.0.5"
+DataModeRequest.deprecatedVersion = ""
+DataModeRequest.removedVersion = ""
+DataModeRequest.appliesTo = [10001602, 10001853]
 DataModeRequest.ID = {
     ConstantID:7,
     SubMessageID:{size:1, id:73}
@@ -510,6 +620,10 @@ messages.append(DataModeRequest)
 # Pairing Response Message
 PairingResponse = Message("PairingResponse", decode=True)
 PairingResponse.Documentation = "Pairing response is used to either respond to pairing requests from the host or to send pairing status updates to the host that describe events during the pairing process."
+PairingResponse.addedVersion = "1.0.0"
+PairingResponse.deprecatedVersion = ""
+PairingResponse.removedVersion = ""
+PairingResponse.appliesTo = [10001853]
 PairingResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:13}
@@ -528,6 +642,10 @@ messages.append(PairingResponse)
 # Product ID Response Message
 ProductIDResponse = Message("ProductIDResponse", decode=True)
 ProductIDResponse.Documentation = "This is sent from the polled device towards the host to convey the product ID information."
+ProductIDResponse.addedVersion = "1.0.0"
+ProductIDResponse.deprecatedVersion = ""
+ProductIDResponse.removedVersion = ""
+ProductIDResponse.appliesTo = [10001602, 10001853]
 ProductIDResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:32}
@@ -552,6 +670,10 @@ messages.append(ProductIDResponse)
 # Link Quality Status Message
 LinkStatusMessage = Message("LinkStatus", decode=True)
 LinkStatusMessage.Documentation = "This message is sent from a compliance test-ready dongle to indicate the dongle's current status."
+LinkStatusMessage.addedVersion = "1.0.0"
+LinkStatusMessage.deprecatedVersion = ""
+LinkStatusMessage.removedVersion = ""
+LinkStatusMessage.appliesTo = [10001853]
 LinkStatusMessage.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:48}
@@ -569,6 +691,10 @@ messages.append(LinkStatusMessage)
 # Always On Response Message
 AlwaysOnResponse = Message("AlwaysOnResponse", decode=True)
 AlwaysOnResponse.Documentation = "This message is sent from a the loop to acknowledge an always on mode request message."
+AlwaysOnResponse.addedVersion = "1.0.0"
+AlwaysOnResponse.deprecatedVersion = ""
+AlwaysOnResponse.removedVersion = ""
+AlwaysOnResponse.appliesTo = [10001602, 10001853]
 AlwaysOnResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:49}
@@ -583,6 +709,10 @@ messages.append(AlwaysOnResponse)
 # FRS Loop Read Response Message
 FRSLoopReadResponse = Message("FRSLoopReadResponse", decode=True)
 FRSLoopReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
+FRSLoopReadResponse.addedVersion = "1.0.0"
+FRSLoopReadResponse.deprecatedVersion = ""
+FRSLoopReadResponse.removedVersion = ""
+FRSLoopReadResponse.appliesTo = [10001602, 10001853]
 FRSLoopReadResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:58}
@@ -601,6 +731,10 @@ messages.append(FRSLoopReadResponse)
 # FRS Loop Write Response Message
 FRSLoopWriteResponse = Message("FRSLoopWriteResponse", decode=True)
 FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
+FRSLoopWriteResponse.addedVersion = "1.0.0"
+FRSLoopWriteResponse.deprecatedVersion = ""
+FRSLoopWriteResponse.removedVersion = ""
+FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
 FRSLoopWriteResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:61}
@@ -627,6 +761,10 @@ messages.append(FRSLoopWriteResponse)
 # FRS Dongle Read Response Message
 FRSDongleReadResponse = Message("FRSDongleReadResponse", decode=True)
 FRSDongleReadResponse.Documentation = "This is sent from the dongle to the host to convey an FRS record."
+FRSDongleReadResponse.addedVersion = "1.0.0"
+FRSDongleReadResponse.deprecatedVersion = ""
+FRSDongleReadResponse.removedVersion = ""
+FRSDongleReadResponse.appliesTo = [10001602, 10001853]
 FRSDongleReadResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:59}
@@ -645,6 +783,10 @@ messages.append(FRSDongleReadResponse)
 # FRS Dongle Write Response Message
 FRSDongleWriteResponse = Message("FRSDongleWriteResponse", decode=True)
 FRSDongleWriteResponse.Documentation = "This is sent from the dongle to the host to indicate status of the write operation."
+FRSDongleWriteResponse.addedVersion = "1.0.0"
+FRSDongleWriteResponse.deprecatedVersion = ""
+FRSDongleWriteResponse.removedVersion = ""
+FRSDongleWriteResponse.appliesTo = [10001602, 10001853]
 FRSDongleWriteResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:62}
@@ -671,6 +813,10 @@ messages.append(FRSDongleWriteResponse)
 # FRS EFlash Read Response Message
 FRSEFlashReadResponse = Message("FRSEFlashReadResponse", decode=True)
 FRSEFlashReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
+FRSEFlashReadResponse.addedVersion = "1.0.0"
+FRSEFlashReadResponse.deprecatedVersion = ""
+FRSEFlashReadResponse.removedVersion = ""
+FRSEFlashReadResponse.appliesTo = [10001602, 10001853]
 FRSEFlashReadResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:65}
@@ -689,6 +835,10 @@ messages.append(FRSEFlashReadResponse)
 # FRS EFlash Write Response Message
 FRSEFlashWriteResponse = Message("FRSEFlashWriteResponse", decode=True)
 FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
+FRSLoopWriteResponse.addedVersion = "1.0.0"
+FRSLoopWriteResponse.deprecatedVersion = ""
+FRSLoopWriteResponse.removedVersion = ""
+FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
 FRSEFlashWriteResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:66}
@@ -715,6 +865,10 @@ messages.append(FRSEFlashWriteResponse)
 # Data Mode Response Message
 DataModeResponse = Message("DataModeResponse", encode=True)
 DataModeResponse.Documentation = "This report acknowledges the last DataModeRequest received by the dongle."
+DataModeResponse.addedVersion = "1.0.5"
+DataModeResponse.deprecatedVersion = ""
+DataModeResponse.removedVersion = ""
+DataModeResponse.appliesTo = [10001602, 10001853]
 DataModeResponse.ID = {
     ConstantID:8,
     SubMessageID:{size:1, id:73}
@@ -729,3 +883,4 @@ DataModeResponse.Fields = [
 ]
 
 messages.append(DataModeResponse)
+
