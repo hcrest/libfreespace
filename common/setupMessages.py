@@ -863,7 +863,7 @@ messages.append(FRSEFlashWriteResponse)
 
 # ---------------------------------------------------------------------------------------
 # Data Mode Response Message
-DataModeResponse = Message("DataModeResponse", encode=True)
+DataModeResponse = Message("DataModeResponse", decode=True)
 DataModeResponse.Documentation = "This report acknowledges the last DataModeRequest received by the dongle."
 DataModeResponse.addedVersion = "1.0.5"
 DataModeResponse.deprecatedVersion = ""
