@@ -161,11 +161,21 @@ LIBFREESPACE_API int freespace_getNextTimeout(int* timeoutMsOut) {
 
 struct FreespaceDeviceStruct* freespace_private_getDeviceByRef(FreespaceDeviceRef ref) {
     int i;
+    WCHAR* uniqueRef;
+
+    // Determine the unique identifier
+    uniqueRef = freespace_private_generateUniqueId(ref);
+    if (uniqueRef == NULL) {
+        return NULL;
+    }
+
     for (i = 0; i < freespace_instance_->deviceCount_; i++) {
-        if (lstrcmp(ref, freespace_instance_->devices_[i]->handle_[0].devicePath) == 0) {
+        if (lstrcmp(uniqueRef, freespace_instance_->devices_[i]->uniqueId_) == 0) {
+            free(uniqueRef);
             return freespace_instance_->devices_[i];
         }
     }
+    free(uniqueRef);
     return NULL;
 }
 
@@ -202,6 +212,11 @@ int freespace_private_filterDevices(struct FreespaceDeviceStruct** list, int lis
     return FREESPACE_SUCCESS;
 }
 
+static BOOL filterApiDeviceList(struct FreespaceDeviceStruct* device) {
+    return device->isAvailable_;
+}
+
+
 LIBFREESPACE_API int freespace_getDeviceList(FreespaceDeviceId* list, int listSize, int *listSizeOut) {
     int i;
     int rc;
@@ -212,10 +227,12 @@ LIBFREESPACE_API int freespace_getDeviceList(FreespaceDeviceId* list, int listSi
         return rc;
     }
 
-    // Return the devices.
-    for (*listSizeOut = 0, i = 0; *listSizeOut < listSize && i < freespace_instance_->deviceCount_; (*listSizeOut)++) {
-        list[*listSizeOut] = freespace_instance_->devices_[i]->id_;
-        i++;
+    for (*listSizeOut = 0, i = 0; *listSizeOut < listSize && i < freespace_instance_->deviceCount_; i++) {
+        struct FreespaceDeviceStruct* device = freespace_instance_->devices_[i];
+        if (device->isAvailable_) {
+            list[*listSizeOut] = device->id_;
+            (*listSizeOut)++;
+        }
     }
 
     return FREESPACE_SUCCESS;
@@ -226,16 +243,17 @@ int freespace_private_addDevice(struct FreespaceDeviceStruct* device) {
     freespace_instance_->devices_[freespace_instance_->deviceCount_] = device;
     freespace_instance_->deviceCount_++;
 
-    // Notify insertion
-    if (freespace_instance_->hotplugCallback_ != NULL) {
-        freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_INSERTION, device->id_, freespace_instance_->hotplugCookie_);
-    }
-
     return FREESPACE_SUCCESS;
 }
 
 static BOOL filterInitialize(struct FreespaceDeviceStruct* device) {
+    int i;
+    for (i = 0; i < device->handleCount_; i++) {
+        device->handle_[i].enumerationFlag_ = FALSE;
+    }
+
     device->status_ = FREESPACE_DISCOVERY_STATUS_UNKNOWN;
+
     return FALSE;
 }
 
@@ -245,12 +263,164 @@ static BOOL filterSweep(struct FreespaceDeviceStruct* device) {
     return device->status_ == FREESPACE_DISCOVERY_STATUS_UNKNOWN;
 }
 
+static BOOL filterPartiallyRemoved(struct FreespaceDeviceStruct* device) {
+    /* Device is partially created if
+     *    1. Status is existing or added
+     *    2. Not all of the required handles are valid
+     */
+    int i;
+    if (device->status_ != FREESPACE_DISCOVERY_STATUS_EXISTING &&
+        device->status_ != FREESPACE_DISCOVERY_STATUS_ADDED) {
+        return FALSE;
+    }
+
+    if (device->isAvailable_ == FALSE) {
+        return FALSE;
+    }
+
+    for (i = 0; i < device->handleCount_; i++) {
+        if (!device->handle_[i].enumerationFlag_) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static BOOL filterReady(struct FreespaceDeviceStruct* device) {
+    /* Device is added if
+     *    1. Status is existing or added
+     *    2. All of the required handles are valid
+     */
+    int i;
+    if (device->status_ != FREESPACE_DISCOVERY_STATUS_EXISTING &&
+        device->status_ != FREESPACE_DISCOVERY_STATUS_ADDED) {
+        return FALSE;
+    }
+
+    if (device->isAvailable_ == TRUE) {
+        return FALSE;
+    }
+
+    for (i = 0; i < device->handleCount_; i++) {
+        if (!device->handle_[i].enumerationFlag_) {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+
+void processInsertionCallback(struct FreespaceDeviceStruct** list, int listLength) {
+    int i;
+    for (i = 0; i < listLength; i++) {
+        struct FreespaceDeviceStruct* device = list[i];
+
+        if (device->isAvailable_ == TRUE) {
+            continue;
+        }
+
+        device->isAvailable_ = TRUE;
+
+        if (freespace_instance_->hotplugCallback_ != NULL) {
+            freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_INSERTION, device->id_, freespace_instance_->hotplugCookie_);
+        }
+    }
+}
+
+void processRemovalCallback(struct FreespaceDeviceStruct** list, int listLength) {
+    int i;
+    for (i = 0; i < listLength; i++) {
+        struct FreespaceDeviceStruct* device = list[i];
+
+        if (device->isAvailable_ == FALSE) {
+            continue;
+        }
+
+        device->isAvailable_ = FALSE;
+
+        if (freespace_instance_->hotplugCallback_ != NULL) {
+            freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_REMOVAL, device->id_, freespace_instance_->hotplugCookie_);
+        }
+    }
+}
+
+
+/*
+ * Remove the devices that are no longer present in the system. 
+ */
+void checkDiscoveryRemoveDevices() {
+    int i;
+    struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
+    int listLength = 0;
+
+    // Collect the removed devices.
+    freespace_private_filterDevices(list, FREESPACE_MAXIMUM_DEVICE_COUNT, &listLength, filterSweep);
+
+    // Remove them from the device list so that future API calls fail to this device
+    // fail. See callbacks after this loop.
+    for (i = 0; i < listLength; i++) {
+        int idx;
+        DEBUG_WPRINTF(L"libfreespace: device %d removed\n", list[i]->id_);
+        for (idx = 0; idx < freespace_instance_->deviceCount_; idx++) {
+            if (list[i] == freespace_instance_->devices_[idx]) {
+                memmove(&freespace_instance_->devices_[idx], &freespace_instance_->devices_[idx + 1], (freespace_instance_->deviceCount_ - idx - 1) * sizeof(struct FreespaceDeviceStruct*));
+                freespace_instance_->deviceCount_--;
+            }
+        }
+    }
+
+    // Call the removal callbacks.
+    processRemovalCallback(list, listLength);
+
+    // Free the device structure.
+    for (i = 0; i < listLength; i++) {
+        freespace_private_freeDevice(list[i]);
+    }
+}
+
+/*
+ * Process devices with multiple handles that are not fully complete.
+ */
+void checkDiscoveryPartiallyRemovedDevices() {
+    struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
+    int listLength = 0;
+    int i;
+
+    // Collect the removed devices and call the removed callbacks.
+    freespace_private_filterDevices(list, FREESPACE_MAXIMUM_DEVICE_COUNT, &listLength, filterPartiallyRemoved);
+    for (i = 0; i < listLength; i++) {
+        DEBUG_WPRINTF(L"libfreespace: device %d partially removed\n", list[i]->id_);
+    }
+    processRemovalCallback(list, listLength);
+
+    // Close file handles of devices that are open.
+    for (i = 0; i < listLength; i++) {
+        struct FreespaceDeviceStruct* device = list[i];
+        freespace_closeDevice(device->id_);
+    }
+}
+
+/*
+ * Process devices with multiple handles that are not fully complete.
+ */
+void checkDiscoveryAddedDevices() {
+    struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
+    int listLength = 0;
+    int i;
+
+    // Collect the added devices and call the insertion callbacks
+    freespace_private_filterDevices(list, FREESPACE_MAXIMUM_DEVICE_COUNT, &listLength, filterReady);
+    for (i = 0; i < listLength; i++) {
+        DEBUG_WPRINTF(L"libfreespace: device %d added\n", list[i]->id_);
+    }
+    processInsertionCallback(list, listLength);
+}
+
 int checkDiscovery() {
     if (freespace_private_discoveryStatusChanged()) {
-        int i;
         int rc;
-        struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
-        int listLength = 0;
 
         // Mark and sweep the device list.
         freespace_private_filterDevices(NULL, 0, NULL, filterInitialize);
@@ -260,33 +430,10 @@ int checkDiscovery() {
         if (rc != FREESPACE_SUCCESS) {
             return rc;
         }
-        // Note: freespace_private_scanAndAddDevices already called the callback for added devices.
 
-        // Collect the removed devices.
-        freespace_private_filterDevices(list, FREESPACE_MAXIMUM_DEVICE_COUNT, &listLength, filterSweep);
-
-        // Remove them from the device list so that future API calls fail to this device
-        // fail. See callbacks after this loop.
-        for (i = 0; i < listLength; i++) {
-            int idx;
-            for (idx = 0; idx < freespace_instance_->deviceCount_; idx++) {
-                if (list[i] == freespace_instance_->devices_[idx]) {
-                    memmove(&freespace_instance_->devices_[idx], &freespace_instance_->devices_[idx + 1], (freespace_instance_->deviceCount_ - idx - 1) * sizeof(struct FreespaceDeviceStruct*));
-                    freespace_instance_->deviceCount_--;
-                }
-            }
-        }
-
-        // Call the removal callbacks and free the device structures.
-        for (i = 0; i < listLength; i++) {
-            struct FreespaceDeviceStruct* device = list[i];
-
-            if (freespace_instance_->hotplugCallback_ != NULL) {
-                freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_REMOVAL, device->id_, freespace_instance_->hotplugCookie_);
-            }
-
-            freespace_private_freeDevice(device);
-        }
+        checkDiscoveryRemoveDevices();
+        checkDiscoveryPartiallyRemovedDevices();
+        checkDiscoveryAddedDevices();
     }
 
     return freespace_private_discoveryGetThreadStatus();

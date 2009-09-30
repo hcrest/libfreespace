@@ -27,6 +27,12 @@
 extern "C" {
 #endif
 
+
+/*
+ * Mangle the device path into a unique device identifier.
+ */
+WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath);
+
 /**
  * Populate all devices currently present in the system.
  * If a new device is found and the hotplug callback is specified,

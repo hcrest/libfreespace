@@ -145,6 +145,9 @@ struct FreespaceSubStruct {
     // The size of the data currently in the read data buffer.
     unsigned long   readBufferSize;
 
+    // Flage used to determine if visited during enumeration.
+    BOOL            enumerationFlag_;
+
     struct FreespaceDeviceInterfaceInfo info_;
 };
 
@@ -188,8 +191,15 @@ struct FreespaceDeviceStruct {
     // Whether freespace_openDevice has been called or not.
     BOOL						isOpened_;
 
-    // The number of handles supported by this device.
+    // State of this device being exposed through the libfreespace API.
+    BOOL                        isAvailable_;
+
+    // Platform-specific unique ID that relates handles to this device.
+    WCHAR*                      uniqueId_;
+
+    // The number of handles supported (desired) by this device.
     int                         handleCount_;
+
     // The structure containing the detailed description for each handle.
     struct FreespaceSubStruct   handle_[FREESPACE_HANDLE_COUNT_MAX];
 

@@ -18,6 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/*
+ * For a discussion of the device discovery process in MS Windows, see
+ * http://www.codeproject.com/KB/system/HwDetect.aspx
+ * MSDN: WM_DEVICECHANGE Message 
+ *     http://msdn.microsoft.com/en-us/library/aa363480%28VS.85%29.aspx
+ */
+
 #include "freespace_discovery.h"
 #include <stdio.h>
 #include <malloc.h>
@@ -99,12 +106,16 @@ int freespace_private_discoveryGetThreadStatus() {
 }
 
 LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam) {
+    DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
+
     if (nMsg == WM_CLOSE) {
         DestroyWindow(hwnd);
         return DefWindowProc(hwnd,	nMsg, wParam, lParam);
     }
 
     if (nMsg == WM_DESTROY) {
+        DEBUG_WPRINTF(L"freespace: discoveryCallback on WM_DESTROY\n");
+
         // Remove the device notification
         UnregisterDeviceNotification(freespace_instance_->windowEvent_);
         freespace_instance_->windowEvent_ = NULL;
@@ -120,14 +131,30 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
         // Only handle all devices arrived or all devices removed.
         if ((LOWORD(wParam) != DBT_DEVICEARRIVAL) &&
             (LOWORD(wParam) != DBT_DEVICEREMOVECOMPLETE)) {
-            return 0;
+            return TRUE;
         }
+
+#ifdef DEBUG
+        hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
+        if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
+            return TRUE;
+        }
+        if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
+            DEBUG_WPRINTF(L"freespace: discoveryCallback on DBT_DEVICEARRIVAL\n");
+        } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
+            DEBUG_WPRINTF(L"freespace: discoveryCallback on DBT_DEVICEREMOVECOMPLETE\n");
+        } else {
+            DEBUG_WPRINTF(L"freespace: discoveryCallback on unexpected change: %d\n", LOWORD(wParam));
+        }
+        DEBUG_WPRINTF(L"   %s\n", hdr->dbcc_name);
+
+#endif
 
         // Notify that the device list needs to be rescanned.
         freespace_instance_->needToRescanDevicesFlag_ = TRUE;
         SetEvent(freespace_instance_->discoveryEvent_);
 
-        return 0;
+        return TRUE;
     }
 
     return DefWindowProc(hwnd,	nMsg, wParam, lParam);

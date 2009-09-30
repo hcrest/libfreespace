@@ -23,20 +23,12 @@
 #include <strsafe.h>
 #include <malloc.h>
 
-/**
- * Callback for adding Freespace device.
- *
- * @param device The Freespace device for configuration.
- */
-typedef void (*freespace_deviceApiCallback)(struct FreespaceDeviceStruct *device);
+struct FreespaceDeviceUsageAPI {
+    USAGE    usage_;
+    USAGE    usagePage_;
+};
 
-/**
- * Callback for the DeviceAPI to support multiple simultaneous interfaces
- * for a single top-level device.
- * @param device The device.
- */
-static int windowsDeviceApiCallback(struct FreespaceDeviceStruct *device);
-
+#define FREESPACE_DEVICE_USAGE_API_MAX 2
 
 /**
  * Figure out which API to use depending on the reported
@@ -46,10 +38,8 @@ struct FreespaceDeviceAPI {
     // Set of devices with this version.
     uint16_t idVendor_;
     uint16_t idProduct_;
-    USAGE    usage_;
-    USAGE    usagePage_;
-    freespace_deviceApiCallback    callback_;
-
+    int      usageCount_;
+    struct FreespaceDeviceUsageAPI usages_[FREESPACE_DEVICE_USAGE_API_MAX];
     const char* name_;
 };
 
@@ -65,26 +55,26 @@ struct FreespaceDeviceAPI {
  *      A = Separate multi-axis and vendor-specific (deprecated)
  */
 static const struct FreespaceDeviceAPI deviceAPITable[] = {
-    { 0x1d5a, 0xc001, 4, 0xff01, windowsDeviceApiCallback, "Piranha"},
-    { 0x1d5a, 0xc002, 0, 0, NULL, "Piranha bootloader"},
-    { 0x1d5a, 0xc003, 4, 0xff01, windowsDeviceApiCallback, "Piranha factory test dongle"},
-    { 0x1d5a, 0xc004, 4, 0xff01, NULL, "Piranha sniffer dongle"},
-    { 0x1d5a, 0xc005, 4, 0xff01, windowsDeviceApiCallback, "FSRK STM32F10x eval board (E)"},
-    { 0x1d5a, 0xc006, 0, 0, NULL, "Cortex Bootloader"},
-    { 0x1d5a, 0xc007, 4, 0xff01, windowsDeviceApiCallback, "FSRK Gen4 Dongle"},
-    { 0x1d5a, 0xc008, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter board v0"},
-    { 0x1d5a, 0xc009, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v0"},
-    { 0x1d5a, 0xc00a, 4, 0xff01, windowsDeviceApiCallback, "Coprocessor to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc00b, 4, 0xff01, windowsDeviceApiCallback, "USB RF Transceiver v1 (MKCA)"},
-    { 0x1d5a, 0xc00c, 4, 0xff01, windowsDeviceApiCallback, "SPI to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc010, 4, 0xff01, NULL, "USB RF Transceiver v1 (MV)"},
-    { 0x1d5a, 0xc011, 4, 0xff01, NULL, "USB RF Transceiver v1 (MCV)"},
-    { 0x1d5a, 0xc012, 4, 0xff01, NULL, "USB RF Transceiver v1 (MKV)"},
-    { 0x1d5a, 0xc013, 4, 0xff01, NULL, "USB RF Transceiver v1 (MKCV)"},
-    { 0x1d5a, 0xc020, 4, 0xff01, NULL, "SPI to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc021, 4, 0xff01, NULL, "SPI to USB adapter v1 (V)"},
-    { 0x1d5a, 0xc030, 4, 0xff01, NULL, "Coprocessor to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc031, 4, 0xff01, NULL, "Coprocessor to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc001, 2, {{4, 0xff01}, {8, 1}}, "Piranha"},
+    { 0x1d5a, 0xc002, 1, {{0, 0},      {0, 0}}, "Piranha bootloader"},
+    { 0x1d5a, 0xc003, 2, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
+    { 0x1d5a, 0xc004, 1, {{0, 0},      {0, 0}}, "Piranha sniffer dongle"},
+    { 0x1d5a, 0xc005, 2, {{4, 0xff01}, {8, 1}}, "FSRK STM32F10x eval board (E)"},
+    { 0x1d5a, 0xc006, 1, {{0, 0},      {0, 0}}, "Cortex Bootloader"},
+    { 0x1d5a, 0xc007, 2, {{4, 0xff01}, {8, 1}}, "FSRK Gen4 Dongle"},
+    { 0x1d5a, 0xc008, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter board v0"},
+    { 0x1d5a, 0xc009, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v0"},
+    { 0x1d5a, 0xc00a, 2, {{4, 0xff01}, {8, 1}}, "Coprocessor to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc00b, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v1 (MKCA)"},
+    { 0x1d5a, 0xc00c, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc010, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MV)"},
+    { 0x1d5a, 0xc011, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MCV)"},
+    { 0x1d5a, 0xc012, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKV)"},
+    { 0x1d5a, 0xc013, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKCV)"},
+    { 0x1d5a, 0xc020, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc021, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc030, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc031, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
 };
 
 static WCHAR* dupeWCharString(const WCHAR* input) {
@@ -150,50 +140,56 @@ static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfac
     return FREESPACE_SUCCESS;
 }
 
-int windowsDeviceApiCallback(struct FreespaceDeviceStruct *device) {
-    int rc;
-    FreespaceDeviceRef wptr;
-
-    // Create a copy of the reference name.
-    FreespaceDeviceRef ref = dupeWCharString(device->handle_[0].devicePath);
+/*
+ * Blank the col indicator and the last number
+ * FSRK 3.1 products : &col01# to &col00#, &0000#{ to &0000#{
+ *    Example: \\?\hid#vid_1d5a&pid_c00b&mi_01&col01#7&235fe469&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
+ *      is now \\?\hid#vid_1d5a&pid_c00b&mi_01&col00#7&235fe469&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
+ * FSRK 1.3 products : &col02# to &col03#, &0001#{ to &0002#{
+ */
+WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath) {
+    WCHAR* wptr;
+    // device->handle_[0].devicePath
+    FreespaceDeviceRef ref = dupeWCharString(devicePath);
     if (ref == NULL) {
-        return FREESPACE_ERROR_OUT_OF_MEMORY;
+        return NULL;
     }
-    device->handle_[1].devicePath = ref;
-    DEBUG_WPRINTF(L"Device = %s\n", ref);
 
-    /*
-     * Ugly code to find the matching multi-axis HID page
-     * FSRK 3.1 products : &col01# to &col02#, &0000#{ to &0001#{
-     * FSRK 1.3 products : &col02# to &col03#, &0001#{ to &0002#{
-     */
-    wptr = wcsstr(device->handle_[1].devicePath, L"&col0");
+    wptr = wcsstr(ref, L"&col0");
     if (wptr != NULL) {
-        wptr[5] = wptr[5] + 1;
+        wptr[5] = L'0';
     }
-    wptr = wcsstr(device->handle_[1].devicePath, L"#{");
+    wptr = wcsstr(ref, L"#{");
     if (wptr != NULL) {
-        wptr[-1] = wptr[-1] + 1;
+        wptr[-1] = L'0';
     }
-    DEBUG_WPRINTF(L"         %s\n", ref);
-    rc = getDeviceInfo(ref, &device->handle_[1].info_);
+    return ref;
+}
 
-    device->handleCount_ = 2;
-    return rc;
+int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct FreespaceDeviceInterfaceInfo* info) {
+    int j;
+    for (j = 0; j < api->usageCount_; j++) {
+        if (api->usages_[j].usage_ != 0 && api->usages_[j].usage_ != info->usage_) {
+            continue;
+        }
+        if (api->usages_[j].usagePage_ != 0 && api->usages_[j].usagePage_ != info->usagePage_) {
+            continue;
+        }
+        return j;
+    }
+    return -1;
 }
 
 static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
     int i;
+    int index;
     for (i = 0; i < (sizeof(deviceAPITable) / sizeof(struct FreespaceDeviceAPI)); i++) {
         const struct FreespaceDeviceAPI* api = &deviceAPITable[i];
         if (info->idVendor_ == api->idVendor_ && info->idProduct_ == api->idProduct_) {
-            if (api->usage_ != 0 && api->usage_ != info->usage_) {
-                continue;
+            index = getDeviceAPIIndex(api, info);
+            if (index >= 0) {
+                return api;
             }
-            if (api->usagePage_ != 0 && api->usagePage_ != info->usagePage_) {
-                continue;
-            }
-            return api;
         }
     }
 
@@ -205,27 +201,58 @@ static int addNewDevice(FreespaceDeviceRef ref,
                         struct FreespaceDeviceInterfaceInfo* info,
                         struct FreespaceDeviceStruct** deviceOut) {
     struct FreespaceDeviceStruct *device;
-    int rc;
+    int rc = FREESPACE_SUCCESS;
+    int apiIndex;
+    BOOL wasCreated = FALSE;
 
-    // Create the device
-    device = freespace_private_createDevice(api->name_);
+    apiIndex = getDeviceAPIIndex(api, info);
+    if (apiIndex < 0) {
+        return FREESPACE_ERROR_NOT_FOUND;
+    }
+
+    device = freespace_private_getDeviceByRef(ref);
+    if (device == NULL) {
+        // Create the device
+        device = freespace_private_createDevice(api->name_);
+        if (device == NULL) {
+            return FREESPACE_ERROR_OUT_OF_MEMORY;
+        }
+        wasCreated = TRUE;
+        device->status_ = FREESPACE_DISCOVERY_STATUS_ADDED;
+
+        // Create the unique ID
+        device->uniqueId_ = freespace_private_generateUniqueId(ref);
+        device->handleCount_ = api->usageCount_;
+
+    } else {
+        if (device->status_ != FREESPACE_DISCOVERY_STATUS_ADDED) {
+            device->status_ = FREESPACE_DISCOVERY_STATUS_EXISTING;
+        }
+        if (device->handle_[apiIndex].handle_ != NULL) {
+            if (lstrcmp(device->handle_[apiIndex].devicePath, ref) == 0) {
+                // The correct handle is already open.
+                return FREESPACE_SUCCESS;
+            }
+            // Attempting to reopen an open handle!
+            DEBUG_WPRINTF(L"libfreespace: attempting to reopen a handle\n");
+            return FREESPACE_ERROR_IO;
+        }
+    }
 
     // Create copies of the other malloc fields, or set to NULL.
-    device->handle_[0].devicePath = dupeWCharString(ref);
-    if (device->handle_[0].devicePath == NULL) {
+    device->handle_[apiIndex].devicePath = dupeWCharString(ref);
+    if (device->handle_[apiIndex].devicePath == NULL) {
         return FREESPACE_ERROR_OUT_OF_MEMORY;
     }
 
     // Populate the relevant information.
-    device->handle_[0].info_ = *info;
-    device->handleCount_ = 1;
+    device->handle_[apiIndex].info_ = *info;
+    device->handle_[apiIndex].enumerationFlag_ = TRUE;
 
-    // Call the device API callback for further configuration.
-    if (api->callback_ != NULL) {
-        api->callback_(device);
+    // TODO : correctly process case where not all handles are open.
+    if (wasCreated) {
+        rc = freespace_private_addDevice(device);
     }
-
-    rc = freespace_private_addDevice(device);
 
     *deviceOut = device;
     return rc;
@@ -329,32 +356,24 @@ int freespace_private_scanAndAddDevices() {
             break;
         }
 
-        // Check if we know about the device.
-        device = freespace_private_getDeviceByRef(functionClassDeviceData->DevicePath);
-        if (device) {
-            // Yes, so mark it.
-            device->status_ = FREESPACE_DISCOVERY_STATUS_EXISTING;
-        } else {
-            // Unknown device, so get more info on it.
-            rc = getDeviceInfo(functionClassDeviceData->DevicePath, &info);
-            if (rc != FREESPACE_SUCCESS) {
-                continue;
-            }
+        // Get more info on this device.
+        rc = getDeviceInfo(functionClassDeviceData->DevicePath, &info);
+        if (rc != FREESPACE_SUCCESS) {
+            continue;
+        }
 
-            // Check if it is a supported Freespace device.
-            api = getDeviceAPI(&info);
-            if (api != NULL) {
-                rc = addNewDevice(functionClassDeviceData->DevicePath, api, &info, &device);
-                if (rc == FREESPACE_SUCCESS) {
-                    device->status_ = FREESPACE_DISCOVERY_STATUS_ADDED;
-                } else {
-                    // Something very strange happened.
-                    if (hardwareDeviceInfo != INVALID_HANDLE_VALUE) {
-                        SetupDiDestroyDeviceInfoList(hardwareDeviceInfo);
-                    }
-                    return rc;
-                }
-            }
+        // Check if it is a supported Freespace device.
+        api = getDeviceAPI(&info);
+        if (api == NULL) {
+            continue;
+        }
+
+        // Attempt to add a new device.
+        rc = addNewDevice(functionClassDeviceData->DevicePath, api, &info, &device);
+        if (rc != FREESPACE_SUCCESS || device == NULL) {
+            // Device not existing and could not create
+            DEBUG_WPRINTF(L"libfreespace: error during addNewDevice()");
+            break;
         }
     }
 
