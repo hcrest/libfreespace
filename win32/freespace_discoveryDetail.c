@@ -231,6 +231,8 @@ static int addNewDevice(FreespaceDeviceRef ref,
         if (device->handle_[apiIndex].handle_ != NULL) {
             if (lstrcmp(device->handle_[apiIndex].devicePath, ref) == 0) {
                 // The correct handle is already open.
+                // TODO : verify that this is still the correct handle?
+                device->handle_[apiIndex].enumerationFlag_ = TRUE;
                 return FREESPACE_SUCCESS;
             }
             // Attempting to reopen an open handle!

@@ -140,13 +140,13 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             return TRUE;
         }
         if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
-            DEBUG_WPRINTF(L"freespace: discoveryCallback on DBT_DEVICEARRIVAL\n");
+            DEBUG_WPRINTF(L"libfreespace: DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
         } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
-            DEBUG_WPRINTF(L"freespace: discoveryCallback on DBT_DEVICEREMOVECOMPLETE\n");
+            DEBUG_WPRINTF(L"libfreespace: DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
         } else {
-            DEBUG_WPRINTF(L"freespace: discoveryCallback on unexpected change: %d\n", LOWORD(wParam));
+            DEBUG_WPRINTF(L"libfreespace: discoveryCallback on unexpected change (%d) => %s\n", 
+                LOWORD(wParam), hdr->dbcc_name);
         }
-        DEBUG_WPRINTF(L"   %s\n", hdr->dbcc_name);
 
 #endif
 

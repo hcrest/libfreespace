@@ -422,6 +422,8 @@ int checkDiscovery() {
     if (freespace_private_discoveryStatusChanged()) {
         int rc;
 
+        DEBUG_WPRINTF(L"libfreespace: scanning devices\n");
+
         // Mark and sweep the device list.
         freespace_private_filterDevices(NULL, 0, NULL, filterInitialize);
 
