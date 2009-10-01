@@ -20,6 +20,7 @@
 
 #include "freespace_device.h"
 #include "freespace_deviceMgr.h"
+#include "freespace_discovery.h"
 #include <strsafe.h>
 #include <malloc.h>
 
@@ -207,6 +208,7 @@ static int initiateAsyncReceives(struct FreespaceDeviceStruct* device) {
                     // Our device disappeared!  Remove it.
                     freespace_private_removeDevice(device);
                     freespace_private_forceCloseDevice(device);
+                    freespace_private_requestDeviceRescan();
                     return FREESPACE_ERROR_IO;
                 }
             }
@@ -284,6 +286,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
                     // Our device disappeared!  Remove it.
                     freespace_private_removeDevice(device);
                     freespace_private_forceCloseDevice(device);
+                    freespace_private_requestDeviceRescan();
                     return FREESPACE_ERROR_IO;
                 }
             }
