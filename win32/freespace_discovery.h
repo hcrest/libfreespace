@@ -45,6 +45,12 @@ HANDLE freespace_private_discoveryEventObject();
 
 int freespace_private_discoveryGetThreadStatus();
 
+/**
+ * Request a rescan of the devices.  
+ * Can be used to help recover from device errors.
+ */
+void freespace_private_requestDeviceRescan();
+
 #ifdef __cplusplus
 }
 #endif

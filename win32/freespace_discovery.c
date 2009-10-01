@@ -41,9 +41,17 @@ static DWORD WINAPI discoveryWindow(LPVOID lpParam);
  */
 static LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
+
 void freespace_private_requestDeviceRescan() {
-    freespace_instance_->needToRescanDevicesFlag_ = TRUE;
-    SetEvent(freespace_instance_->discoveryEvent_);
+    LARGE_INTEGER liDueTime;
+    liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
+
+    freespace_instance_->discoveryScanRequested_ = TRUE;
+    if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0))
+    {
+        printf("SetWaitableTimer failed (%d)\n", GetLastError());
+        return;
+    }
 }
 
 int freespace_private_discoveryThreadInit() {
@@ -53,13 +61,14 @@ int freespace_private_discoveryThreadInit() {
         return FREESPACE_ERROR_BUSY;
     }
 
-    freespace_instance_->discoveryEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+    freespace_instance_->discoveryEvent_ = CreateWaitableTimer(NULL, TRUE, NULL);
     if (freespace_instance_->discoveryEvent_ == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 
     // Need to scan a first time.
     freespace_instance_->needToRescanDevicesFlag_ = TRUE;
+    freespace_instance_->discoveryScanRequested_ = FALSE;
 
     // Create the hidden window
     freespace_instance_->discoveryTheadStatus_ = FREESPACE_SUCCESS;
@@ -87,14 +96,18 @@ int freespace_private_discoveryThreadExit() {
 }
 
 BOOL freespace_private_discoveryStatusChanged() {
-    if (freespace_instance_->needToRescanDevicesFlag_) {
+    if ( freespace_instance_->needToRescanDevicesFlag_ || 
+        (freespace_instance_->discoveryScanRequested_ &&
+         WaitForSingleObject(freespace_instance_->discoveryEvent_, 0) == WAIT_OBJECT_0)) {
         // Race condition note: the flags need to be reset before the scan takes
         // place. If device status changes again between when this thread is notified
         // and the flags get reset, we're ok, since the scan happens afterwards. If the
         // change occurs after the reset of the flags, the flags will be set again, and
         // we'll scan next trip around the event loop.
         freespace_instance_->needToRescanDevicesFlag_ = FALSE;
-        ResetEvent(freespace_instance_->discoveryEvent_);
+        freespace_instance_->discoveryScanRequested_ = FALSE;
+        //ResetEvent(freespace_instance_->discoveryEvent_);
+        //CancelWaitableTimer(freespace_instance_->discoveryEvent_);
 
         return TRUE;
     } else {
@@ -125,6 +138,7 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
         UnregisterDeviceNotification(freespace_instance_->windowEvent_);
         freespace_instance_->windowEvent_ = NULL;
 
+        CancelWaitableTimer(freespace_instance_->discoveryEvent_);
         CloseHandle(freespace_instance_->discoveryEvent_);
         freespace_instance_->discoveryEvent_ = NULL;
 
@@ -133,6 +147,9 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DEVICECHANGE) {
+        // Schedule a device list rescan.
+        freespace_private_requestDeviceRescan();
+
         // Only handle all devices arrived or all devices removed.
         if ((LOWORD(wParam) != DBT_DEVICEARRIVAL) &&
             (LOWORD(wParam) != DBT_DEVICEREMOVECOMPLETE)) {
@@ -152,10 +169,8 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
                 LOWORD(wParam), hdr->dbcc_name);
         }
-
 #endif
-        // Notify that the device list needs to be rescanned.
-        freespace_private_requestDeviceRescan();
+
         return TRUE;
     }
 

@@ -105,6 +105,7 @@ struct LibfreespaceData {
     // the needToRescanDevicesFlag_ is set and the discoveryEvent
     // is set to wake up a WFMO call.
     BOOL needToRescanDevicesFlag_;
+    BOOL discoveryScanRequested_;
     HANDLE discoveryEvent_;
 
     int discoveryTheadStatus_;
