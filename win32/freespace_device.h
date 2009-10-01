@@ -35,6 +35,24 @@ extern "C" {
  */
 int freespace_private_devicePerform(struct FreespaceDeviceStruct* device);
 
+/**
+ * Force a device to close.  Attempt to recover from errors.
+ * @param device which device.
+ */
+void freespace_private_forceCloseDevice(struct FreespaceDeviceStruct* device);
+
+/**
+ * Remove the device from the libfreespace API.
+ * @param device which device.
+ */
+void freespace_private_removeDevice(struct FreespaceDeviceStruct* device);
+
+/**
+ * Add the device to the libfreespace API.
+ * @param device which device.
+ */
+void freespace_private_insertDevice(struct FreespaceDeviceStruct* device);
+
 #ifdef __cplusplus
 }
 #endif

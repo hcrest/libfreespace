@@ -119,6 +119,29 @@ int freespace_private_freeDevice(struct FreespaceDeviceStruct* device) {
     return FREESPACE_SUCCESS;
 }
 
+void freespace_private_removeDevice(struct FreespaceDeviceStruct* device) {
+    if (device->isAvailable_ == FALSE) {
+        return;
+    }
+    device->isAvailable_ = FALSE;
+
+    if (freespace_instance_->hotplugCallback_ != NULL) {
+        freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_REMOVAL, device->id_, freespace_instance_->hotplugCookie_);
+    }
+}
+
+void freespace_private_insertDevice(struct FreespaceDeviceStruct* device) {
+    if (device->isAvailable_ == TRUE) {
+        return;
+    }
+    device->isAvailable_ = TRUE;
+
+    if (freespace_instance_->hotplugCallback_ != NULL) {
+        freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_INSERTION, device->id_, freespace_instance_->hotplugCookie_);
+    }
+}
+
+
 struct FreespaceSendStruct* getNextSendBuffer(struct FreespaceDeviceStruct* device) {
     int i;
     struct FreespaceSendStruct* s;
@@ -178,6 +201,14 @@ static int initiateAsyncReceives(struct FreespaceDeviceStruct* device) {
                 DEBUG_PRINTF("initiateAsyncReceives : Error on %d : %d\n", idx, GetLastError());
                 Sleep(0);
                 funcRc = FREESPACE_ERROR_IO;
+
+                // Was our device removed?
+                if (GetLastError() == ERROR_DEVICE_NOT_CONNECTED) {
+                    // Our device disappeared!  Remove it.
+                    freespace_private_removeDevice(device);
+                    freespace_private_forceCloseDevice(device);
+                    return FREESPACE_ERROR_IO;
+                }
             }
         }
     }
@@ -207,7 +238,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
             continue;
         } else if (send->numBytes_ != send->interface_->info_.outputReportByteLength_) {
             // Unexpected error on the sent message.
-            DEBUG_PRINTF("freespace_send_async: error on message size: %d != %d\n",
+            DEBUG_PRINTF("freespace_private_devicePerform: error on message size: %d != %d\n",
                          send->numBytes_, send->interface_->info_.outputReportByteLength_);
             if (send->callback_ != NULL) {
                 send->callback_(device->id_, send->cookie_, FREESPACE_ERROR_IO);
@@ -241,13 +272,20 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
                 }
                 s->readStatus_ = FALSE;
             } else if (GetLastError() != ERROR_IO_INCOMPLETE) {
-                // Something severe happened to our device!  Wait to ensure processing occurs before retrying.
-                // @TODO handle this case.
+                // Something severe happened to our device!  
+                // Wait to ensure processing occurs before retrying.
                 DEBUG_PRINTF("freespace_private_devicePerform : Error on %d : %d\n", idx, GetLastError());
                 device->receiveCallback_(device->id_, NULL, 0, device->receiveCookie_, FREESPACE_ERROR_NO_DATA);
                 Sleep(0);
                 s->readStatus_ = FALSE;
-                // return FREESPACE_ERROR_IO;
+
+                // Was our device removed?
+                if (GetLastError() == ERROR_DEVICE_NOT_CONNECTED) {
+                    // Our device disappeared!  Remove it.
+                    freespace_private_removeDevice(device);
+                    freespace_private_forceCloseDevice(device);
+                    return FREESPACE_ERROR_IO;
+                }
             }
         }
     }
@@ -271,7 +309,7 @@ static int terminateAsyncReceives(struct FreespaceDeviceStruct* device) {
     return FREESPACE_SUCCESS;
 }
 
-void forceCloseDevice(struct FreespaceDeviceStruct* device) {
+void freespace_private_forceCloseDevice(struct FreespaceDeviceStruct* device) {
     int idx;
 
     if (device == NULL) {
@@ -317,11 +355,11 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->handle_ != NULL) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_BUSY;
         }
         if (s->devicePath == NULL) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_NO_DEVICE;
         }
         DEBUG_WPRINTF(L"Open %s\n", s->devicePath);
@@ -332,26 +370,33 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
                                 OPEN_EXISTING,
                                 FILE_FLAG_OVERLAPPED,
                                 NULL);
+        {
+            DWORD d;
+            if (!GetHandleInformation(s->handle_, &d)) {
+                // We do not have the correct handle.
+                DEBUG_PRINTF("freespace_openDevice failed with code %d\n", GetLastError());
+            }
+        }
 
         if (s->handle_ == INVALID_HANDLE_VALUE) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_NO_DEVICE;
         }
 
         if (!BindIoCompletionCallback(s->handle_, freespace_private_overlappedCallback, 0)) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_UNEXPECTED;
         }
 
         if (!HidD_SetNumInputBuffers(s->handle_, HID_NUM_INPUT_BUFFERS)) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_NO_DEVICE;
         }
 
         // Create the read event.
         s->readOverlapped_.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
         if (s->readOverlapped_.hEvent == NULL) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_UNEXPECTED;
         }
         s->readOverlapped_.Offset = 0;
@@ -365,7 +410,7 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
     for (idx = 0; idx < FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT; idx++) {
         device->send_[idx].overlapped_.hEvent = NULL;
         if (initializeSendStruct(&device->send_[idx]) != FREESPACE_SUCCESS) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_UNEXPECTED;
         }
     }
@@ -376,7 +421,7 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
         int rc;
         rc = initiateAsyncReceives(device);
         if (rc != FREESPACE_SUCCESS) {
-            forceCloseDevice(device);
+            freespace_private_forceCloseDevice(device);
             return rc;
         }
     }
@@ -395,7 +440,7 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         return;
     }
 
-    forceCloseDevice(device);
+    freespace_private_forceCloseDevice(device);
 }
 
 static int prepareSend(FreespaceDeviceId id, struct FreespaceSendStruct** sendOut, const char* report, int length) {

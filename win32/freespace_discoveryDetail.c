@@ -229,14 +229,19 @@ static int addNewDevice(FreespaceDeviceRef ref,
             device->status_ = FREESPACE_DISCOVERY_STATUS_EXISTING;
         }
         if (device->handle_[apiIndex].handle_ != NULL) {
-            if (lstrcmp(device->handle_[apiIndex].devicePath, ref) == 0) {
-                // The correct handle is already open.
-                // TODO : verify that this is still the correct handle?
+            // A handle is already open.
+            DWORD d;
+            if (GetHandleInformation(device->handle_[apiIndex].handle_, &d)) {
+                // We have the correct handle
                 device->handle_[apiIndex].enumerationFlag_ = TRUE;
                 return FREESPACE_SUCCESS;
             }
+            // We do not have the correct handle.
+            DEBUG_PRINTF("addNewDevice failed with code %d\n", GetLastError());
+            // Adding this device has now failed..
             // Attempting to reopen an open handle!
-            DEBUG_WPRINTF(L"libfreespace: attempting to reopen a handle\n");
+            freespace_private_forceCloseDevice(device);
+            DEBUG_WPRINTF(L"attempting to reopen a handle\n");
             return FREESPACE_ERROR_IO;
         }
     }
@@ -374,7 +379,7 @@ int freespace_private_scanAndAddDevices() {
         rc = addNewDevice(functionClassDeviceData->DevicePath, api, &info, &device);
         if (rc != FREESPACE_SUCCESS || device == NULL) {
             // Device not existing and could not create
-            DEBUG_WPRINTF(L"libfreespace: error during addNewDevice()");
+            DEBUG_WPRINTF(L"error during addNewDevice()\n");
             break;
         }
     }

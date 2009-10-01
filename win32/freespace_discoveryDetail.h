@@ -22,6 +22,7 @@
 #define FREESPACE_DISCOVERY_DETAIL_H_
 
 #include "freespace_win32.h"
+#include "freespace_device.h"
 
 #ifdef __cplusplus
 extern "C" {

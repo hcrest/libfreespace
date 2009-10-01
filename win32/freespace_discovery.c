@@ -41,6 +41,11 @@ static DWORD WINAPI discoveryWindow(LPVOID lpParam);
  */
 static LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
+void freespace_private_requestDeviceRescan() {
+    freespace_instance_->needToRescanDevicesFlag_ = TRUE;
+    SetEvent(freespace_instance_->discoveryEvent_);
+}
+
 int freespace_private_discoveryThreadInit() {
     HANDLE thread;
 
@@ -114,7 +119,7 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DESTROY) {
-        DEBUG_WPRINTF(L"freespace: discoveryCallback on WM_DESTROY\n");
+        DEBUG_WPRINTF(L"discoveryCallback on WM_DESTROY\n");
 
         // Remove the device notification
         UnregisterDeviceNotification(freespace_instance_->windowEvent_);
@@ -140,20 +145,17 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             return TRUE;
         }
         if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
-            DEBUG_WPRINTF(L"libfreespace: DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
+            DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
         } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
-            DEBUG_WPRINTF(L"libfreespace: DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
+            DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
         } else {
-            DEBUG_WPRINTF(L"libfreespace: discoveryCallback on unexpected change (%d) => %s\n", 
+            DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
                 LOWORD(wParam), hdr->dbcc_name);
         }
 
 #endif
-
         // Notify that the device list needs to be rescanned.
-        freespace_instance_->needToRescanDevicesFlag_ = TRUE;
-        SetEvent(freespace_instance_->discoveryEvent_);
-
+        freespace_private_requestDeviceRescan();
         return TRUE;
     }
 
