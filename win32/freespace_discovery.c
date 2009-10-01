@@ -124,8 +124,6 @@ int freespace_private_discoveryGetThreadStatus() {
 }
 
 LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam) {
-    DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
-
     if (nMsg == WM_CLOSE) {
         DestroyWindow(hwnd);
         return DefWindowProc(hwnd,	nMsg, wParam, lParam);
@@ -157,17 +155,20 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
         }
 
 #ifdef DEBUG
-        hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
-        if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
-            return TRUE;
-        }
-        if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
-            DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
-        } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
-            DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
-        } else {
-            DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
-                LOWORD(wParam), hdr->dbcc_name);
+        {
+            DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
+            hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
+            if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
+                return TRUE;
+            }
+            if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
+                DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
+            } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
+                DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
+            } else {
+                DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
+                    LOWORD(wParam), hdr->dbcc_name);
+            }
         }
 #endif
 
