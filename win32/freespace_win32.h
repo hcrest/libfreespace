@@ -26,8 +26,23 @@
 
 // Define our debug printf statements
 #ifdef DEBUG
-#define DEBUG_PRINTF(...) printf(__VA_ARGS__)
-#define DEBUG_WPRINTF(...) wprintf(__VA_ARGS__)
+#include <sys/timeb.h>
+#include <time.h>
+#define DEBUG_PRINTF(...) \
+{                                                           \
+    struct _timeb timeBuffer;                               \
+    _ftime64_s(&timeBuffer);                                \
+    printf("libfreespace(%I64d.%d): ", timeBuffer.time, timeBuffer.millitm);  \
+    printf(__VA_ARGS__); \
+}
+#define DEBUG_WPRINTF(...)                                  \
+{                                                           \
+    struct _timeb timeBuffer;                               \
+    _ftime64_s(&timeBuffer);                                \
+    printf("libfreespace(%I64d.%d): ", timeBuffer.time, timeBuffer.millitm);  \
+    wprintf(__VA_ARGS__); \
+}
+
 #else
 #define DEBUG_PRINTF(...) /* printf(__VA_ARGS__) */
 #define DEBUG_WPRINTF(...) /* wprintf(__VA_ARGS__) */
