@@ -151,6 +151,7 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
         // Only handle all devices arrived or all devices removed.
         if ((LOWORD(wParam) != DBT_DEVICEARRIVAL) &&
             (LOWORD(wParam) != DBT_DEVICEREMOVECOMPLETE)) {
+            DEBUG_WPRINTF(L"WM_DEVICECHANGE => %d\n", LOWORD(wParam));
             return TRUE;
         }
 
