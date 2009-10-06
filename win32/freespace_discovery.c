@@ -46,7 +46,6 @@ void freespace_private_requestDeviceRescan() {
     LARGE_INTEGER liDueTime;
     liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
 
-    freespace_instance_->discoveryScanRequested_ = TRUE;
     if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0))
     {
         printf("SetWaitableTimer failed (%d)\n", GetLastError());
@@ -68,7 +67,6 @@ int freespace_private_discoveryThreadInit() {
 
     // Need to scan a first time.
     freespace_instance_->needToRescanDevicesFlag_ = TRUE;
-    freespace_instance_->discoveryScanRequested_ = FALSE;
 
     // Create the hidden window
     freespace_instance_->discoveryTheadStatus_ = FREESPACE_SUCCESS;
@@ -97,17 +95,25 @@ int freespace_private_discoveryThreadExit() {
 
 BOOL freespace_private_discoveryStatusChanged() {
     if ( freespace_instance_->needToRescanDevicesFlag_ || 
-        (freespace_instance_->discoveryScanRequested_ &&
-         WaitForSingleObject(freespace_instance_->discoveryEvent_, 0) == WAIT_OBJECT_0)) {
+         WaitForSingleObject(freespace_instance_->discoveryEvent_, 0) == WAIT_OBJECT_0) {
         // Race condition note: the flags need to be reset before the scan takes
         // place. If device status changes again between when this thread is notified
         // and the flags get reset, we're ok, since the scan happens afterwards. If the
         // change occurs after the reset of the flags, the flags will be set again, and
         // we'll scan next trip around the event loop.
         freespace_instance_->needToRescanDevicesFlag_ = FALSE;
-        freespace_instance_->discoveryScanRequested_ = FALSE;
-        //ResetEvent(freespace_instance_->discoveryEvent_);
-        //CancelWaitableTimer(freespace_instance_->discoveryEvent_);
+
+        // Cancel the discovery delay timer
+        {
+            LARGE_INTEGER liDueTime;
+            liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
+
+            if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0))
+            {
+                printf("SetWaitableTimer failed (%d)\n", GetLastError());
+            }
+            CancelWaitableTimer(freespace_instance_->discoveryEvent_);
+        }
 
         return TRUE;
     } else {
