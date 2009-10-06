@@ -239,9 +239,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
             // We do not have the correct handle.
             DEBUG_PRINTF("addNewDevice failed with code %d\n", GetLastError());
             // Adding this device has now failed..
-            // Attempting to reopen an open handle!
             freespace_private_forceCloseDevice(device);
-            DEBUG_WPRINTF(L"attempting to reopen a handle\n");
             return FREESPACE_ERROR_IO;
         }
     }
@@ -256,7 +254,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
     device->handle_[apiIndex].info_ = *info;
     device->handle_[apiIndex].enumerationFlag_ = TRUE;
 
-    // TODO : correctly process case where not all handles are open.
+    // Add the device to our list if it was just created
     if (wasCreated) {
         rc = freespace_private_addDevice(device);
     }

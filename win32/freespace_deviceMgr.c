@@ -399,6 +399,9 @@ int checkDiscovery() {
         // Mark everything that still exists and add new devices
         rc = freespace_private_scanAndAddDevices();
         if (rc != FREESPACE_SUCCESS) {
+            // Unexpected error.  Schedule a rescan.
+            DEBUG_WPRINTF(L"Error %d while scanning devices.  Request a rescan.\n", rc);
+            freespace_private_requestDeviceRescan();
             return rc;
         }
 

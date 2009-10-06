@@ -145,6 +145,9 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DEVICECHANGE) {
+        DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
+        hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
+
         // Schedule a device list rescan.
         freespace_private_requestDeviceRescan();
 
@@ -155,13 +158,14 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             return TRUE;
         }
 
+        if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
+            return TRUE;
+        }
+
+        // TODO : is it necessary to ensure that removal indications are handled?  Post them?
+
 #ifdef DEBUG
         {
-            DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
-            hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
-            if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
-                return TRUE;
-            }
             if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
                 DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
             } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {

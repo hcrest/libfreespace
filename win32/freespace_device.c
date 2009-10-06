@@ -125,6 +125,7 @@ void freespace_private_removeDevice(struct FreespaceDeviceStruct* device) {
         return;
     }
     device->isAvailable_ = FALSE;
+    DEBUG_PRINTF("Device %d removed from API\n", device->id_);
 
     if (freespace_instance_->hotplugCallback_ != NULL) {
         freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_REMOVAL, device->id_, freespace_instance_->hotplugCookie_);
@@ -136,6 +137,7 @@ void freespace_private_insertDevice(struct FreespaceDeviceStruct* device) {
         return;
     }
     device->isAvailable_ = TRUE;
+    DEBUG_PRINTF("Device %d inserted into API\n", device->id_);
 
     if (freespace_instance_->hotplugCallback_ != NULL) {
         freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_INSERTION, device->id_, freespace_instance_->hotplugCookie_);
@@ -300,7 +302,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
 static int terminateAsyncReceives(struct FreespaceDeviceStruct* device) {
     int idx;
 
-    // Initialize a new read operation on all handles that need it.
+    // Cancel the read operation on all handles that need it.
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->readStatus_) {
