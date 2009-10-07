@@ -24,7 +24,7 @@
 #include <strsafe.h>
 #include <malloc.h>
 
-const int SEND_TIMEOUT = 1000;
+const int SEND_TIMEOUT = 1000; // in milliseconds
 const unsigned long HID_NUM_INPUT_BUFFERS = 128;
 
 /**
@@ -374,10 +374,12 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->handle_ != NULL) {
+            // Device was partially (incorrectly) opened.
             freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_BUSY;
         }
         if (s->devicePath == NULL) {
+            // Device was not fully enumerated.
             freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_NO_DEVICE;
         }
@@ -548,8 +550,9 @@ static int initializeSendStruct(struct FreespaceSendStruct* send) {
 
 static int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL doClose) {
     send->interface_ = NULL;
-    ResetEvent(send->overlapped_.hEvent);
-    if (doClose) {
+    if (send->overlapped_.hEvent == NULL) {
+        // Already finalized!
+    } else if (doClose) {
         // Close the overlapped report event.
         CloseHandle(send->overlapped_.hEvent);
         send->overlapped_.hEvent = NULL;

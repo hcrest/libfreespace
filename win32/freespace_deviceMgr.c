@@ -259,7 +259,7 @@ static BOOL filterInitialize(struct FreespaceDeviceStruct* device) {
 static BOOL filterSweep(struct FreespaceDeviceStruct* device) {
     // Device has been removed if it existed before and
     // wasn't marked as existing now.
-    return device->status_ == FREESPACE_DISCOVERY_STATUS_UNKNOWN;
+    return (device->status_ == FREESPACE_DISCOVERY_STATUS_UNKNOWN);
 }
 
 static BOOL filterPartiallyRemoved(struct FreespaceDeviceStruct* device) {

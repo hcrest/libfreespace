@@ -103,17 +103,9 @@ BOOL freespace_private_discoveryStatusChanged() {
         // we'll scan next trip around the event loop.
         freespace_instance_->needToRescanDevicesFlag_ = FALSE;
 
-        // Cancel the discovery delay timer
-        {
-            LARGE_INTEGER liDueTime;
-            liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
-
-            // Setting the timer forces the signaled state to unsignaled.
-            if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0)) {
-                printf("SetWaitableTimer failed (%d)\n", GetLastError());
-            }
-            CancelWaitableTimer(freespace_instance_->discoveryEvent_);
-        }
+        // Force the timer to unsignaled by restarting and then cancelling.
+        freespace_private_requestDeviceRescan();
+        CancelWaitableTimer(freespace_instance_->discoveryEvent_);
 
         return TRUE;
     } else {
@@ -175,7 +167,6 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             return TRUE;
         }
 
-#ifdef DEBUG
         if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
             DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
         } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
@@ -184,7 +175,6 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
                 LOWORD(wParam), hdr->dbcc_name);
         }
-#endif
 
         return TRUE;
     }
@@ -282,6 +272,9 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     if (!UnregisterClass(freespace_instance_->wndclass_->lpszClassName, 
                          freespace_instance_->wndclass_->hInstance)) {
         DEBUG_PRINTF("Could not unregister window: %d\n", GetLastError());
+    } else {
+        free(wndclass);
+        freespace_instance_->wndclass_ = NULL;
     }
 
     freespace_instance_->window_ = NULL;

@@ -31,9 +31,6 @@ struct FreespaceDeviceUsageAPI {
     USAGE    usagePage_;
 };
 
-// Changing this value requires changing the deviceAPITable definition.
-#define FREESPACE_DEVICE_USAGE_API_MAX 2
-
 /**
  * Figure out which API to use depending on the reported
  * Freespace version.
@@ -43,7 +40,7 @@ struct FreespaceDeviceAPI {
     uint16_t idVendor_;
     uint16_t idProduct_;
     int      usageCount_;
-    struct FreespaceDeviceUsageAPI usages_[FREESPACE_DEVICE_USAGE_API_MAX];
+    struct FreespaceDeviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
     const char* name_;
 };
 
@@ -104,10 +101,11 @@ static WCHAR* dupeWCharString(const WCHAR* input) {
  * @return FREESPACE_SUCCESS if ok
  */
 static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfaceInfo* info) {
-    HIDD_ATTRIBUTES HIDAttrib;
+    HIDD_ATTRIBUTES         HIDAttrib;
     HIDP_CAPS               Capabilities;
-    PHIDP_PREPARSED_DATA    HidParsedData;
-    HANDLE hHandle;
+    PHIDP_PREPARSED_DATA    HidParsedData = NULL;
+    HANDLE                  hHandle = NULL;
+    int                     rc = FREESPACE_SUCCESS;
 
     hHandle = CreateFile(devicePath,
                          GENERIC_READ, // | GENERIC_WRITE,
@@ -128,26 +126,29 @@ static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfac
     // extract the capabilities info
     if (!HidD_GetPreparsedData(hHandle, &HidParsedData)) {
         DEBUG_PRINTF("getDeviceInfo: Could not get preparsed data!\n");
-        CloseHandle(hHandle);
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-
-    if (HidP_GetCaps(HidParsedData ,&Capabilities) != HIDP_STATUS_SUCCESS) {
+        rc = FREESPACE_ERROR_UNEXPECTED;
+    } else if (HidP_GetCaps(HidParsedData ,&Capabilities) != HIDP_STATUS_SUCCESS) {
         DEBUG_PRINTF("getDeviceInfo: Could not get capabilities!\n");
-        CloseHandle(hHandle);
-        return FREESPACE_ERROR_UNEXPECTED;
+        rc = FREESPACE_ERROR_UNEXPECTED;
+    } else {
+        // Save the device information
+        info->idVendor_  = HIDAttrib.VendorID;
+        info->idProduct_ = HIDAttrib.ProductID;
+        info->usage_     = Capabilities.Usage;
+        info->usagePage_ = Capabilities.UsagePage;
+        info->inputReportByteLength_  = Capabilities.InputReportByteLength;
+        info->outputReportByteLength_ = Capabilities.OutputReportByteLength;
     }
 
     // close the handle, we are done with it for now
-    CloseHandle(hHandle);
-    info->idVendor_  = HIDAttrib.VendorID;
-    info->idProduct_ = HIDAttrib.ProductID;
-    info->usage_     = Capabilities.Usage;
-    info->usagePage_ = Capabilities.UsagePage;
-    info->inputReportByteLength_  = Capabilities.InputReportByteLength;
-    info->outputReportByteLength_ = Capabilities.OutputReportByteLength;
-    HidD_FreePreparsedData(HidParsedData);
-    return FREESPACE_SUCCESS;
+    if (HidParsedData != NULL) {
+        HidD_FreePreparsedData(HidParsedData);
+    }
+    if (hHandle != NULL) {
+        CloseHandle(hHandle);
+    }
+
+    return rc;
 }
 
 /*
@@ -340,18 +341,18 @@ int freespace_private_scanAndAddDevices() {
        the array of structures, the function will return */
     for (;;) {
         /* free the memory allocated for functionClassDeviceData */
-        if(functionClassDeviceData != NULL) {
+        if (functionClassDeviceData != NULL) {
             free(functionClassDeviceData);
             functionClassDeviceData = NULL;
         }
 
         // 3A) Get information about each HID device in turn
         // The current device is doned by Index
-        if (! SetupDiEnumDeviceInterfaces(hardwareDeviceInfo,
-                                          0, // No care about specific PDOs
-                                          &cls,
-                                          Index,
-                                          &deviceInfoData)) {
+        if (!SetupDiEnumDeviceInterfaces(hardwareDeviceInfo,
+                                         0, // No care about specific PDOs
+                                         &cls,
+                                         Index,
+                                         &deviceInfoData)) {
             if (ERROR_NO_MORE_ITEMS == GetLastError()) {
                 // Last entry found.  Successful termination.
             } else {
@@ -426,6 +427,9 @@ int freespace_private_scanAndAddDevices() {
     }
 
     /* 4) Free the allocated memory */
+    if (functionClassDeviceData != NULL) {
+        free(functionClassDeviceData);
+    }
     if (hardwareDeviceInfo != INVALID_HANDLE_VALUE) {
         SetupDiDestroyDeviceInfoList(hardwareDeviceInfo);
     }

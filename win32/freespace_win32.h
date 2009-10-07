@@ -102,19 +102,23 @@ struct LibfreespaceData {
     WNDCLASSEX *wndclass_;
 
     // Whenever a device is attached or removed to the system,
-    // the needToRescanDevicesFlag_ is set and the discoveryEvent
-    // is set to wake up a WFMO call.
+    // the discoveryEvent is set to wake up a WFMO call.  At 
+    // system initialization, needToRescanDevicesFlag_ ensures
+    // that the devices are scanned.
     BOOL needToRescanDevicesFlag_;
     HANDLE discoveryEvent_;
 
+    // The status as a freespace_error
     int discoveryTheadStatus_;
 
     // This event gets signaled when freespace_perform should be called
     HANDLE performEvent_; 
 };
 
+// The singleton instance data.
 extern struct LibfreespaceData* freespace_instance_;
 
+// The detected status states per device during discovery.
 enum freespace_discoveryStatus {
     FREESPACE_DISCOVERY_STATUS_UNKNOWN,
     FREESPACE_DISCOVERY_STATUS_EXISTING,
@@ -122,10 +126,15 @@ enum freespace_discoveryStatus {
     FREESPACE_DISCOVERY_STATUS_REMOVED
 };
 
+/*
+ * Define the maximum number of handles (interfaces) per device that
+ * can be joined together as a single virtual device.
+ * Changing this value requires changing the deviceAPITable definition 
+ * in freespace_discoveryDetail.c
+ */
 #define FREESPACE_HANDLE_COUNT_MAX 2
-// Defined in ms.
-#define RECEIVE_TIMEOUT 250
 
+// The information used to uniquely identify a device interface (handle).
 struct FreespaceDeviceInterfaceInfo {
     // The device vendor ID.
     uint16_t        idVendor_;
@@ -166,6 +175,7 @@ struct FreespaceSubStruct {
     struct FreespaceDeviceInterfaceInfo info_;
 };
 
+// Structure that holds data for a single outstanding send transaction.
 struct FreespaceSendStruct {
     // The target device interface.
     struct FreespaceSubStruct* interface_;
@@ -210,7 +220,7 @@ struct FreespaceDeviceStruct {
     BOOL                        isAvailable_;
 
     // Platform-specific unique ID that relates handles to this device.
-    WCHAR*                      uniqueId_;
+    WCHAR*                      uniqueId_; // malloc
 
     // The number of handles supported (desired) by this device.
     int                         handleCount_;
