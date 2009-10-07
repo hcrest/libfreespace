@@ -35,14 +35,26 @@ int freespace_private_discoveryThreadInit();
 
 /**
  * Exit the discovery process.
- * @return 0 on succes, or Freespace error code.
+ * @return 0 on success, or Freespace error code.
  */
 int freespace_private_discoveryThreadExit();
 
+/*
+ * Determine if the status of the connected devices has changed.
+ * @return true if rescan is requested, false otherwise.
+ */
 BOOL freespace_private_discoveryStatusChanged();
 
+/*
+ * Get the handle used for device discovery.
+ * @return The handle to be used for polling.
+ */
 HANDLE freespace_private_discoveryEventObject();
 
+/*
+ * Get the status of the independend discovery thread.
+ * @return 0 on thread running normally, or Freespace error code.
+ */
 int freespace_private_discoveryGetThreadStatus();
 
 /**

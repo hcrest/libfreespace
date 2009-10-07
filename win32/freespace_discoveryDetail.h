@@ -30,14 +30,18 @@ extern "C" {
 
 
 /*
- * Mangle the device path into a unique device identifier.
+ * Mangle the device path into a unique device identifier.  The resulting
+ * identifier must be the same for the multiple ports of the same device.
+ * @param devicePath The source device path
+ * @return The unique ID which must be freed when no longer needed.
  */
 WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath);
 
 /**
  * Populate all devices currently present in the system.
  * If a new device is found and the hotplug callback is specified,
- * then call the hotplug callback.
+ * then call the hotplug callback.  This scan process must correctly identify
+ * devices that were both removed and inserted since the last scan.
  * @return FREESPACE_SUCCESS or error.
  */
 int freespace_private_scanAndAddDevices();

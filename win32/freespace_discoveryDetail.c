@@ -19,15 +19,20 @@
  */
 
 #include "freespace_discoveryDetail.h"
+#include "freespace_discovery.h"
 #include "freespace_deviceMgr.h"
 #include <strsafe.h>
 #include <malloc.h>
 
+/**
+ * A specific usage available for a given FreespaceDeviceAPI.
+ */
 struct FreespaceDeviceUsageAPI {
     USAGE    usage_;
     USAGE    usagePage_;
 };
 
+// Changing this value requires changing the deviceAPITable definition.
 #define FREESPACE_DEVICE_USAGE_API_MAX 2
 
 /**
@@ -44,6 +49,7 @@ struct FreespaceDeviceAPI {
 };
 
 /*
+ * Define the devices recognized by libfreespace.
  * Naming convention:
  *   UserMeaningfulName vN (XXXX)
  *   N = USB interface version number
@@ -77,6 +83,12 @@ static const struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc031, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
 };
 
+
+/*
+ * Copy a wchar string.
+ * @param input The string to copy.
+ * @return The copied string which must be freed externally when no longer needed.
+ */
 static WCHAR* dupeWCharString(const WCHAR* input) {
     int mallocStrLen = lstrlen(input) + 1;
     WCHAR* out = (WCHAR*) malloc(sizeof(WCHAR) * mallocStrLen);
@@ -106,24 +118,23 @@ static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfac
                          FILE_FLAG_OVERLAPPED,
                          NULL);
 
-    /* 6) Get the Device VID & PID */
+    // Get the Device VID & PID
     if (hHandle == INVALID_HANDLE_VALUE) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 
     HIDAttrib.Size = sizeof(HIDAttrib);
     HidD_GetAttributes(hHandle, &HIDAttrib);
-    // TRACE( _T("VendorID = 0x%x, ProductID = 0x%x\n"),HIDAttrib.VendorID, HIDAttrib.ProductID);
 
     // extract the capabilities info
     if (!HidD_GetPreparsedData(hHandle, &HidParsedData)) {
-        // TRACE( _T("Could not get preparsed data!\n"));
+        DEBUG_PRINTF("getDeviceInfo: Could not get preparsed data!\n");
         CloseHandle(hHandle);
         return FREESPACE_ERROR_UNEXPECTED;
     }
 
     if (HidP_GetCaps(HidParsedData ,&Capabilities) != HIDP_STATUS_SUCCESS) {
-        // TRACE( _T("Could not get capabilities!\n"));
+        DEBUG_PRINTF("getDeviceInfo: Could not get capabilities!\n");
         CloseHandle(hHandle);
         return FREESPACE_ERROR_UNEXPECTED;
     }
@@ -149,7 +160,6 @@ static int getDeviceInfo(const WCHAR* devicePath, struct FreespaceDeviceInterfac
  */
 WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath) {
     WCHAR* wptr;
-    // device->handle_[0].devicePath
     FreespaceDeviceRef ref = dupeWCharString(devicePath);
     if (ref == NULL) {
         return NULL;
@@ -166,6 +176,12 @@ WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath) {
     return ref;
 }
 
+/*
+ * Get the matching usage index in the current API.
+ * @param api The API to scan.
+ * @param info The information (device) used for matching.
+ * @return The API index, or -1 if no match was found.
+ */
 int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct FreespaceDeviceInterfaceInfo* info) {
     int j;
     for (j = 0; j < api->usageCount_; j++) {
@@ -180,6 +196,11 @@ int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct Freespa
     return -1;
 }
 
+/*
+ * Get the matching API.
+ * @param info The information (device) used for matching.
+ * @return The API structure, or NULL if no match was found.
+ */
 static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
     int i;
     int index;
@@ -196,6 +217,16 @@ static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDevic
     return NULL;
 }
 
+/*
+ * Handle a device that was discovered during the scan.
+ * @param ref The OS reference string.
+ * @param api The matching API.
+ * @param info The parsed device information.
+ * @param deviceOut The matching libfreespace device which may have been 
+ *    created during the call to this function.  NULL if could not
+ *    correctly add the device.
+ * @return FREESPACE_SUCCESS on success, or Freespace error code.
+ */
 static int addNewDevice(FreespaceDeviceRef ref,
                         const struct FreespaceDeviceAPI* api,
                         struct FreespaceDeviceInterfaceInfo* info,
@@ -238,7 +269,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
             }
             // We do not have the correct handle.
             DEBUG_PRINTF("addNewDevice failed with code %d\n", GetLastError());
-            // Adding this device has now failed..
+            // Adding this device has now failed.
             freespace_private_forceCloseDevice(device);
             return FREESPACE_ERROR_IO;
         }
@@ -378,6 +409,8 @@ int freespace_private_scanAndAddDevices() {
         if (rc != FREESPACE_SUCCESS || device == NULL) {
             // Device not existing and could not create
             DEBUG_WPRINTF(L"error during addNewDevice()\n");
+            // Request a rescan which will hopefully recover.
+            freespace_private_requestDeviceRescan();
             break;
         }
     }

@@ -46,10 +46,8 @@ void freespace_private_requestDeviceRescan() {
     LARGE_INTEGER liDueTime;
     liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
 
-    if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0))
-    {
+    if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0)) {
         printf("SetWaitableTimer failed (%d)\n", GetLastError());
-        return;
     }
 }
 
@@ -60,6 +58,7 @@ int freespace_private_discoveryThreadInit() {
         return FREESPACE_ERROR_BUSY;
     }
 
+    // Create the timer used to indicated device rescan is required.
     freespace_instance_->discoveryEvent_ = CreateWaitableTimer(NULL, TRUE, NULL);
     if (freespace_instance_->discoveryEvent_ == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
@@ -85,6 +84,7 @@ int freespace_private_discoveryThreadExit() {
     }
 
     // Delete the window
+    // Memory cleanup is performed in the "WM_DESTROY" window callback.
     SendMessage(freespace_instance_->window_, WM_CLOSE, 0, 0);
     while (freespace_instance_->window_ != NULL) {
         Sleep(1);
@@ -108,8 +108,8 @@ BOOL freespace_private_discoveryStatusChanged() {
             LARGE_INTEGER liDueTime;
             liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
 
-            if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0))
-            {
+            // Setting the timer forces the signaled state to unsignaled.
+            if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0)) {
                 printf("SetWaitableTimer failed (%d)\n", GetLastError());
             }
             CancelWaitableTimer(freespace_instance_->discoveryEvent_);
@@ -151,7 +151,8 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DEVICECHANGE) {
-        DEV_BROADCAST_DEVICEINTERFACE* hdr;  // Actually, should start with DEV_BROADCAST_HDR
+        // Should start with DEV_BROADCAST_HDR and validate.
+        DEV_BROADCAST_DEVICEINTERFACE* hdr;
         hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
 
         // Schedule a device list rescan.
@@ -164,22 +165,24 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
             return TRUE;
         }
 
+        /*
+         * NOTE: Device scan is only performed once changes have stabilized.
+         * The scan routine must be able to handled a device being removed
+         * and reinserted without scan calls between events.
+         */
+
         if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
             return TRUE;
         }
 
-        // TODO : is it necessary to ensure that removal indications are handled?  Post them?
-
 #ifdef DEBUG
-        {
-            if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
-                DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
-            } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
-                DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
-            } else {
-                DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
-                    LOWORD(wParam), hdr->dbcc_name);
-            }
+        if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
+            DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
+        } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
+            DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
+        } else {
+            DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
+                LOWORD(wParam), hdr->dbcc_name);
         }
 #endif
 
