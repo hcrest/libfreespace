@@ -26,7 +26,6 @@
 #include <malloc.h>
 #include "../config-win32.h"
 
-//#define FREESPACE_DISCOVERY_DEBUG
 struct LibfreespaceData* freespace_instance_ = NULL;
 
 static int checkDiscovery();
@@ -264,9 +263,9 @@ static BOOL filterSweep(struct FreespaceDeviceStruct* device) {
 }
 
 static BOOL filterPartiallyRemoved(struct FreespaceDeviceStruct* device) {
-    /* Device is partially created if
+    /* Device is partially existing
      *    1. Status is existing or added
-     *    2. Not all of the required handles are valid
+     *    2. Not all of usages were enumerated
      */
     int i;
     if (device->status_ != FREESPACE_DISCOVERY_STATUS_EXISTING &&
@@ -314,7 +313,7 @@ static BOOL filterReady(struct FreespaceDeviceStruct* device) {
 /*
  * Remove the devices that are no longer present in the system. 
  */
-void checkDiscoveryRemoveDevices() {
+int checkDiscoveryRemoveDevices() {
     int i;
     struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
     int listLength = 0;
@@ -344,12 +343,14 @@ void checkDiscoveryRemoveDevices() {
     for (i = 0; i < listLength; i++) {
         freespace_private_freeDevice(list[i]);
     }
+
+    return listLength;
 }
 
 /*
  * Process devices with multiple handles that are not fully complete.
  */
-void checkDiscoveryPartiallyRemovedDevices() {
+int checkDiscoveryPartiallyRemovedDevices() {
     struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
     int listLength = 0;
     int i;
@@ -367,12 +368,14 @@ void checkDiscoveryPartiallyRemovedDevices() {
     for (i = 0; i < listLength; i++) {
         freespace_closeDevice(list[i]->id_);
     }
+
+    return listLength;
 }
 
 /*
  * Process devices with multiple handles that are not fully complete.
  */
-void checkDiscoveryAddedDevices() {
+int checkDiscoveryAddedDevices() {
     struct FreespaceDeviceStruct* list[FREESPACE_MAXIMUM_DEVICE_COUNT];
     int listLength = 0;
     int i;
@@ -385,13 +388,15 @@ void checkDiscoveryAddedDevices() {
     for (i = 0; i < listLength; i++) {
         freespace_private_insertDevice(list[i]);
     }
+    return listLength;
 }
 
 int checkDiscovery() {
     if (freespace_private_discoveryStatusChanged()) {
         int rc;
+        int totalChanges = 0;
 
-        DEBUG_WPRINTF(L"scanning devices\n");
+        DEBUG_WPRINTF(L"Scanning devices\n");
 
         // Mark and sweep the device list.
         freespace_private_filterDevices(NULL, 0, NULL, filterInitialize);
@@ -405,9 +410,20 @@ int checkDiscovery() {
             return rc;
         }
 
-        checkDiscoveryRemoveDevices();
-        checkDiscoveryPartiallyRemovedDevices();
-        checkDiscoveryAddedDevices();
+        // Handle all changes.
+        totalChanges += checkDiscoveryRemoveDevices();
+        totalChanges += checkDiscoveryPartiallyRemovedDevices();
+        totalChanges += checkDiscoveryAddedDevices();
+
+        /*
+         * Continue to schedule a rescan until no changes are detected.
+         * Although this should not be necessary, rescanning until a 
+         * stable state is reached should increase robustness.
+         */
+        if (totalChanges != 0) {
+            DEBUG_WPRINTF(L"Detected %d changes.  Schedule rescan\n", totalChanges);
+            freespace_private_requestDeviceRescan();
+        }
     }
 
     return freespace_private_discoveryGetThreadStatus();
