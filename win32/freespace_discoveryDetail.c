@@ -19,7 +19,6 @@
  */
 
 #include "freespace_discoveryDetail.h"
-#include "freespace_discovery.h"
 #include "freespace_deviceMgr.h"
 #include <strsafe.h>
 #include <malloc.h>
@@ -256,22 +255,33 @@ static int addNewDevice(FreespaceDeviceRef ref,
         device->handleCount_ = api->usageCount_;
 
     } else {
+        *deviceOut = device;
+
         if (device->status_ != FREESPACE_DISCOVERY_STATUS_ADDED) {
             device->status_ = FREESPACE_DISCOVERY_STATUS_EXISTING;
         }
+
+        // Check if the device is already open.
         if (device->handle_[apiIndex].handle_ != NULL) {
-            // A handle is already open.
+            // Yes, this handle already exists.
             DWORD d;
             if (GetHandleInformation(device->handle_[apiIndex].handle_, &d)) {
-                // We have the correct handle
+                // We have a valid handle.
                 device->handle_[apiIndex].enumerationFlag_ = TRUE;
                 return FREESPACE_SUCCESS;
             }
-            // We do not have the correct handle.
+
+            // We do not have a valid handle - close the device.
             DEBUG_PRINTF("addNewDevice failed with code %d\n", GetLastError());
-            // Adding this device has now failed.
             freespace_private_forceCloseDevice(device);
+            // Note: calling function must perform rescan to recover.
             return FREESPACE_ERROR_IO;
+        }
+
+        if (device->handle_[apiIndex].devicePath != NULL) {
+            // The device interface has already been discovered.
+            device->handle_[apiIndex].enumerationFlag_ = TRUE;
+            return FREESPACE_SUCCESS;
         }
     }
 
@@ -393,8 +403,7 @@ int freespace_private_scanAndAddDevices() {
         }
 
         // Get more info on this device.
-        rc = getDeviceInfo(functionClassDeviceData->DevicePath, &info);
-        if (rc != FREESPACE_SUCCESS) {
+        if (getDeviceInfo(functionClassDeviceData->DevicePath, &info) != FREESPACE_SUCCESS) {
             continue;
         }
 
@@ -408,11 +417,12 @@ int freespace_private_scanAndAddDevices() {
         rc = addNewDevice(functionClassDeviceData->DevicePath, api, &info, &device);
         if (rc != FREESPACE_SUCCESS || device == NULL) {
             // Device not existing and could not create
-            DEBUG_WPRINTF(L"error during addNewDevice()\n");
-            // Request a rescan which will hopefully recover.
-            freespace_private_requestDeviceRescan();
+            // Note: calling function must perform rescan to recover.
+            DEBUG_WPRINTF(L"error during addNewDevice(): %d\n", rc);
             break;
         }
+
+        rc = FREESPACE_SUCCESS;
     }
 
     /* 4) Free the allocated memory */
@@ -420,5 +430,5 @@ int freespace_private_scanAndAddDevices() {
         SetupDiDestroyDeviceInfoList(hardwareDeviceInfo);
     }
 
-    return FREESPACE_SUCCESS;
+    return rc;
 }
