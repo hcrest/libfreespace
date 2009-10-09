@@ -105,11 +105,12 @@ LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id, struct Freesp
     info->name      = device->name_;
     info->product   = device->handle_[0].info_.idProduct_;
     info->vendor    = device->handle_[0].info_.idVendor_;
+	info->hVer      = device->hVer_;
 
     return FREESPACE_SUCCESS;
 }
 
-struct FreespaceDeviceStruct* freespace_private_createDevice(const char* name) {
+struct FreespaceDeviceStruct* freespace_private_createDevice(const char* name, const int hVer) {
     struct FreespaceDeviceStruct* device = (struct FreespaceDeviceStruct*) malloc(sizeof(struct FreespaceDeviceStruct));
     if (device == NULL) {
         return NULL;
@@ -123,6 +124,7 @@ struct FreespaceDeviceStruct* freespace_private_createDevice(const char* name) {
     // Initialize the rest of the struct.
     device->status_ = FREESPACE_DISCOVERY_STATUS_UNKNOWN;
     device->name_ = name;
+	device->hVer_ = hVer;
     device->isAvailable_ = FALSE;
 
     return device;

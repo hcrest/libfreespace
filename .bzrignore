@@ -45,3 +45,5 @@ win32/libfreespace.vcproj.*.user
 .pydevproject
 .cproject
 *.zip
+./common/freespace_codecs.h
+./common/freespace_printers.h

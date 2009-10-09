@@ -209,6 +209,9 @@ struct FreespaceDeviceStruct {
     // The user-meaningful name for the device.
     const char*					name_; // Uses constant value.
 
+	// The HID message protocol used by this device
+	int                         hVer_;
+
     // The discovery status for the device which is used to detect when
     // devices are removed from the system.
     enum freespace_discoveryStatus   status_;
