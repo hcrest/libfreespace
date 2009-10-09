@@ -53,7 +53,7 @@ int freespace_private_addDevice(struct FreespaceDeviceStruct* device);
 int freespace_private_freeDevice(struct FreespaceDeviceStruct *device);
 
 /**
- * Get an existing Freespace device.
+ * Get an existing Freespace device using the primary handle index 0.
  * @param ref The reference compatible with discovery associated with the device.
  * @return The Freespace device
  */
