@@ -39,9 +39,11 @@ class Message:
         self.name=name
         self.encode = encode
         self.decode = decode
-        self.Fields = []
+        self.Fields = [[], [], []]  # keep a separate list for each version of the HID message protocol
+        self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
         self.enumName = "FREESPACE_MESSAGE_" + self.name.upper()
+        self.className = "FreespaceMsgIn" + self.name
         self.structName = self.name[0].lower() + self.name[1:]
         self.shouldGenerate = shouldGenerate
         # Information about firmware versions
@@ -52,8 +54,8 @@ class Message:
     
     def getMessageSize(self):
         toRet = 1 # Add one for the opening message type byte
-        if self.ID.has_key('subId'):
-            toRet += self.ID['subId']['size']
+        if self.ID[1].has_key('subId'):
+            toRet += self.ID[1]['subId']['size']
         for element in self.Fields:
             toRet += element['size']
         return toRet
@@ -79,10 +81,10 @@ CoprocessorOutReport.addedVersion = "1.0.0"
 CoprocessorOutReport.deprecatedVersion = ""
 CoprocessorOutReport.removedVersion = ""
 CoprocessorOutReport.appliesTo = [10001602]
-CoprocessorOutReport.ID = {
+CoprocessorOutReport.ID[1] = {
     ConstantID:5
 }
-CoprocessorOutReport.Fields = [
+CoprocessorOutReport.Fields[1] = [
     {name:"payloadLength", size:1, cType:'uint8_t'},
     {name:"payload",       size:14}
 ]
@@ -97,12 +99,12 @@ CoprocessorInReport.addedVersion = "1.0.0"
 CoprocessorInReport.deprecatedVersion = ""
 CoprocessorInReport.removedVersion = ""
 CoprocessorInReport.appliesTo = [10001602]
-CoprocessorInReport.ID = {
+CoprocessorInReport.ID[1] = {
     ConstantID:6
 }
-CoprocessorInReport.Fields = [
+CoprocessorInReport.Fields[1] = [
     {name:"payloadLength", size:1, cType:'uint8_t'},
-    {name:"payload",       size:14}
+    {name:"payload",       size:14, cType:'uint8_t'}
 ]
 
 messages.append(CoprocessorInReport)
@@ -115,10 +117,10 @@ BatteryLevelRequest.addedVersion = "1.0.0"
 BatteryLevelRequest.deprecatedVersion = ""
 BatteryLevelRequest.removedVersion = ""
 BatteryLevelRequest.appliesTo = [10001602]
-BatteryLevelRequest.ID = {
+BatteryLevelRequest.ID[1] = {
     ConstantID:9
 }
-BatteryLevelRequest.Fields = [
+BatteryLevelRequest.Fields[1] = [
     {name:RESERVED, size:1}
 ]
 
@@ -132,12 +134,19 @@ BatteryLevel.addedVersion = "1.0.0"
 BatteryLevel.deprecatedVersion = ""
 BatteryLevel.removedVersion = ""
 BatteryLevel.appliesTo = [10001602]
-BatteryLevel.ID = {
+BatteryLevel.ID[1] = {
     ConstantID:10
 }
-BatteryLevel.Fields = [
+BatteryLevel.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:5}
+}
+BatteryLevel.Fields[1] = [
     {name:"batteryStrength", size:1, cType:'uint8_t', Documentation:"A percentage of the operating voltage range (0-100%)"},
     {name:RESERVED,          size:2}
+]
+BatteryLevel.Fields[2] = [
+    {name:"batteryStrength", size:1, cType:'uint8_t', Documentation:"A percentage of the operating voltage range (0-100%)"}
 ]
 
 messages.append(BatteryLevel)
@@ -150,10 +159,10 @@ BodyFrameMessage.addedVersion = "1.0.0"
 BodyFrameMessage.deprecatedVersion = ""
 BodyFrameMessage.removedVersion = ""
 BodyFrameMessage.appliesTo = [10001602, 10001853]
-BodyFrameMessage.ID = {
+BodyFrameMessage.ID[1] = {
     ConstantID:32
 }
-BodyFrameMessage.Fields = [
+BodyFrameMessage.Fields[1] = [
     {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
@@ -170,6 +179,34 @@ BodyFrameMessage.Fields = [
 messages.append(BodyFrameMessage)
 
 # ---------------------------------------------------------------------------------------
+# Body Frame V2 Message
+# From V1 to V2 the sequence number changes from uint32_t to uint16_t. That's why there are two messages
+BodyFrameV2Message = Message("BodyFrameV2", decode=True)
+BodyFrameV2Message.Documentation = "Conveys the motion relative to the body frame of the Freespace handheld device. \n The data have been processed to remove tremor and other unwanted side effects."
+BodyFrameV2Message.addedVersion = ""
+BodyFrameV2Message.deprecatedVersion = ""
+BodyFrameV2Message.removedVersion = ""
+BodyFrameV2Message.appliesTo = []
+BodyFrameV2Message.ID[2] = {
+    ConstantID:32
+}
+BodyFrameV2Message.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"A monotonically increasing integer generated by the Freespace sensor board at a nominal rate of 125 Hz.\n\tCan be used to correlate body frame messages with the user frame messages"},
+    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation:"Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
+    {name:"linearAccelY",   size:2, cType:'int16_t'},
+    {name:"linearAccelZ",   size:2, cType:'int16_t'},
+    {name:"angularVelX",    size:2, cType:'int16_t', Documentation:"Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
+    {name:"angularVelY",    size:2, cType:'int16_t'},
+    {name:"angularVelZ",    size:2, cType:'int16_t'}
+]
+
+messages.append(BodyFrameV2Message)
+
+# ---------------------------------------------------------------------------------------
 # User Frame Message
 UserFrameMessage = Message("UserFrame", decode=True)
 UserFrameMessage.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference."
@@ -177,10 +214,10 @@ UserFrameMessage.addedVersion = "1.0.0"
 UserFrameMessage.deprecatedVersion = ""
 UserFrameMessage.removedVersion = ""
 UserFrameMessage.appliesTo = [10001602, 10001853]
-UserFrameMessage.ID = {
+UserFrameMessage.ID[1] = {
     ConstantID:33
 }
-UserFrameMessage.Fields = [
+UserFrameMessage.Fields[1] = [
     {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
@@ -198,6 +235,34 @@ UserFrameMessage.Fields = [
 messages.append(UserFrameMessage)
 
 # ---------------------------------------------------------------------------------------
+# User Frame V2 Message
+# From V1 to V2 sequenceNumber uint32_t -> uint16_t and angularPosB eliminated
+UserFrameV2Message = Message("UserFrameV2", decode=True)
+UserFrameV2Message.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference."
+UserFrameV2Message.addedVersion = ""
+UserFrameV2Message.deprecatedVersion = ""
+UserFrameV2Message.removedVersion = ""
+UserFrameV2Message.appliesTo = []
+UserFrameV2Message.ID[2] = {
+    ConstantID:33
+}
+UserFrameV2Message.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"Correlates the position report with the Body Frame Motion Report"},
+    {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
+    {name:"linearPosY",     size:2, cType:'int16_t'},
+    {name:"linearPosZ",     size:2, cType:'int16_t'},
+    {name:"angularPosB",    size:2, cType:'int16_t', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosC",    size:2, cType:'int16_t'},
+    {name:"angularPosD",    size:2, cType:'int16_t'}
+]
+
+messages.append(UserFrameV2Message)
+
+# ---------------------------------------------------------------------------------------
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
@@ -205,10 +270,10 @@ DataMotion.addedVersion = "1.0.0"
 DataMotion.deprecatedVersion = "1.0.5"
 DataMotion.removedVersion = ""
 DataMotion.appliesTo = [10001602, 10001853]
-DataMotion.ID = {
+DataMotion.ID[1] = {
     ConstantID:34
 }
-DataMotion.Fields = [
+DataMotion.Fields[1] = [
     {name:"flags", size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
                                  {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
@@ -231,11 +296,11 @@ PairingMessage.addedVersion = "1.0.0"
 PairingMessage.deprecatedVersion = ""
 PairingMessage.removedVersion = ""
 PairingMessage.appliesTo = [10001853]
-PairingMessage.ID = {
+PairingMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:13}
 }
-PairingMessage.Fields = [
+PairingMessage.Fields[1] = [
     {name:RESERVED,   size:6}
 ]
 
@@ -249,11 +314,11 @@ ProductIDRequest.addedVersion = "1.0.0"
 ProductIDRequest.deprecatedVersion = ""
 ProductIDRequest.removedVersion = ""
 ProductIDRequest.appliesTo = [10001602, 10001853]
-ProductIDRequest.ID = {
+ProductIDRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:32}
 }
-ProductIDRequest.Fields = [
+ProductIDRequest.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
@@ -267,11 +332,11 @@ LEDSetRequest.addedVersion = "1.0.0"
 LEDSetRequest.deprecatedVersion = ""
 LEDSetRequest.removedVersion = ""
 LEDSetRequest.appliesTo = [10001602, 10001853]
-LEDSetRequest.ID = {
+LEDSetRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:34}
 }
-LEDSetRequest.Fields = [
+LEDSetRequest.Fields[1] = [
     {name:'onOff',     size:1, cType:'uint8_t', Documentation:"WP160: 0-Off, 1-On, 2-Release, FSAP160: 0-cause0, 1-cause1, 2-cause2"},
     {name:'selectLED', size:1, cType:'uint8_t', Documentation:"LED Select: 0-green(all devices)\n\t 1-red(all devices)\n\t 2-yellow(all devices)\n\t 3-blue(all devices)\n\t 4-FTA green\n\t 5-FTA red\n\t 6-S2U yellow\n\t 7-S2U blue\n\t 8-Dominion LED PWM\n\t 9-Dominion LED1\n\t 10-Dominion LED2\n\t 11-RFT LED A\n\t 12-RFT LED B"},
     {name:RESERVED,    size:4}
@@ -287,11 +352,11 @@ LinkQualityRequest.addedVersion = "1.0.0"
 LinkQualityRequest.deprecatedVersion = ""
 LinkQualityRequest.removedVersion = ""
 LinkQualityRequest.appliesTo = [10001853]
-LinkQualityRequest.ID = {
+LinkQualityRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:48}
 }
-LinkQualityRequest.Fields = [
+LinkQualityRequest.Fields[1] = [
     {name:'enable', size:1, cType:'uint8_t', Documentation:"0: disable status messages, 1: enable status messages"},
     {name:RESERVED, size:5}
 ]
@@ -306,11 +371,11 @@ AlwaysOnRequest.addedVersion = "1.0.0"
 AlwaysOnRequest.deprecatedVersion = ""
 AlwaysOnRequest.removedVersion = ""
 AlwaysOnRequest.appliesTo = [10001602, 10001853]
-AlwaysOnRequest.ID = {
+AlwaysOnRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:49}
 }
-AlwaysOnRequest.Fields = [
+AlwaysOnRequest.Fields[1] = [
     {name:RESERVED,    size:6}
 ]
 
@@ -324,11 +389,11 @@ FrequencyFixRequest.addedVersion = "1.0.0"
 FrequencyFixRequest.deprecatedVersion = ""
 FrequencyFixRequest.removedVersion = ""
 FrequencyFixRequest.appliesTo = [10001602, 10001853]
-FrequencyFixRequest.ID = {
+FrequencyFixRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:50}
 }
-FrequencyFixRequest.Fields = [
+FrequencyFixRequest.Fields[1] = [
     {name:'channel0', size:1, cType:'uint8_t'},
     {name:'channel1', size:1, cType:'uint8_t'},
     {name:'channel2', size:1, cType:'uint8_t'},
@@ -347,11 +412,11 @@ SoftwareReset.addedVersion = "1.0.0"
 SoftwareReset.deprecatedVersion = ""
 SoftwareReset.removedVersion = ""
 SoftwareReset.appliesTo = [10001853]
-SoftwareReset.ID = {
+SoftwareReset.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:51}
 }
-SoftwareReset.Fields = [
+SoftwareReset.Fields[1] = [
     {name:"device", size:1, cType:'uint8_t', Documentation:"1 for dongle"},
     {name:RESERVED, size:5}
 ]
@@ -366,11 +431,11 @@ DongleRFDisableMessage.addedVersion = "1.0.0"
 DongleRFDisableMessage.deprecatedVersion = ""
 DongleRFDisableMessage.removedVersion = ""
 DongleRFDisableMessage.appliesTo = [10001602, 10001853]
-DongleRFDisableMessage.ID = {
+DongleRFDisableMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:52}
 }
-DongleRFDisableMessage.Fields = [
+DongleRFDisableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
@@ -388,11 +453,11 @@ RFSupressMessage.addedVersion = "1.0.0"
 RFSupressMessage.deprecatedVersion = ""
 RFSupressMessage.removedVersion = ""
 RFSupressMessage.appliesTo = [10001853]
-RFSupressMessage.ID = {
+RFSupressMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:53}
 }
-RFSupressMessage.Fields = [
+RFSupressMessage.Fields[1] = [
     {name:'low',  size:1, cType:'uint8_t'},
     {name:'high', size:1, cType:'uint8_t'},                        
     {name:RESERVED, size:4}
@@ -408,11 +473,11 @@ FRSLoopReadRequest.addedVersion = "1.0.0"
 FRSLoopReadRequest.deprecatedVersion = ""
 FRSLoopReadRequest.removedVersion = ""
 FRSLoopReadRequest.appliesTo = [10001602, 10001853]
-FRSLoopReadRequest.ID = {
+FRSLoopReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadRequest.Fields = [
+FRSLoopReadRequest.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
@@ -428,11 +493,11 @@ FRSLoopWriteRequest.addedVersion = "1.0.0"
 FRSLoopWriteRequest.deprecatedVersion = ""
 FRSLoopWriteRequest.removedVersion = ""
 FRSLoopWriteRequest.appliesTo = [10001602, 10001853]
-FRSLoopWriteRequest.ID = {
+FRSLoopWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteRequest.Fields = [
+FRSLoopWriteRequest.Fields[1] = [
     {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
     {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:RESERVED,  size:2}
@@ -448,11 +513,11 @@ FRSLoopWriteData.addedVersion = "1.0.0"
 FRSLoopWriteData.deprecatedVersion = ""
 FRSLoopWriteData.removedVersion = ""
 FRSLoopWriteData.appliesTo = [10001602, 10001853]
-FRSLoopWriteData.ID = {
+FRSLoopWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:63}
 }
-FRSLoopWriteData.Fields = [
+FRSLoopWriteData.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
     {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
@@ -466,11 +531,11 @@ FRSDongleReadRequest.addedVersion = "1.0.0"
 FRSDongleReadRequest.deprecatedVersion = ""
 FRSDongleReadRequest.removedVersion = ""
 FRSDongleReadRequest.appliesTo = [10001602, 10001853]
-FRSDongleReadRequest.ID = {
+FRSDongleReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:59}
 }
-FRSDongleReadRequest.Fields = [
+FRSDongleReadRequest.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
@@ -485,11 +550,11 @@ FRSDongleWriteRequest.addedVersion = "1.0.0"
 FRSDongleWriteRequest.deprecatedVersion = ""
 FRSDongleWriteRequest.removedVersion = ""
 FRSDongleWriteRequest.appliesTo = [10001602, 10001853]
-FRSDongleWriteRequest.ID = {
+FRSDongleWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:62}
 }
-FRSDongleWriteRequest.Fields = [
+FRSDongleWriteRequest.Fields[1] = [
     {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
     {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:RESERVED,  size:2}
@@ -504,11 +569,11 @@ FRSDongleWriteData.addedVersion = "1.0.0"
 FRSDongleWriteData.deprecatedVersion = ""
 FRSDongleWriteData.removedVersion = ""
 FRSDongleWriteData.appliesTo = [10001602, 10001853]
-FRSDongleWriteData.ID = {
+FRSDongleWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:64}
 }
-FRSDongleWriteData.Fields = [
+FRSDongleWriteData.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
     {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
@@ -522,11 +587,11 @@ FRSEFlashReadRequest.addedVersion = "1.0.0"
 FRSEFlashReadRequest.deprecatedVersion = ""
 FRSEFlashReadRequest.removedVersion = ""
 FRSEFlashReadRequest.appliesTo = [10001602, 10001853]
-FRSEFlashReadRequest.ID = {
+FRSEFlashReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:65}
 }
-FRSEFlashReadRequest.Fields = [
+FRSEFlashReadRequest.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
@@ -541,11 +606,11 @@ FRSEFlashWriteRequest.addedVersion = "1.0.0"
 FRSEFlashWriteRequest.deprecatedVersion = ""
 FRSEFlashWriteRequest.removedVersion = ""
 FRSEFlashWriteRequest.appliesTo = [10001602, 10001853]
-FRSEFlashWriteRequest.ID = {
+FRSEFlashWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:66}
 }
-FRSEFlashWriteRequest.Fields = [
+FRSEFlashWriteRequest.Fields[1] = [
     {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
     {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:RESERVED,  size:2}
@@ -560,11 +625,11 @@ FRSEFlashWriteData.addedVersion = "1.0.0"
 FRSEFlashWriteData.deprecatedVersion = ""
 FRSEFlashWriteData.removedVersion = ""
 FRSEFlashWriteData.appliesTo = [10001602, 10001853]
-FRSEFlashWriteData.ID = {
+FRSEFlashWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:67}
 }
-FRSEFlashWriteData.Fields = [
+FRSEFlashWriteData.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
     {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
@@ -579,11 +644,11 @@ DongleRFEnableMessage.addedVersion = "1.0.2"
 DongleRFEnableMessage.deprecatedVersion = ""
 DongleRFEnableMessage.removedVersion = ""
 DongleRFEnableMessage.appliesTo = [10001602, 10001853]
-DongleRFEnableMessage.ID = {
+DongleRFEnableMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:71}
 }
-DongleRFEnableMessage.Fields = [
+DongleRFEnableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
@@ -597,11 +662,11 @@ DataModeRequest.addedVersion = "1.0.5"
 DataModeRequest.deprecatedVersion = ""
 DataModeRequest.removedVersion = ""
 DataModeRequest.appliesTo = [10001602, 10001853]
-DataModeRequest.ID = {
+DataModeRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:73}
 }
-DataModeRequest.Fields = [
+DataModeRequest.Fields[1] = [
     {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
                                  {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
@@ -613,7 +678,7 @@ DataModeRequest.Fields = [
 messages.append(DataModeRequest)
 
 # ---------------------------------------------------------------------------------------
-# ------------------------- Generic In Reports (ID 8) -----------------------------------
+# ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------
@@ -624,16 +689,27 @@ PairingResponse.addedVersion = "1.0.0"
 PairingResponse.deprecatedVersion = ""
 PairingResponse.removedVersion = ""
 PairingResponse.appliesTo = [10001853]
-PairingResponse.ID = {
+PairingResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:13}
 }
-PairingResponse.Fields = [
+PairingResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:2}
+}
+PairingResponse.Fields[1] = [
     {name:'flags',    size:1, bits:[{name:'pairing',     size:1, Documentation:"0: not pairing.\n\t 1: pairing"},
                                     {name:'autoPairing', size:1, Documentation:"0: dongle is not in auto-pairing\n\t1: dongle is in auto-pairing"},
                                     {name:'success',     size:1, Documentation:"0: not successful or still in progress\n\t1: successful"},
                                     {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]},
     {name:RESERVED,         size:24}
+]
+PairingResponse.Fields[2] = [
+    {name:'flags',    size:1, bits:[{name:'pairing',     size:1, Documentation:"0: not pairing.\n\t 1: pairing"},
+                                    {name:'autoPairing', size:1, Documentation:"0: dongle is not in auto-pairing\n\t1: dongle is in auto-pairing"},
+                                    {name:'success',     size:1, Documentation:"0: not successful or still in progress\n\t1: successful"},
+                                    {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]},
+    {name:RESERVED,         size:6}
 ]
 
 messages.append(PairingResponse)
@@ -646,11 +722,15 @@ ProductIDResponse.addedVersion = "1.0.0"
 ProductIDResponse.deprecatedVersion = ""
 ProductIDResponse.removedVersion = ""
 ProductIDResponse.appliesTo = [10001602, 10001853]
-ProductIDResponse.ID = {
+ProductIDResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:32}
 }
-ProductIDResponse.Fields = [
+ProductIDResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:9}
+}
+ProductIDResponse.Fields[1] = [
     {name:'swPartNumber',   size:4, cType:'uint32_t'},
     {name:'swBuildNumber',  size:4, cType:'uint32_t'},
     {name:'swicn',          size:4, cType:'uint32_t'},
@@ -663,6 +743,17 @@ ProductIDResponse.Fields = [
                                           {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
     {name:RESERVED,         size:2}
 ]
+ProductIDResponse.Fields[2] = [
+    {name:'swPartNumber',   size:4, cType:'uint32_t'},
+    {name:'swBuildNumber',  size:4, cType:'uint32_t'},
+    {name:'swVersionPatch', size:2, cType:'uint16_t'},
+    {name:'swVersionMinor', size:1, cType:'uint8_t'},
+    {name:'swVersionMajor', size:1, cType:'uint8_t'},
+    {name:'serialNumber',   size:4, cType:'uint32_t'},
+    {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:6, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
+                                          {name:'startup',             Documentation:"The device has just started up. This bit self clears after the first message is sent."},
+                                          {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
+]
 
 messages.append(ProductIDResponse)
 
@@ -674,17 +765,21 @@ LinkStatusMessage.addedVersion = "1.0.0"
 LinkStatusMessage.deprecatedVersion = ""
 LinkStatusMessage.removedVersion = ""
 LinkStatusMessage.appliesTo = [10001853]
-LinkStatusMessage.ID = {
+LinkStatusMessage.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:48}
 }
-LinkStatusMessage.Fields = [
+LinkStatusMessage.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:3}
+}
+LinkStatusMessage.Fields[1] = [
     {name:"status",     size:1, cType:'uint8_t', Documentation:"0: bad\n\t1: good"},
     {name:"mode",       size:1, cType:'uint8_t', Documentation:"0: normal operation\n\t1: fixed frequency operation\n\t2: RF disabled"},
     {name:"resetStatus",size:1, cType:'uint8_t', Documentation:"0: did not occur\n\t1: occurred. Self clears."},
     {name:RESERVED,     size:22}
 ]
-
+LinkStatusMessage.Fields[2] = LinkStatusMessage.Fields[1]
 messages.append(LinkStatusMessage)
 
 # ---------------------------------------------------------------------------------------
@@ -695,15 +790,37 @@ AlwaysOnResponse.addedVersion = "1.0.0"
 AlwaysOnResponse.deprecatedVersion = ""
 AlwaysOnResponse.removedVersion = ""
 AlwaysOnResponse.appliesTo = [10001602, 10001853]
-AlwaysOnResponse.ID = {
+AlwaysOnResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:49}
 }
-AlwaysOnResponse.Fields = [
+AlwaysOnResponse.Fields[1] = [
     {name:RESERVED,     size:25}
 ]
 
 messages.append(AlwaysOnResponse)
+
+# ---------------------------------------------------------------------------------------
+# FRS Read Response Message
+FRSReadResponse = Message("FRSReadResponse", decode=True)
+FRSReadResponse.Documentation = "This is sent from the device to the host to convey an FRS record."
+FRSReadResponse.addedVersion = ""
+FRSReadResponse.deprecatedVersion = ""
+FRSReadResponse.removedVersion = ""
+FRSReadResponse.appliesTo = []
+FRSReadResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:8}
+}
+FRSReadResponse.Fields[1] = [
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:12, cType:'uint32_t'},
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
+                                         {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
+]
+
+messages.append(FRSReadResponse)
 
 # ---------------------------------------------------------------------------------------
 # FRS Loop Read Response Message
@@ -713,19 +830,48 @@ FRSLoopReadResponse.addedVersion = "1.0.0"
 FRSLoopReadResponse.deprecatedVersion = ""
 FRSLoopReadResponse.removedVersion = ""
 FRSLoopReadResponse.appliesTo = [10001602, 10001853]
-FRSLoopReadResponse.ID = {
+FRSLoopReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadResponse.Fields = [
+FRSLoopReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:20},
+    {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
 messages.append(FRSLoopReadResponse)
+
+# ---------------------------------------------------------------------------------------
+# FRS Write Response Message
+FRSWriteResponse = Message("FRSWriteResponse", decode=True)
+FRSWriteResponse.Documentation = "This is sent from the device to the host to indicate status of the write operation."
+FRSWriteResponse.addedVersion = ""
+FRSWriteResponse.deprecatedVersion = ""
+FRSWriteResponse.removedVersion = ""
+FRSWriteResponse.appliesTo = []
+FRSWriteResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:6}
+}
+FRSWriteResponse.Fields[2] = [
+    {name:"wordOffset", size:2,  cType:'uint16_t'},
+    {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
+0: word received\n\t\
+1: unrecognized FRS type\n\t\
+2: busy\n\t\
+3: write completed\n\t\
+4: write mode entered already\n\t\
+5: write failed\n\t\
+6: data received while not in write mode\n\t\
+7: invalid length\n\t\
+8: record valid (the complete record passed internal validation checks)\n\t\
+9:record invalid (the complete record failed internal validation checks)"}
+]
+
+messages.append(FRSWriteResponse)
 
 # ---------------------------------------------------------------------------------------
 # FRS Loop Write Response Message
@@ -735,11 +881,11 @@ FRSLoopWriteResponse.addedVersion = "1.0.0"
 FRSLoopWriteResponse.deprecatedVersion = ""
 FRSLoopWriteResponse.removedVersion = ""
 FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
-FRSLoopWriteResponse.ID = {
+FRSLoopWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteResponse.Fields = [
+FRSLoopWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
@@ -765,11 +911,11 @@ FRSDongleReadResponse.addedVersion = "1.0.0"
 FRSDongleReadResponse.deprecatedVersion = ""
 FRSDongleReadResponse.removedVersion = ""
 FRSDongleReadResponse.appliesTo = [10001602, 10001853]
-FRSDongleReadResponse.ID = {
+FRSDongleReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:59}
 }
-FRSDongleReadResponse.Fields = [
+FRSDongleReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
     {name:"data",       size:20},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
@@ -787,11 +933,11 @@ FRSDongleWriteResponse.addedVersion = "1.0.0"
 FRSDongleWriteResponse.deprecatedVersion = ""
 FRSDongleWriteResponse.removedVersion = ""
 FRSDongleWriteResponse.appliesTo = [10001602, 10001853]
-FRSDongleWriteResponse.ID = {
+FRSDongleWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:62}
 }
-FRSDongleWriteResponse.Fields = [
+FRSDongleWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
@@ -817,11 +963,11 @@ FRSEFlashReadResponse.addedVersion = "1.0.0"
 FRSEFlashReadResponse.deprecatedVersion = ""
 FRSEFlashReadResponse.removedVersion = ""
 FRSEFlashReadResponse.appliesTo = [10001602, 10001853]
-FRSEFlashReadResponse.ID = {
+FRSEFlashReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:65}
 }
-FRSEFlashReadResponse.Fields = [
+FRSEFlashReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
     {name:"data",       size:20},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
@@ -839,11 +985,11 @@ FRSLoopWriteResponse.addedVersion = "1.0.0"
 FRSLoopWriteResponse.deprecatedVersion = ""
 FRSLoopWriteResponse.removedVersion = ""
 FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
-FRSEFlashWriteResponse.ID = {
+FRSEFlashWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:66}
 }
-FRSEFlashWriteResponse.Fields = [
+FRSEFlashWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
@@ -869,11 +1015,15 @@ DataModeResponse.addedVersion = "1.0.5"
 DataModeResponse.deprecatedVersion = ""
 DataModeResponse.removedVersion = ""
 DataModeResponse.appliesTo = [10001602, 10001853]
-DataModeResponse.ID = {
+DataModeResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:73}
 }
-DataModeResponse.Fields = [
+DataModeResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:4}
+}
+DataModeResponse.Fields[1] = [
     {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 Body Frame Motion reports are enabled."},
                                  {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 User Frame Position reports are enabled"},
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
@@ -881,6 +1031,6 @@ DataModeResponse.Fields = [
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
                                  {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]}
 ]
-
+DataModeResponse.Fields[2] = DataModeResponse.Fields[1]
 messages.append(DataModeResponse)
 
