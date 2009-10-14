@@ -20,10 +20,11 @@
 
 #include "freespace_device.h"
 #include "freespace_deviceMgr.h"
+#include "freespace_discovery.h"
 #include <strsafe.h>
 #include <malloc.h>
 
-const int SEND_TIMEOUT = 1000;
+const int SEND_TIMEOUT = 1000; // in milliseconds
 const unsigned long HID_NUM_INPUT_BUFFERS = 128;
 
 /**
@@ -53,12 +54,45 @@ static VOID CALLBACK freespace_private_overlappedCallback(DWORD dwErrorCode,
     SetEvent(freespace_instance_->performEvent_);
 }
 
-int convertGetLastError() {
+
+/**
+ * Handle the case where the device unexpectedly fails.
+ * @param device The device the failed.
+ * @param ec The error code from GetLastError()
+ * @return The device error code.
+ */
+int handleDeviceFailure(struct FreespaceDeviceStruct* device, int ec) {
     int rc = FREESPACE_ERROR_UNEXPECTED;
-    int lastError = GetLastError();
-    if (lastError == ERROR_DEVICE_NOT_CONNECTED) {
+    int formatRc = 0;
+    LPVOID lpMsgBuf;
+
+    // Retrieve the system error message for the last-error code
+    formatRc = FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        ec,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+    if (formatRc == 0) {
+        DEBUG_WPRINTF(L"handleDeviceFailure: %d\n", ec);
+    } else {
+        // Display the error message and exit the process
+        DEBUG_WPRINTF(L"handleDeviceFailure: %d => %s\n", ec, lpMsgBuf);
+        LocalFree(lpMsgBuf);
+    }
+
+    // Clean up this device.
+    freespace_private_removeDevice(device);
+    freespace_private_forceCloseDevice(device);
+    freespace_private_requestDeviceRescan();
+
+    if (ec == ERROR_DEVICE_NOT_CONNECTED) {
         rc = FREESPACE_ERROR_NOT_FOUND;
     }
+
     return rc;
 }
 
@@ -89,6 +123,7 @@ struct FreespaceDeviceStruct* freespace_private_createDevice(const char* name) {
     // Initialize the rest of the struct.
     device->status_ = FREESPACE_DISCOVERY_STATUS_UNKNOWN;
     device->name_ = name;
+    device->isAvailable_ = FALSE;
 
     return device;
 }
@@ -109,10 +144,39 @@ int freespace_private_freeDevice(struct FreespaceDeviceStruct* device) {
         }
     }
 
+    if (device->uniqueId_ != NULL) {
+        free(device->uniqueId_);
+    }
+
     // Free up everything allocated by freespace_private_createDevice
     free(device);
     return FREESPACE_SUCCESS;
 }
+
+void freespace_private_removeDevice(struct FreespaceDeviceStruct* device) {
+    if (device->isAvailable_ == FALSE) {
+        return;
+    }
+    device->isAvailable_ = FALSE;
+    DEBUG_PRINTF("Device %d removed from API\n", device->id_);
+
+    if (freespace_instance_->hotplugCallback_ != NULL) {
+        freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_REMOVAL, device->id_, freespace_instance_->hotplugCookie_);
+    }
+}
+
+void freespace_private_insertDevice(struct FreespaceDeviceStruct* device) {
+    if (device->isAvailable_ == TRUE) {
+        return;
+    }
+    device->isAvailable_ = TRUE;
+    DEBUG_PRINTF("Device %d inserted into API\n", device->id_);
+
+    if (freespace_instance_->hotplugCallback_ != NULL) {
+        freespace_instance_->hotplugCallback_(FREESPACE_HOTPLUG_INSERTION, device->id_, freespace_instance_->hotplugCookie_);
+    }
+}
+
 
 struct FreespaceSendStruct* getNextSendBuffer(struct FreespaceDeviceStruct* device) {
     int i;
@@ -167,12 +231,10 @@ static int initiateAsyncReceives(struct FreespaceDeviceStruct* device) {
                 // We got a ReadFile to block, so mark it.
                 s->readStatus_ = TRUE;
             } else {
-                // Something severe happened to our device!  Wait to ensure processing occurs before retrying.
-                int rc = convertGetLastError();
+                // Something severe happened to our device!
                 device->receiveCallback_(device->id_, NULL, 0, device->receiveCookie_, rc);
-                DEBUG_PRINTF("initiateAsyncReceives : Error on %d : %d\n", idx, GetLastError());
-                Sleep(0);
-                funcRc = FREESPACE_ERROR_IO;
+                DEBUG_PRINTF("initiateAsyncReceives : Error on %d : %d\n", idx, rc);
+                return handleDeviceFailure(device, rc);
             }
         }
     }
@@ -202,7 +264,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
             continue;
         } else if (send->numBytes_ != send->interface_->info_.outputReportByteLength_) {
             // Unexpected error on the sent message.
-            DEBUG_PRINTF("freespace_send_async: error on message size: %d != %d\n",
+            DEBUG_PRINTF("freespace_private_devicePerform: error on message size: %d != %d\n",
                          send->numBytes_, send->interface_->info_.outputReportByteLength_);
             if (send->callback_ != NULL) {
                 send->callback_(device->id_, send->cookie_, FREESPACE_ERROR_IO);
@@ -224,25 +286,25 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
 
         if (s->readStatus_) {
+            int lastErr;
             BOOL bResult = GetOverlappedResult(
                                                s->handle_,                 /* handle to device */
                                                &s->readOverlapped_,        /* long pointer to an OVERLAPPED structure */
                                                &s->readBufferSize,         /* returned buffer size */
                                                FALSE);
+            lastErr = GetLastError();
             if (bResult) {
                 // Got something, so report it.
                 if (device->receiveCallback_) {
                     device->receiveCallback_(device->id_, (char *) (s->readBuffer), s->readBufferSize, device->receiveCookie_, FREESPACE_SUCCESS);
                 }
                 s->readStatus_ = FALSE;
-            } else if (GetLastError() != ERROR_IO_INCOMPLETE) {
-                // Something severe happened to our device!  Wait to ensure processing occurs before retrying.
-                // @TODO handle this case.
-                DEBUG_PRINTF("freespace_private_devicePerform : Error on %d : %d\n", idx, GetLastError());
+            } else if (lastErr != ERROR_IO_INCOMPLETE) {
+                // Something severe happened to our device!  
+                DEBUG_PRINTF("freespace_private_devicePerform : Error on %d : %d\n", idx, lastErr);
                 device->receiveCallback_(device->id_, NULL, 0, device->receiveCookie_, FREESPACE_ERROR_NO_DATA);
-                Sleep(0);
                 s->readStatus_ = FALSE;
-                // return FREESPACE_ERROR_IO;
+                return handleDeviceFailure(device, lastErr);
             }
         }
     }
@@ -254,7 +316,7 @@ int freespace_private_devicePerform(struct FreespaceDeviceStruct* device) {
 static int terminateAsyncReceives(struct FreespaceDeviceStruct* device) {
     int idx;
 
-    // Initialize a new read operation on all handles that need it.
+    // Cancel the read operation on all handles that need it.
     for (idx = 0; idx < device->handleCount_; idx++) {
         struct FreespaceSubStruct* s = &device->handle_[idx];
         if (s->readStatus_) {
@@ -266,92 +328,12 @@ static int terminateAsyncReceives(struct FreespaceDeviceStruct* device) {
     return FREESPACE_SUCCESS;
 }
 
-LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
-    int idx;
-    struct FreespaceDeviceStruct* device = freespace_private_getDeviceById(id);
-    if (device == NULL) {
-        return FREESPACE_ERROR_NO_DEVICE;
-    }
-
-    if (device->isOpened_) {
-        // Each device can only be opened once.
-        return FREESPACE_ERROR_BUSY;
-    }
-
-
-    for (idx = 0; idx < device->handleCount_; idx++) {
-        struct FreespaceSubStruct* s = &device->handle_[idx];
-        if (s->handle_ != NULL) {
-            return FREESPACE_ERROR_BUSY;
-        }
-        if (s->devicePath == NULL) {
-            return FREESPACE_ERROR_NO_DEVICE;
-        }
-        DEBUG_WPRINTF(L"Open %s\n", s->devicePath);
-        s->handle_ = CreateFile(s->devicePath,
-                                GENERIC_READ | GENERIC_WRITE,
-                                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                NULL,
-                                OPEN_EXISTING,
-                                FILE_FLAG_OVERLAPPED,
-                                NULL);
-
-        if (s->handle_ == INVALID_HANDLE_VALUE) {
-            return FREESPACE_ERROR_NO_DEVICE;
-        }
-
-        if (!BindIoCompletionCallback(s->handle_, freespace_private_overlappedCallback, 0)) {
-            return FREESPACE_ERROR_UNEXPECTED;
-        }
-
-        if (!HidD_SetNumInputBuffers(s->handle_, HID_NUM_INPUT_BUFFERS)) {
-            CloseHandle(s->handle_);
-            s->handle_ = NULL;
-            return FREESPACE_ERROR_NO_DEVICE;
-        }
-
-        // Create the read event.
-        s->readOverlapped_.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-        if (s->readOverlapped_.hEvent == NULL) {
-            return FREESPACE_ERROR_UNEXPECTED;
-        }
-        s->readOverlapped_.Offset = 0;
-        s->readOverlapped_.OffsetHigh = 0;
-        s->readStatus_ = FALSE;
-    }
-
-    device->isOpened_ = TRUE;
-
-    // Enable send by initializing all send events.
-    for (idx = 0; idx < FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT; idx++) {
-        device->send_[idx].overlapped_.hEvent = NULL;
-        if (initializeSendStruct(&device->send_[idx]) != FREESPACE_SUCCESS) {
-            return FREESPACE_ERROR_UNEXPECTED;
-        }
-    }
-
-    // If async mode has been enabled already, then start the receive
-    // process going.
-    if (freespace_instance_->fdAddedCallback_) {
-        return initiateAsyncReceives(device);
-    }
-
-    return FREESPACE_SUCCESS;
-}
-
-LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
+void freespace_private_forceCloseDevice(struct FreespaceDeviceStruct* device) {
     int idx;
 
-    struct FreespaceDeviceStruct* device = freespace_private_getDeviceById(id);
     if (device == NULL) {
         return;
     }
-
-    // Don't bother if the device isn't open.
-    if (!device->isOpened_) {
-        return;
-    }
-
     terminateAsyncReceives(device);
 
     // Free all send events.
@@ -374,6 +356,112 @@ LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
         }
     }
     device->isOpened_ = FALSE;
+}
+
+LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id) {
+    int idx;
+    struct FreespaceDeviceStruct* device = freespace_private_getDeviceById(id);
+    if (device == NULL) {
+        return FREESPACE_ERROR_NO_DEVICE;
+    }
+
+    if (device->isOpened_) {
+        // Each device can only be opened once.
+        return FREESPACE_ERROR_BUSY;
+    }
+
+
+    for (idx = 0; idx < device->handleCount_; idx++) {
+        struct FreespaceSubStruct* s = &device->handle_[idx];
+        if (s->handle_ != NULL) {
+            // Device was partially (incorrectly) opened.
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_BUSY;
+        }
+        if (s->devicePath == NULL) {
+            // Device was not fully enumerated.
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_NO_DEVICE;
+        }
+        DEBUG_WPRINTF(L"Open %s\n", s->devicePath);
+        s->handle_ = CreateFile(s->devicePath,
+                                GENERIC_READ | GENERIC_WRITE,
+                                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                NULL,
+                                OPEN_EXISTING,
+                                FILE_FLAG_OVERLAPPED,
+                                NULL);
+        {
+            DWORD d;
+            if (!GetHandleInformation(s->handle_, &d)) {
+                // We do not have the correct handle.
+                DEBUG_PRINTF("freespace_openDevice failed with code %d\n", GetLastError());
+            }
+        }
+
+        if (s->handle_ == INVALID_HANDLE_VALUE) {
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_NO_DEVICE;
+        }
+
+        if (!BindIoCompletionCallback(s->handle_, freespace_private_overlappedCallback, 0)) {
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_UNEXPECTED;
+        }
+
+        if (!HidD_SetNumInputBuffers(s->handle_, HID_NUM_INPUT_BUFFERS)) {
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_NO_DEVICE;
+        }
+
+        // Create the read event.
+        s->readOverlapped_.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+        if (s->readOverlapped_.hEvent == NULL) {
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_UNEXPECTED;
+        }
+        s->readOverlapped_.Offset = 0;
+        s->readOverlapped_.OffsetHigh = 0;
+        s->readStatus_ = FALSE;
+    }
+
+    device->isOpened_ = TRUE;
+
+    // Enable send by initializing all send events.
+    for (idx = 0; idx < FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT; idx++) {
+        device->send_[idx].overlapped_.hEvent = NULL;
+        if (initializeSendStruct(&device->send_[idx]) != FREESPACE_SUCCESS) {
+            freespace_private_forceCloseDevice(device);
+            return FREESPACE_ERROR_UNEXPECTED;
+        }
+    }
+
+    // If async mode has been enabled already, then start the receive
+    // process going.
+    if (freespace_instance_->fdAddedCallback_) {
+        int rc;
+        rc = initiateAsyncReceives(device);
+        if (rc != FREESPACE_SUCCESS) {
+            freespace_private_forceCloseDevice(device);
+            return rc;
+        }
+    }
+
+    return FREESPACE_SUCCESS;
+}
+
+LIBFREESPACE_API void freespace_closeDevice(FreespaceDeviceId id) {
+    struct FreespaceDeviceStruct* device = freespace_private_getDeviceById(id);
+    if (device == NULL) {
+        return;
+    }
+
+    // Don't bother if the device isn't open.
+    if (!device->isOpened_) {
+        return;
+    }
+
+    freespace_private_forceCloseDevice(device);
 }
 
 static int prepareSend(FreespaceDeviceId id, struct FreespaceSendStruct** sendOut, const char* report, int length) {
@@ -462,8 +550,9 @@ static int initializeSendStruct(struct FreespaceSendStruct* send) {
 
 static int finalizeSendStruct(struct FreespaceSendStruct* send, BOOL doClose) {
     send->interface_ = NULL;
-    ResetEvent(send->overlapped_.hEvent);
-    if (doClose) {
+    if (send->overlapped_.hEvent == NULL) {
+        // Already finalized!
+    } else if (doClose) {
         // Close the overlapped report event.
         CloseHandle(send->overlapped_.hEvent);
         send->overlapped_.hEvent = NULL;
@@ -619,23 +708,23 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
         // Initiate a ReadFile on anything that doesn't already have
         // a ReadFile op pending.
         if (!s->readStatus_) {
+            int lastErr;
             bResult = ReadFile(
                                s->handle_,                 /* handle to device */
                                s->readBuffer,              /* IN report buffer to fill */
                                s->info_.inputReportByteLength_,  /* input buffer size */
                                &s->readBufferSize,         /* returned buffer size */
                                &s->readOverlapped_ );      /* long pointer to an OVERLAPPED structure */
+            lastErr = GetLastError();
             if (bResult) {
                 // Got something immediately, so return it.
                 *actualLength = min(s->readBufferSize, (unsigned long) maxLength);
                 memcpy(message, s->readBuffer, *actualLength);
                 return FREESPACE_SUCCESS;
-            } if (GetLastError() != ERROR_IO_PENDING) {
-                // Something severe happened to our device!  Wait to ensure processing occurs before retrying.
-                int rc = convertGetLastError();
-                DEBUG_PRINTF("freespace_read 1: Error on %d : %d\n", idx, GetLastError());
-                Sleep(0);
-                return FREESPACE_ERROR_IO;
+            } else if (lastErr != ERROR_IO_PENDING) {
+                // Something severe happened to our device!
+                DEBUG_PRINTF("freespace_read 1: Error on %d : %d\n", idx, lastErr);
+                return handleDeviceFailure(device, lastErr);
             }
             s->readStatus_ = TRUE;
         }
@@ -652,25 +741,24 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
 
     // Check which read worked.
     for (idx = 0; idx < device->handleCount_; idx++) {
+        int lastErr;
         struct FreespaceSubStruct* s = &device->handle_[idx];
         BOOL bResult = GetOverlappedResult(
                                            s->handle_,                 /* handle to device */
                                            &s->readOverlapped_,        /* long pointer to an OVERLAPPED structure */
                                            &s->readBufferSize,         /* returned buffer size */
                                            FALSE);
+        lastErr = GetLastError();
         if (bResult) {
             // Got something, so report it.
             *actualLength = min(s->readBufferSize, (unsigned long) maxLength);
             memcpy(message, s->readBuffer, *actualLength);
             s->readStatus_ = FALSE;
             return FREESPACE_SUCCESS;
-        } else if (GetLastError() != ERROR_IO_INCOMPLETE) {
-            // Something severe happened to our device!  Wait to ensure processing occurs before retrying.
-            int rc = convertGetLastError();
-            DEBUG_PRINTF("freespace_read 2 : Error on %d : %d\n", idx, GetLastError());
-            Sleep(0);
-            s->readStatus_ = FALSE;
-            return FREESPACE_ERROR_IO;
+        } else if (lastErr != ERROR_IO_INCOMPLETE) {
+            // Something severe happened to our device!
+            DEBUG_PRINTF("freespace_read 2 : Error on %d : %d\n", idx, lastErr);
+            return handleDeviceFailure(device, lastErr);
         }
     }
 

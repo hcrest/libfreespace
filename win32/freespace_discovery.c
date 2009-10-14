@@ -18,6 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/*
+ * For a discussion of the device discovery process in MS Windows, see
+ * http://www.codeproject.com/KB/system/HwDetect.aspx
+ * MSDN: WM_DEVICECHANGE Message 
+ *     http://msdn.microsoft.com/en-us/library/aa363480%28VS.85%29.aspx
+ */
+
 #include "freespace_discovery.h"
 #include <stdio.h>
 #include <malloc.h>
@@ -34,6 +41,16 @@ static DWORD WINAPI discoveryWindow(LPVOID lpParam);
  */
 static LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM lParam);
 
+
+void freespace_private_requestDeviceRescan() {
+    LARGE_INTEGER liDueTime;
+    liDueTime.QuadPart = -1000000LL; // 0.1 seconds represented in 100 ns increments
+
+    if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0)) {
+        printf("SetWaitableTimer failed (%d)\n", GetLastError());
+    }
+}
+
 int freespace_private_discoveryThreadInit() {
     HANDLE thread;
 
@@ -41,7 +58,8 @@ int freespace_private_discoveryThreadInit() {
         return FREESPACE_ERROR_BUSY;
     }
 
-    freespace_instance_->discoveryEvent_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+    // Create the timer used to indicated device rescan is required.
+    freespace_instance_->discoveryEvent_ = CreateWaitableTimer(NULL, TRUE, NULL);
     if (freespace_instance_->discoveryEvent_ == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
@@ -66,6 +84,7 @@ int freespace_private_discoveryThreadExit() {
     }
 
     // Delete the window
+    // Memory cleanup is performed in the "WM_DESTROY" window callback.
     SendMessage(freespace_instance_->window_, WM_CLOSE, 0, 0);
     while (freespace_instance_->window_ != NULL) {
         Sleep(1);
@@ -75,14 +94,18 @@ int freespace_private_discoveryThreadExit() {
 }
 
 BOOL freespace_private_discoveryStatusChanged() {
-    if (freespace_instance_->needToRescanDevicesFlag_) {
+    if ( freespace_instance_->needToRescanDevicesFlag_ || 
+         WaitForSingleObject(freespace_instance_->discoveryEvent_, 0) == WAIT_OBJECT_0) {
         // Race condition note: the flags need to be reset before the scan takes
         // place. If device status changes again between when this thread is notified
         // and the flags get reset, we're ok, since the scan happens afterwards. If the
         // change occurs after the reset of the flags, the flags will be set again, and
         // we'll scan next trip around the event loop.
         freespace_instance_->needToRescanDevicesFlag_ = FALSE;
-        ResetEvent(freespace_instance_->discoveryEvent_);
+
+        // Force the timer to unsignaled by restarting and then cancelling.
+        freespace_private_requestDeviceRescan();
+        CancelWaitableTimer(freespace_instance_->discoveryEvent_);
 
         return TRUE;
     } else {
@@ -105,10 +128,15 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DESTROY) {
-        // Remove the device notification
-        UnregisterDeviceNotification(freespace_instance_->windowEvent_);
-        freespace_instance_->windowEvent_ = NULL;
+        DEBUG_WPRINTF(L"discoveryCallback on WM_DESTROY\n");
 
+        // Remove the device notification
+        if (freespace_instance_->windowEvent_) {
+            UnregisterDeviceNotification(freespace_instance_->windowEvent_);
+            freespace_instance_->windowEvent_ = NULL;
+        }
+
+        CancelWaitableTimer(freespace_instance_->discoveryEvent_);
         CloseHandle(freespace_instance_->discoveryEvent_);
         freespace_instance_->discoveryEvent_ = NULL;
 
@@ -117,17 +145,40 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
     }
 
     if (nMsg == WM_DEVICECHANGE) {
+        // Should start with DEV_BROADCAST_HDR and validate.
+        DEV_BROADCAST_DEVICEINTERFACE* hdr;
+        hdr = (DEV_BROADCAST_DEVICEINTERFACE*) lParam;
+
+        // Schedule a device list rescan.
+        freespace_private_requestDeviceRescan();
+
         // Only handle all devices arrived or all devices removed.
         if ((LOWORD(wParam) != DBT_DEVICEARRIVAL) &&
             (LOWORD(wParam) != DBT_DEVICEREMOVECOMPLETE)) {
-            return 0;
+            DEBUG_WPRINTF(L"WM_DEVICECHANGE => %d\n", LOWORD(wParam));
+            return TRUE;
         }
 
-        // Notify that the device list needs to be rescanned.
-        freespace_instance_->needToRescanDevicesFlag_ = TRUE;
-        SetEvent(freespace_instance_->discoveryEvent_);
+        /*
+         * NOTE: Device scan is only performed once changes have stabilized.
+         * The scan routine must be able to handled a device being removed
+         * and reinserted without scan calls between events.
+         */
 
-        return 0;
+        if (hdr->dbcc_devicetype != DBT_DEVTYP_DEVICEINTERFACE) {
+            return TRUE;
+        }
+
+        if (LOWORD(wParam) == DBT_DEVICEARRIVAL) {
+            DEBUG_WPRINTF(L"DBT_DEVICEARRIVAL => %s\n", hdr->dbcc_name);
+        } else if (LOWORD(wParam) == DBT_DEVICEREMOVECOMPLETE) {
+            DEBUG_WPRINTF(L"DBT_DEVICEREMOVECOMPLETE => %s\n", hdr->dbcc_name);
+        } else {
+            DEBUG_WPRINTF(L"discoveryCallback on unexpected change (%d) => %s\n", 
+                LOWORD(wParam), hdr->dbcc_name);
+        }
+
+        return TRUE;
     }
 
     return DefWindowProc(hwnd,	nMsg, wParam, lParam);
@@ -204,7 +255,7 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     /* 4) register device notifications for this application */
     freespace_instance_->windowEvent_ = RegisterDeviceNotification(freespace_instance_->window_,
                                                                    &NotificationFilter,
-                                                                   DEVICE_NOTIFY_WINDOW_HANDLE );
+                                                                   DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES );
 
     /* 5) notify the calling procedure if the HID device will not be recognized */
     if (!freespace_instance_->windowEvent_) {
@@ -223,6 +274,9 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     if (!UnregisterClass(freespace_instance_->wndclass_->lpszClassName, 
                          freespace_instance_->wndclass_->hInstance)) {
         DEBUG_PRINTF("Could not unregister window: %d\n", GetLastError());
+    } else {
+        free(wndclass);
+        freespace_instance_->wndclass_ = NULL;
     }
 
     freespace_instance_->window_ = NULL;
