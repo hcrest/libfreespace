@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\include&quot;"
+				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBFREESPACE_EXPORTS;FREESPACE_LITTLE_ENDIAN"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\include&quot;"
+				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBFREESPACE_EXPORTS;FREESPACE_LITTLE_ENDIAN"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -182,27 +182,27 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\common\freespace_codecs.c"
+				RelativePath="..\..\common\freespace_codecs.c"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_device.c"
+				RelativePath="..\freespace_device.c"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_deviceMgr.c"
+				RelativePath="..\freespace_deviceMgr.c"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_discovery.c"
+				RelativePath="..\freespace_discovery.c"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_discoveryDetail.c"
+				RelativePath="..\freespace_discoveryDetail.c"
 				>
 			</File>
 			<File
-				RelativePath="..\common\freespace_printers.c"
+				RelativePath="..\..\common\freespace_printers.c"
 				>
 			</File>
 		</Filter>
@@ -212,35 +212,35 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\include\freespace\freespace.h"
+				RelativePath="..\..\include\freespace\freespace.h"
 				>
 			</File>
 			<File
-				RelativePath="..\include\freespace\freespace_codecs.h"
+				RelativePath="..\..\include\freespace\freespace_codecs.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_device.h"
+				RelativePath="..\freespace_device.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_deviceMgr.h"
+				RelativePath="..\freespace_deviceMgr.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_discovery.h"
+				RelativePath="..\freespace_discovery.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_discoveryDetail.h"
+				RelativePath="..\freespace_discoveryDetail.h"
 				>
 			</File>
 			<File
-				RelativePath="..\include\freespace\freespace_printers.h"
+				RelativePath="..\..\include\freespace\freespace_printers.h"
 				>
 			</File>
 			<File
-				RelativePath=".\freespace_win32.h"
+				RelativePath="..\freespace_win32.h"
 				>
 			</File>
 		</Filter>
@@ -250,7 +250,7 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath=".\libfreespace.rc"
+				RelativePath="..\libfreespace.rc"
 				>
 			</File>
 		</Filter>
