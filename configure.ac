@@ -77,6 +77,8 @@ AC_CONFIG_FILES([
    linux/Makefile
    common/Makefile
    win32/Makefile
+   win32/vs2005/Makefile
+   win32/vs2008/Makefile
    include/Makefile
 ])
 

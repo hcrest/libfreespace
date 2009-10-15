@@ -19,10 +19,5 @@
 # This file is only used to make sure that the Windows source code
 # gets distributed in the source package.
 
-SUBDIRS = vs2005 vs2008
+EXTRA_DIST = libfreespace.vcproj libfreespace.sln
 
-EXTRA_DIST = freespace_device.c freespace_device.h freespace_deviceMgr.c \
-             freespace_deviceMgr.h freespace_discovery.c \
-             freespace_discovery.h freespace_discoveryDetail.c \
-             freespace_discoveryDetail.h freespace_win32.h 
-             
