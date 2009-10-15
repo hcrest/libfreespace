@@ -40,8 +40,9 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\..\include&quot;"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;&quot;$(ProjectDir)..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBFREESPACE_EXPORTS;FREESPACE_LITTLE_ENDIAN"
+				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -55,6 +56,8 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api"
+				IgnoreStandardIncludePath="true"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -64,7 +67,7 @@
 				AdditionalDependencies="hid.lib setupapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="C:\WinDDK\6001.18002\lib\wxp\i386"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\wxp\i386"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -119,8 +122,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="C:\WinDDK\6001.18002\inc\api;&quot;$(ProjectDir)..\..\include&quot;"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;&quot;$(ProjectDir)..\..\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBFREESPACE_EXPORTS;FREESPACE_LITTLE_ENDIAN"
+				IgnoreStandardIncludePath="true"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -132,6 +136,8 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api"
+				IgnoreStandardIncludePath="true"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -140,7 +146,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="hid.lib setupapi.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="C:\WinDDK\6001.18002\lib\wxp\i386"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\wxp\i386"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
