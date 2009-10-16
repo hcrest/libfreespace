@@ -24,5 +24,5 @@ SUBDIRS = vs2005 vs2008
 EXTRA_DIST = freespace_device.c freespace_device.h freespace_deviceMgr.c \
              freespace_deviceMgr.h freespace_discovery.c \
              freespace_discovery.h freespace_discoveryDetail.c \
-             freespace_discoveryDetail.h freespace_win32.h 
+             freespace_discoveryDetail.h freespace_win32.h libfreespace.rc
              

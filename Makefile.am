@@ -16,7 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-EXTRA_DIST = README.win32 autogen.sh
+EXTRA_DIST = README.win32 autogen.sh config-win32.h
 
 # Don't forget to add directories to configure.ac when adding them here.
 SUBDIRS = m4 linux common win32 doc include
