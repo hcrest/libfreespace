@@ -694,6 +694,7 @@ int freespace_read(FreespaceDeviceId id,
             // something on another device.
 
             // TODO: update tv with time left.
+            timeoutMs = 0;
         } while (rt->submitted_ != 0 && timeoutMs > 0);
 
         if (rt->submitted_ != 0) {
