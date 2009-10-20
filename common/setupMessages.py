@@ -1024,7 +1024,7 @@ FRSLoopReadResponse.ID = {
 }
 FRSLoopReadResponse.Fields = [
     {name:"wordOffset", size:2,  cType:'int16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:19},
+    {name:"data",       size:20},
     {name:"status",     size:1, nibbles:[{name:'status', Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
     {name:RESERVED,     size:2}    
@@ -1067,7 +1067,7 @@ FRSDongleReadResponse.ID = {
 }
 FRSDongleReadResponse.Fields = [
     {name:"wordOffset", size:2,  cType:'int16_t'},
-    {name:"data",       size:19},
+    {name:"data",       size:20},
     {name:"status",     size:1, nibbles:[{name:'status'},{name:'dataLength'}]},
     {name:RESERVED,     size:2}    
 ]
@@ -1098,7 +1098,7 @@ FRSEFlashReadResponse.ID = {
 }
 FRSEFlashReadResponse.Fields = [
     {name:"wordOffset", size:2,  cType:'int16_t'},
-    {name:"data",       size:19},
+    {name:"data",       size:20},
     {name:"status",     size:1, nibbles:[{name:'status'},{name:'dataLength'}]},
     {name:RESERVED,     size:2}    
 ]

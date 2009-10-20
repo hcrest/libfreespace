@@ -780,7 +780,7 @@ LIBFREESPACE_API int freespace_decodeUnknownCRSNotificationResponse(const int8_t
 
 
 LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const int8_t* message, int length, struct freespace_FRSLoopReadResponse* s) {
-    if ((STRICT_DECODE_LENGTH && length != 26) || (!STRICT_DECODE_LENGTH && length < 26)) {
+    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
     if ((uint8_t) message[0] != 8) {
@@ -791,9 +791,9 @@ LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const int8_t* message, 
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
 	s->wordOffset = toInt(message[2], message[3]);
-	memcpy(s->data, &message[4], 19);
-    s->status = getNibble(message[23], 0);
-    s->dataLength = getNibble(message[23], 1);
+	memcpy(s->data, &message[4], 20);
+    s->status = getNibble(message[24], 0);
+    s->dataLength = getNibble(message[24], 1);
 	return FREESPACE_SUCCESS;
 }
 
@@ -816,7 +816,7 @@ LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const int8_t* message,
 
 
 LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const int8_t* message, int length, struct freespace_FRSDongleReadResponse* s) {
-    if ((STRICT_DECODE_LENGTH && length != 26) || (!STRICT_DECODE_LENGTH && length < 26)) {
+    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
     if ((uint8_t) message[0] != 8) {
@@ -827,9 +827,9 @@ LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const int8_t* message
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
 	s->wordOffset = toInt(message[2], message[3]);
-	memcpy(s->data, &message[4], 19);
-    s->status = getNibble(message[23], 0);
-    s->dataLength = getNibble(message[23], 1);
+	memcpy(s->data, &message[4], 20);
+    s->status = getNibble(message[24], 0);
+    s->dataLength = getNibble(message[24], 1);
 	return FREESPACE_SUCCESS;
 }
 
@@ -852,7 +852,7 @@ LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const int8_t* messag
 
 
 LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const int8_t* message, int length, struct freespace_FRSEFlashReadResponse* s) {
-    if ((STRICT_DECODE_LENGTH && length != 26) || (!STRICT_DECODE_LENGTH && length < 26)) {
+    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
     if ((uint8_t) message[0] != 8) {
@@ -863,9 +863,9 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const int8_t* message
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
 	s->wordOffset = toInt(message[2], message[3]);
-	memcpy(s->data, &message[4], 19);
-    s->status = getNibble(message[23], 0);
-    s->dataLength = getNibble(message[23], 1);
+	memcpy(s->data, &message[4], 20);
+    s->status = getNibble(message[24], 0);
+    s->dataLength = getNibble(message[24], 1);
 	return FREESPACE_SUCCESS;
 }
 

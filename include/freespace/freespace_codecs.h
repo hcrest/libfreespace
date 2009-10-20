@@ -1176,7 +1176,7 @@ struct freespace_FRSLoopReadResponse {
 
 	/** Word Offset indicates the number of words the data is offset from the beginning of the record */
 	int16_t wordOffset;
-	uint8_t data[19];
+	uint8_t data[20];
 
 	/** Status:
 	0: no error
@@ -1242,7 +1242,7 @@ struct freespace_FRSDongleReadResponse {
 	// ID = 8
 	// subID = 0x3B
 	int16_t wordOffset;
-	uint8_t data[19];
+	uint8_t data[20];
 	uint8_t status;
 	uint8_t dataLength;
 };
@@ -1286,7 +1286,7 @@ struct freespace_FRSEFlashReadResponse {
 	// ID = 8
 	// subID = 0x41
 	int16_t wordOffset;
-	uint8_t data[19];
+	uint8_t data[20];
 	uint8_t status;
 	uint8_t dataLength;
 };
