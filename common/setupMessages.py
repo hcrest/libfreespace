@@ -43,7 +43,10 @@ class Message:
         self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
         self.enumName = "FREESPACE_MESSAGE_" + self.name.upper()
-        self.className = "FreespaceMsgIn" + self.name
+        if self.decode:
+            self.className = "FreespaceMsgIn" + self.name
+        else:
+            self.className = "FreespaceMsgOut" + self.name
         self.structName = self.name[0].lower() + self.name[1:]
         self.shouldGenerate = shouldGenerate
         # Information about firmware versions
@@ -86,7 +89,7 @@ CoprocessorOutReport.ID[1] = {
 }
 CoprocessorOutReport.Fields[1] = [
     {name:"payloadLength", size:1, cType:'uint8_t'},
-    {name:"payload",       size:14}
+    {name:"payload",       size:14, cType:'uint8_t'}
 ]
 
 messages.append(CoprocessorOutReport)
@@ -125,6 +128,21 @@ BatteryLevelRequest.Fields[1] = [
 ]
 
 messages.append(BatteryLevelRequest)
+
+# ---------------------------------------------------------------------------------------
+# Battery Level Request V2 Message
+BatteryLevelRequestV2 = Message("BatteryLevelRequestV2", encode=True)
+BatteryLevelRequestV2.Documentation = "Sent by the host to request the battery status of the handheld unit."
+BatteryLevelRequestV2.addedVersion = ""
+BatteryLevelRequestV2.deprecatedVersion = ""
+BatteryLevelRequestV2.removedVersion = ""
+BatteryLevelRequestV2.appliesTo = []
+BatteryLevelRequestV2.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:5}
+}
+
+messages.append(BatteryLevelRequestV2)
 
 # ---------------------------------------------------------------------------------------
 # Battery Level Message
@@ -300,6 +318,10 @@ PairingMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:13}
 }
+PairingMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:2}
+}
 PairingMessage.Fields[1] = [
     {name:RESERVED,   size:6}
 ]
@@ -317,6 +339,10 @@ ProductIDRequest.appliesTo = [10001602, 10001853]
 ProductIDRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:32}
+}
+ProductIDRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:9}
 }
 ProductIDRequest.Fields[1] = [
     {name:RESERVED, size:6}
@@ -336,11 +362,16 @@ LEDSetRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:34}
 }
+LEDSetRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:10}
+}
 LEDSetRequest.Fields[1] = [
     {name:'onOff',     size:1, cType:'uint8_t', Documentation:"WP160: 0-Off, 1-On, 2-Release, FSAP160: 0-cause0, 1-cause1, 2-cause2"},
     {name:'selectLED', size:1, cType:'uint8_t', Documentation:"LED Select: 0-green(all devices)\n\t 1-red(all devices)\n\t 2-yellow(all devices)\n\t 3-blue(all devices)\n\t 4-FTA green\n\t 5-FTA red\n\t 6-S2U yellow\n\t 7-S2U blue\n\t 8-Dominion LED PWM\n\t 9-Dominion LED1\n\t 10-Dominion LED2\n\t 11-RFT LED A\n\t 12-RFT LED B"},
     {name:RESERVED,    size:4}
 ]
+LEDSetRequest.Fields[2] = LEDSetRequest.Fields[1]
 
 messages.append(LEDSetRequest)
 
@@ -356,10 +387,15 @@ LinkQualityRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:48}
 }
+LinkQualityRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:3}
+}
 LinkQualityRequest.Fields[1] = [
     {name:'enable', size:1, cType:'uint8_t', Documentation:"0: disable status messages, 1: enable status messages"},
     {name:RESERVED, size:5}
 ]
+LinkQualityRequest.Fields[2] = LinkQualityRequest.Fields[1]
 
 messages.append(LinkQualityRequest)
 
@@ -393,6 +429,10 @@ FrequencyFixRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:50}
 }
+FrequencyFixRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:11}
+}
 FrequencyFixRequest.Fields[1] = [
     {name:'channel0', size:1, cType:'uint8_t'},
     {name:'channel1', size:1, cType:'uint8_t'},
@@ -400,6 +440,13 @@ FrequencyFixRequest.Fields[1] = [
     {name:'channel3', size:1, cType:'uint8_t'},
     {name:'channel4', size:1, cType:'uint8_t'},
     {name:'device',   size:1, cType:'uint8_t', Documentation:"1 for dongle, 2 for loop"}
+]
+FrequencyFixRequest.Fields[2] = [
+    {name:'channel0', size:1, cType:'uint8_t'},
+    {name:'channel1', size:1, cType:'uint8_t'},
+    {name:'channel2', size:1, cType:'uint8_t'},
+    {name:'channel3', size:1, cType:'uint8_t'},
+    {name:'channel4', size:1, cType:'uint8_t'}
 ]
 
 messages.append(FrequencyFixRequest)
@@ -435,11 +482,30 @@ DongleRFDisableMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:52}
 }
+DongleRFDisableMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:13}
+}
 DongleRFDisableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
 messages.append(DongleRFDisableMessage)
+
+# ---------------------------------------------------------------------------------------
+# TX Disable Message
+TxDisableMessage = Message("TxDisableMessage", encode=True)
+TxDisableMessage.Documentation = "This message disables the RF transmission on the dongle."
+TxDisableMessage.addedVersion = ""
+TxDisableMessage.deprecatedVersion = ""
+TxDisableMessage.removedVersion = ""
+TxDisableMessage.appliesTo = []
+TxDisableMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:14}
+}
+
+messages.append(TxDisableMessage)
 
 # ---------------------------------------------------------------------------------------
 # Dongle RF Supress Home Frequency Message
@@ -457,11 +523,16 @@ RFSupressMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:53}
 }
+RFSupressMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:15}
+}
 RFSupressMessage.Fields[1] = [
     {name:'low',  size:1, cType:'uint8_t'},
     {name:'high', size:1, cType:'uint8_t'},                        
     {name:RESERVED, size:4}
 ]
+RFSupressMessage.Fields[2] = RFSupressMessage.Fields[1]
 
 messages.append(RFSupressMessage)
 
@@ -506,6 +577,25 @@ FRSLoopWriteRequest.Fields[1] = [
 messages.append(FRSLoopWriteRequest)
 
 # ---------------------------------------------------------------------------------------
+# FRS Write Request Message
+FRSWriteRequest = Message("FRSWriteRequest", encode=True)
+FRSWriteRequest.Documentation = "This is sent from the host towards the device to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
+FRSWriteRequest.addedVersion = ""
+FRSWriteRequest.deprecatedVersion = ""
+FRSWriteRequest.removedVersion = ""
+FRSWriteRequest.appliesTo = []
+FRSWriteRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:6}
+}
+FRSWriteRequest.Fields[2] = [
+    {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
+    {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'}
+]
+
+messages.append(FRSWriteRequest)
+
+# ---------------------------------------------------------------------------------------
 # FRS Loop Write Data Message
 FRSLoopWriteData = Message("FRSLoopWriteData", encode=True)
 FRSLoopWriteData.Documentation = "This message is sent from the host towards the loop to write data to the record a previous write request indicated."
@@ -525,6 +615,25 @@ FRSLoopWriteData.Fields[1] = [
 messages.append(FRSLoopWriteData)
 
 # ---------------------------------------------------------------------------------------
+# FRS Write Data Message
+FRSWriteData = Message("FRSWriteData", encode=True)
+FRSWriteData.Documentation = "This message is sent from the host towards the device to write data to the record a previous write request indicated."
+FRSWriteData.addedVersion = ""
+FRSWriteData.deprecatedVersion = ""
+FRSWriteData.removedVersion = ""
+FRSWriteData.appliesTo = []
+FRSWriteData.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:7}
+}
+FRSWriteData.Fields[2] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
+    {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
+]
+
+messages.append(FRSWriteData)
+
+# ---------------------------------------------------------------------------------------
 # FRS Dongle Read Request Message
 FRSDongleReadRequest = Message("FRSDongleReadRequest", encode=True)
 FRSDongleReadRequest.addedVersion = "1.0.0"
@@ -542,6 +651,25 @@ FRSDongleReadRequest.Fields[1] = [
 ]
 
 messages.append(FRSDongleReadRequest)
+
+# ---------------------------------------------------------------------------------------
+# FRS Read Request Message
+FRSReadRequest = Message("FRSReadRequest", encode=True)
+FRSReadRequest.addedVersion = ""
+FRSReadRequest.deprecatedVersion = ""
+FRSReadRequest.removedVersion = ""
+FRSReadRequest.appliesTo = []
+FRSReadRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:8}
+}
+FRSReadRequest.Fields[2] = [
+    {name:"readOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
+]
+
+messages.append(FRSReadRequest)
 
 # ---------------------------------------------------------------------------------------
 # FRS Dongle Write Request Message
@@ -648,6 +776,10 @@ DongleRFEnableMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:71}
 }
+DongleRFEnableMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:12}
+}
 DongleRFEnableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
@@ -666,6 +798,10 @@ DataModeRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:73}
 }
+DataModeRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:4}
+}
 DataModeRequest.Fields[1] = [
     {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
                                  {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
@@ -674,6 +810,7 @@ DataModeRequest.Fields[1] = [
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
                                  {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]}
 ]
+DataModeRequest.Fields[2] = DataModeRequest.Fields[1]
 
 messages.append(DataModeRequest)
 
