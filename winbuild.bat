@@ -119,11 +119,14 @@ mkdir %WORKDIR%
 mkdir %WORKDIR%\lib
 mkdir %WORKDIR%\include
 mkdir %WORKDIR%\include\freespace
-mkdir %WORKDIR%\lib\Debug
+rem Build, but don't distribute debug versions. This avoids people doing
+rem reasonable things that won't work like not installing the DDK or 
+rem debugging under different compilers. 
+rem mkdir %WORKDIR%\lib\Debug
 mkdir %WORKDIR%\lib\Release
 echo Copying DLLs and LIBs
-copy win32\vs2005\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
-copy win32\vs2005\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
+rem copy win32\vs2005\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
+rem copy win32\vs2005\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
 copy win32\vs2005\Release\libfreespace.lib %WORKDIR%\lib\Release
 copy win32\vs2005\Release\libfreespace.dll %WORKDIR%\lib\Release
 echo Copying header files
