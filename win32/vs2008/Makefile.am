@@ -16,12 +16,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-EXTRA_DIST = README.win32 autogen.sh config-win32.h
+# This file is only used to make sure that the Windows source code
+# gets distributed in the source package.
 
-# Don't forget to add directories to configure.ac when adding them here.
-SUBDIRS = m4 linux common win32 doc include
-
-#AUTOMAKE_OPTIONS = foreign
-
-ACLOCAL_AMFLAGS = -I m4
+EXTRA_DIST = libfreespace.vcproj libfreespace.sln
 

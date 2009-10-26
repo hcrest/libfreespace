@@ -1,26 +1,26 @@
 README.win32
 
 The tools required to fully build libfreespace on MS Windows are:
-    MS Visual Studio 2005
+    MS Visual Studio 2005 or 2008
     bazaar  http://bazaar-vcs.org/WindowsDownloads
     Doxygen http://www.doxygen.org/
-    Windows Driver Development Kit (WDK)
+    Windows Driver Kit (WDK) 7.0.0
 
 The WDK can be obtained from Microsoft by following the instructions at:
     http://www.microsoft.com/whdc/DevTools/WDK/WDKpkg.mspx
 
 The project files are currently configured to look for the DDK in the 
-default installation location of C:\WinDDK\6001.18002. If you install
+default installation location of C:\WinDDK\7600.16385.0. If you install
 the DDK elsewhere, you will need to update the include file and library
 paths.
 
 
 The build process on MS Windows relies upon a fixed directory structure between
 the different projects.  The structure should be:
-    <base>/jfreespace
     <base>/libfreespace
     <base>/libfreespace-examples
-    <base>/pyfreespace
+    <base>/jfreespace   # Optional
+    <base>/pyfreespace  # Optional
 where <base> represents your fully-qualified base directory.  For example, you 
 could use <base> = c:/libfreespace/. Note that the packaged source releases
 contain version numbers in their names. To build under Windows, you need
@@ -38,9 +38,9 @@ directory, and then run the following checkout.sh script:
     bzr branch lp:libfreespace.net # if you want the C# bindings
     
 Several different MS Visual Studio solutions exist:
-    <base>/libfreespace/win32/libfreespace.sln
+    <base>/libfreespace/win32/vs200x/libfreespace.sln
         Build the libfreespace project only.
-    <base>/libfreespace-examples/src/examples.sln
+    <base>/libfreespace-examples/win/vs200x/examples.sln
         Build libfreespace and all of the examples.
     <base>/jfreespace/native/jfreespace.sln
         Build the jfreespace Java native interface library. (FUTURE)

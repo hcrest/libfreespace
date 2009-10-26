@@ -109,7 +109,7 @@ struct FreespaceReceiveTransfer {
 
     // Transfer information
     struct libusb_transfer* transfer_;
-    unsigned char buffer_[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+    uint8_t buffer_[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
 
     // Synchronous interface usage for the state of the
     // queue.
@@ -420,7 +420,7 @@ static void receiveCallback(struct libusb_transfer* transfer) {
     if (device->receiveCallback_ != NULL) {
         // Using async interface, so call user back immediately.
         int rc = libusb_transfer_status_to_freespace_error(transfer->status);
-        device->receiveCallback_(device->id_, (const char*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
+        device->receiveCallback_(device->id_, (const uint8_t*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
 
         // Re-submit the transfer for the to get the next receive going.
         // NOTE: Can't handle any error returns here.
@@ -624,7 +624,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 }
 
 int freespace_send(FreespaceDeviceId id,
-                   const char* message,
+                   const uint8_t* message,
                    int length) {
     int rc;
     int count;
@@ -653,7 +653,7 @@ int freespace_send(FreespaceDeviceId id,
 }
 
 int freespace_read(FreespaceDeviceId id,
-                   char* message,
+                   uint8_t* message,
                    int maxLength,
                    unsigned int timeoutMs,
                    int* actualLength) {
@@ -694,6 +694,7 @@ int freespace_read(FreespaceDeviceId id,
             // something on another device.
 
             // TODO: update tv with time left.
+            timeoutMs = 0;
         } while (rt->submitted_ != 0 && timeoutMs > 0);
 
         if (rt->submitted_ != 0) {
@@ -774,7 +775,7 @@ static void sendCallback(struct libusb_transfer* transfer) {
 }
 
 int freespace_sendAsync(FreespaceDeviceId id,
-                        const char* message,
+                        const uint8_t* message,
                         int length,
                         unsigned int timeoutMs,
                         freespace_sendCallback callback,
@@ -934,7 +935,7 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
         rt = &device->receiveQueue_[device->receiveQueueHead_];
         while (rt->submitted_ == 0) {
             callback(device->id_,
-                     (const char*) rt->buffer_,
+                     (const uint8_t*) rt->buffer_,
                      rt->transfer_->actual_length,
                      cookie,
                      libusb_transfer_status_to_freespace_error(rt->transfer_->status));
