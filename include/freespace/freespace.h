@@ -206,7 +206,7 @@ typedef void (*freespace_sendCallback)(FreespaceDeviceId id, void* cookie, int r
  * @param result FREESPACE_SUCCESS if a packet was received; else error code
  */
 typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
-                                          const char* message,
+                                          const uint8_t* message,
                                           int length,
                                           void* cookie,
                                           int result);
@@ -319,7 +319,7 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id);
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
-                                    const char* message,
+                                    const uint8_t* message,
                                     int length);
 
 /** @ingroup synchronous
@@ -335,7 +335,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
-                                    char* message,
+                                    uint8_t* message,
                                     int maxLength,
                                     unsigned int timeoutMs,
                                     int* actualLength);
@@ -380,7 +380,7 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const char* message,
+                                         const uint8_t* message,
                                          int length,
                                          unsigned int timeoutMs,
                                          freespace_sendCallback callback,

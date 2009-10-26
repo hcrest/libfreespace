@@ -133,7 +133,7 @@ static uint8_t byteFromBits(uint8_t lsb,
         
     def writePrintMessageBody(self, messages, outFile):
         outFile.write('''
-static void printUnknown(const char* name, const char* buffer, int length) {
+static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     int i;
     printf("%s(", name);
     for (i = 0; i < length; ++i) {
@@ -142,9 +142,9 @@ static void printUnknown(const char* name, const char* buffer, int length) {
     printf(")\\n");
 }
 
-void freespace_printMessage(FILE* fp, const char* message, int length) {
+void freespace_printMessage(FILE* fp, const uint8_t* message, int length) {
     struct freespace_message s;
-    int rc = freespace_decode_message((const int8_t*) message, length, &s);
+    int rc = freespace_decode_message(message, length, &s);
     if (rc != 0) {
         printUnknown("unknown", message, length);
     }
@@ -177,7 +177,7 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
  * @param message the HID message
  * @param length the length of the message
  */
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, const char* message, int length);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length);
 
 LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_message* s);
 
@@ -233,7 +233,7 @@ struct freespace_message {
  * @param s the preallocated freespace_message struct to decode into
  * @return FREESPACE_SUCESS or an error code
  */
-LIBFREESPACE_API int freespace_decode_message(const int8_t* message, int length, struct freespace_message* s);
+LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s);
 
 /** @ingroup messages
  * Encode an arbitrary message.
@@ -243,13 +243,13 @@ LIBFREESPACE_API int freespace_decode_message(const int8_t* message, int length,
  * @param maxlength the maximum length of the message
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, int8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength);
 
 ''')
         
     def writeUnionDecodeEncodeBodies(self, file, messages):
         file.write('''
-LIBFREESPACE_API int freespace_decode_message(const int8_t* message, int length, struct freespace_message* s) {
+LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s) {
     if (length == 0) {
         return -1;
     }
@@ -304,7 +304,7 @@ LIBFREESPACE_API int freespace_decode_message(const int8_t* message, int length,
 ''')
         
         file.write('''
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, int8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength) {
     switch (s->messageType) {''')
         for message in messages:
             if (not message.encode) or (not message.hasUnReservedFields()) or (not message.shouldGenerate):
@@ -411,7 +411,7 @@ def writeEncodeDecl(message, outHeader):
  * @param maxlength the maximum length of the message
  * @returns the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode%(name)s(int8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength);
 '''%{'name':message.name})
     else:
         outHeader.write('''
@@ -423,7 +423,7 @@ LIBFREESPACE_API int freespace_encode%(name)s(int8_t* message, int maxlength);
  * @param maxlength the maximum length of the message
  * @returns the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_%(name)s* s, int8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_%(name)s* s, uint8_t* message, int maxlength);
 '''%{'name':message.name})
     
 def writeDecodeDecl(message, outHeader):
@@ -436,7 +436,7 @@ def writeDecodeDecl(message, outHeader):
  * @param s the preallocated freespace_%(name)s struct to decode into
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_decode%(name)s(const int8_t* message, int length, struct freespace_%(name)s* s);
+LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s);
 '''%{'name':message.name})
 
 def writePrintDecl(message, outHeader):
@@ -462,29 +462,29 @@ LIBFREESPACE_API int freespace_print%(name)s(FILE* fp, const struct freespace_%(
 def writeEncodeBody(message, outFile):
     if not message.hasUnReservedFields():
         outFile.write('''
-LIBFREESPACE_API int freespace_encode%(name)s(int8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength) {
     if (maxlength < %(size)d) {
         printf("freespace_%(name)s encode(<INVALID LENGTH>)\\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (int8_t) %(id)d;'''%{'name':message.name, 'size':message.getMessageSize(), 'id':message.ID['constID']})
+    message[0] = (uint8_t) %(id)d;'''%{'name':message.name, 'size':message.getMessageSize(), 'id':message.ID['constID']})
         if message.ID.has_key('subId'):
             outFile.write('''
-    message[1] = (int8_t) %d;'''%message.ID['subId']['id'])
+    message[1] = (uint8_t) %d;'''%message.ID['subId']['id'])
         outFile.write('''
     return %(size)d;
 }
 '''%{'size':message.getMessageSize()})
     else:
-        outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_%s* s, int8_t* message, int maxlength) {\n"%(message.name, message.name))
+        outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_%s* s, uint8_t* message, int maxlength) {\n"%(message.name, message.name))
         outFile.write("\tif (maxlength < %d) {\n"%message.getMessageSize())
         outFile.write('\t\tprintf("freespace_%s encode(<INVALID LENGTH>)\\n");\n'%message.name)
         outFile.write('\t\treturn -1;\n')
         outFile.write("\t}\n")
-        outFile.write('\tmessage[0] = (int8_t) %d;\n'%message.ID['constID'])
+        outFile.write('\tmessage[0] = (uint8_t) %d;\n'%message.ID['constID'])
         byteCounter = 1
         if (message.ID.has_key('subId')):
-            outFile.write('\tmessage[%d] = (int8_t) %d;\n'%(byteCounter,message.ID['subId']['id']))
+            outFile.write('\tmessage[%d] = (uint8_t) %d;\n'%(byteCounter,message.ID['subId']['id']))
             byteCounter += 1
         for field in message.Fields:
             elementSize = field['size']
@@ -522,11 +522,11 @@ LIBFREESPACE_API int freespace_encode%(name)s(int8_t* message, int maxlength) {
                             outFile.write('s->%s'%nibble['name']);
                     outFile.write(');\n')
                 else:
-                    outFile.write('\tmessage[%d] = (int8_t) s->%s;\n'%(byteCounter,field['name']))
+                    outFile.write('\tmessage[%d] = (uint8_t) s->%s;\n'%(byteCounter,field['name']))
             else:
                 if field.has_key('cType'):
                     for i in range(0,elementSize):
-                        outFile.write('\tmessage[%d] = (int8_t) (s->%s >> %d);\n'%(byteCounter+i,field['name'], 8*i))
+                        outFile.write('\tmessage[%d] = (uint8_t) (s->%s >> %d);\n'%(byteCounter+i,field['name'], 8*i))
                 else:
                     outFile.write('\tmemcpy(message + %d, s->%s, %d);\n'%(byteCounter, field['name'], elementSize))
             byteCounter += elementSize
@@ -535,7 +535,7 @@ LIBFREESPACE_API int freespace_encode%(name)s(int8_t* message, int maxlength) {
 
 def writeDecodeBody(message, outFile):
     outFile.write('''
-LIBFREESPACE_API int freespace_decode%(name)s(const int8_t* message, int length, struct freespace_%(name)s* s) {
+LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s) {
     if ((STRICT_DECODE_LENGTH && length != %(size)d) || (!STRICT_DECODE_LENGTH && length < %(size)d)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
