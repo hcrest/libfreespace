@@ -41,8 +41,8 @@ END
 // Version 
 // 
 VS_VERSION_INFO VERSIONINFO 
- FILEVERSION 0,4,3,0 
- PRODUCTVERSION 0,4,3,0 
+ FILEVERSION 0,4,0,0 
+ PRODUCTVERSION 0,4,0,0 
  FILEFLAGSMASK 0x17L 
 #ifdef _DEBUG 
  FILEFLAGS 0x1L 
@@ -59,12 +59,12 @@ BEGIN
         BEGIN 
             VALUE "CompanyName", "Hillcrest Labs, Inc." 
             VALUE "FileDescription", "libfreespace DLL" 
-            VALUE "FileVersion", "0, 4, 3, 0" 
+            VALUE "FileVersion", "0, 4, 0, 0" 
             VALUE "InternalName", "libfreespace" 
             VALUE "LegalCopyright", "Copyright (C) Hillcrest Labs 2009" 
             VALUE "OriginalFilename", "libfreespace.dll" 
             VALUE "ProductName", "libfreespace" 
-            VALUE "ProductVersion", "0, 4, 3, 0" 
+            VALUE "ProductVersion", "0, 4, 0, 0" 
         END 
     END 
     BLOCK "VarFileInfo" 
