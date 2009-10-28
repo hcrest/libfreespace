@@ -79,6 +79,7 @@ AC_CONFIG_FILES([
    win32/Makefile
    win32/vs2005/Makefile
    win32/vs2008/Makefile
+   osx/Makefile
    include/Makefile
 ])
 

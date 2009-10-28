@@ -16,11 +16,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-EXTRA_DIST = Doxyfile.in footer.html deploy.sh
+# This file is only used to make sure that the Windows source code
+# gets distributed in the source package.
 
-docs: Doxyfile
-	doxygen $^
+EXTRA_DIST = FreespaceDeviceDriver.kext
+             
 
-deploy: Doxyfile
-	( cat Doxyfile ; echo "HTML_FOOTER=footer.html" ) | doxygen -	
-	./deploy.sh
