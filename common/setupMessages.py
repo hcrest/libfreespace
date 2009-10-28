@@ -808,9 +808,20 @@ DataModeRequest.Fields[1] = [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
-                                 {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]}
+                                 {name:RESERVED},
+                                 {name:RESERVED},
+                                 {name:'status',              Documentation:"Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
 ]
-DataModeRequest.Fields[2] = DataModeRequest.Fields[1]
+DataModeRequest.Fields[2] =  [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
+                                 {name:RESERVED},
+                                 {name:'aggregate'            Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
+                                 {name:'status',              Documentation:"Status: Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
+]
 
 messages.append(DataModeRequest)
 
@@ -1166,8 +1177,19 @@ DataModeResponse.Fields[1] = [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
-                                 {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]}
+                                 {name:RESERVED},
+                                 {name:RESERVED},
+                                 {name:RESERVED}]}
 ]
-DataModeResponse.Fields[2] = DataModeResponse.Fields[1]
+DataModeResponse.Fields[2] = [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 Body Frame Motion reports are enabled."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 User Frame Position reports are enabled"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
+                                 {name:RESERVED},
+                                 {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
+                                 {name:RESERVED}]}
+]
 messages.append(DataModeResponse)
 
