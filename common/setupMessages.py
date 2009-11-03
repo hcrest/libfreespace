@@ -960,7 +960,7 @@ FRSReadResponse.ID[2] = {
     ConstantID:6,
     SubMessageID:{size:1, id:8}
 }
-FRSReadResponse.Fields[1] = [
+FRSReadResponse.Fields[2] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
     {name:"data",       size:12, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
@@ -1065,7 +1065,7 @@ FRSDongleReadResponse.ID[1] = {
 }
 FRSDongleReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:20},
+    {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
@@ -1117,7 +1117,7 @@ FRSEFlashReadResponse.ID[1] = {
 }
 FRSEFlashReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:20},
+    {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
