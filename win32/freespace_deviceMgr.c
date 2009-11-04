@@ -25,6 +25,7 @@
 #include <strsafe.h>
 #include <malloc.h>
 #include "../config-win32.h"
+#include <cfgmgr32.h>
 
 struct LibfreespaceData* freespace_instance_ = NULL;
 
@@ -391,10 +392,18 @@ int checkDiscoveryAddedDevices() {
     return listLength;
 }
 
+
 int checkDiscovery() {
     if (freespace_private_discoveryStatusChanged()) {
         int rc;
         int totalChanges = 0;
+
+        // Wait for system to stabilize before scanning.
+        if (CMP_WaitNoPendingInstallEvents(0) == WAIT_TIMEOUT) {
+            DEBUG_PRINTF("Pending install events.  Wait for resolution.\n");
+            freespace_private_requestDeviceRescan();
+            return FREESPACE_ERROR_BUSY;
+        }
 
         DEBUG_WPRINTF(L"Scanning devices\n");
 

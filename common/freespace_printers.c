@@ -21,7 +21,7 @@
 #include "freespace/freespace_printers.h"
 #include <string.h>
 
-static void printUnknown(const char* name, const char* buffer, int length) {
+static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     int i;
     printf("%s(", name);
     for (i = 0; i < length; ++i) {
@@ -30,9 +30,9 @@ static void printUnknown(const char* name, const char* buffer, int length) {
     printf(")\n");
 }
 
-void freespace_printMessage(FILE* fp, const char* message, int length) {
+void freespace_printMessage(FILE* fp, const uint8_t* message, int length) {
     struct freespace_message s;
-    int rc = freespace_decode_message((const int8_t*) message, length, &s);
+    int rc = freespace_decode_message(message, length, &s);
     if (rc != 0) {
         printUnknown("unknown", message, length);
     }

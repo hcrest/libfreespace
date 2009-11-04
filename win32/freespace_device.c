@@ -599,7 +599,7 @@ static int freespace_send_activate(struct FreespaceSendStruct* send) {
 }
 
 LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
-                                    const char* report,
+                                    const uint8_t* report,
                                     int length) {
 
     struct FreespaceSendStruct* send;
@@ -662,7 +662,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 }
 
 LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const char* message,
+                                         const uint8_t* message,
                                          int length,
                                          unsigned int timeoutMs,
                                          freespace_sendCallback callback,
@@ -688,7 +688,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
 }
 
 LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
-                                    char* message,
+                                    uint8_t* message,
                                     int maxLength,
                                     unsigned int timeoutMs,
                                     int* actualLength) {

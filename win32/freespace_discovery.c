@@ -44,7 +44,7 @@ static LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, L
 
 void freespace_private_requestDeviceRescan() {
     LARGE_INTEGER liDueTime;
-    liDueTime.QuadPart = -20000000LL; // 2.0 seconds represented in 100 ns increments
+    liDueTime.QuadPart = -1000000LL; // 0.1 seconds represented in 100 ns increments
 
     if (!SetWaitableTimer(freespace_instance_->discoveryEvent_, &liDueTime, 0, NULL, NULL, 0)) {
         printf("SetWaitableTimer failed (%d)\n", GetLastError());
@@ -131,8 +131,10 @@ LRESULT CALLBACK discoveryCallback(HWND hwnd, UINT nMsg, WPARAM wParam, LPARAM l
         DEBUG_WPRINTF(L"discoveryCallback on WM_DESTROY\n");
 
         // Remove the device notification
-        UnregisterDeviceNotification(freespace_instance_->windowEvent_);
-        freespace_instance_->windowEvent_ = NULL;
+        if (freespace_instance_->windowEvent_) {
+            UnregisterDeviceNotification(freespace_instance_->windowEvent_);
+            freespace_instance_->windowEvent_ = NULL;
+        }
 
         CancelWaitableTimer(freespace_instance_->discoveryEvent_);
         CloseHandle(freespace_instance_->discoveryEvent_);
@@ -253,7 +255,7 @@ DWORD WINAPI discoveryWindow(LPVOID lpParam) {
     /* 4) register device notifications for this application */
     freespace_instance_->windowEvent_ = RegisterDeviceNotification(freespace_instance_->window_,
                                                                    &NotificationFilter,
-                                                                   DEVICE_NOTIFY_WINDOW_HANDLE );
+                                                                   DEVICE_NOTIFY_WINDOW_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES );
 
     /* 5) notify the calling procedure if the HID device will not be recognized */
     if (!freespace_instance_->windowEvent_) {

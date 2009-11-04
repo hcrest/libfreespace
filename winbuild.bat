@@ -1,9 +1,9 @@
 @echo off
 
 SET MAJOR_NUM=0
-SET MINOR_NUM=4
+SET MINOR_NUM=5
 SET REVISION_NUM=0
-SET IS_RC=no
+SET IS_RC=yes
 
 IF "%IS_RC%"=="yes" (
 SET RELEASE_VERSION=%MAJOR_NUM%.%MINOR_NUM%rc%REVISION_NUM%
@@ -23,7 +23,7 @@ echo ///////////////////////////////////////////////////////////////////////////
 echo // >> win32\libfreespace.rc
 echo // Generated from the TEXTINCLUDE 2 resource. >> win32\libfreespace.rc
 echo // >> win32\libfreespace.rc
-echo #include "afxres.h" >> win32\libfreespace.rc
+echo #include "winres.h" >> win32\libfreespace.rc
 echo ///////////////////////////////////////////////////////////////////////////// >> win32\libfreespace.rc
 echo #undef APSTUDIO_READONLY_SYMBOLS >> win32\libfreespace.rc
 echo ///////////////////////////////////////////////////////////////////////////// >> win32\libfreespace.rc
@@ -44,7 +44,7 @@ echo     "resource.h\0" >> win32\libfreespace.rc
 echo END >> win32\libfreespace.rc
 echo 2 TEXTINCLUDE  >> win32\libfreespace.rc
 echo BEGIN >> win32\libfreespace.rc
-echo     "#include ""afxres.h""\r\n" >> win32\libfreespace.rc
+echo     "#include ""winres.h""\r\n" >> win32\libfreespace.rc
 echo     "\0" >> win32\libfreespace.rc
 echo END >> win32\libfreespace.rc
 echo 3 TEXTINCLUDE >> win32\libfreespace.rc
@@ -107,10 +107,10 @@ SET WORKDIR=libfreespace
 SET ZIPNAME=libfreespace-%RELEASE_VERSION%-win32
 
 REM This must be run from the Visual Studio 2005 Command Prompt
-devenv win32\libfreespace.sln /clean release
-devenv win32\libfreespace.sln /clean debug
-devenv win32\libfreespace.sln /build release
-devenv win32\libfreespace.sln /build debug
+devenv win32\vs2005\libfreespace.sln /clean release
+devenv win32\vs2005\libfreespace.sln /clean debug
+devenv win32\vs2005\libfreespace.sln /build release
+devenv win32\vs2005\libfreespace.sln /build debug
 
 echo Cleaning up work directory if any
 rd /S /Q %WORKDIR%
@@ -119,13 +119,16 @@ mkdir %WORKDIR%
 mkdir %WORKDIR%\lib
 mkdir %WORKDIR%\include
 mkdir %WORKDIR%\include\freespace
-mkdir %WORKDIR%\lib\Debug
+rem Build, but don't distribute debug versions. This avoids people doing
+rem reasonable things that won't work like not installing the DDK or 
+rem debugging under different compilers. 
+rem mkdir %WORKDIR%\lib\Debug
 mkdir %WORKDIR%\lib\Release
 echo Copying DLLs and LIBs
-copy win32\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
-copy win32\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
-copy win32\Release\libfreespace.lib %WORKDIR%\lib\Release
-copy win32\Release\libfreespace.dll %WORKDIR%\lib\Release
+rem copy win32\vs2005\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
+rem copy win32\vs2005\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
+copy win32\vs2005\Release\libfreespace.lib %WORKDIR%\lib\Release
+copy win32\vs2005\Release\libfreespace.dll %WORKDIR%\lib\Release
 echo Copying header files
 copy include\freespace\*.h %WORKDIR%\include\freespace
 

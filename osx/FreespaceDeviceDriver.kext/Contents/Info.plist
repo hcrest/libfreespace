@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>VendorSpecificDriver</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.HillcrestLabs.iokit.FreespaceLoopDriver</string>
+	<string>com.HillcrestLabs.iokit.FreespaceDeviceDriver</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -29,7 +29,7 @@
 			<key>bcdDevice</key>
 			<integer>256</integer>
 			<key>idProduct</key>
-			<integer>49163</integer>
+			<string>*</string>
 			<key>idVendor</key>
 			<integer>7514</integer>
 		</dict>
@@ -46,7 +46,7 @@
 			<key>bInterfaceNumber</key>
 			<integer>1</integer>
 			<key>idProduct</key>
-			<integer>49163</integer>
+			<string>*</string>
 			<key>idVendor</key>
 			<integer>7514</integer>
 		</dict>

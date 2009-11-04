@@ -322,7 +322,7 @@ int freespace_private_scanAndAddDevices() {
     struct FreespaceDeviceStruct* device;
     HDEVINFO hardwareDeviceInfo;                /* handle to structure containing all attached HID Device information */
     PSP_DEVICE_INTERFACE_DETAIL_DATA functionClassDeviceData = NULL; /* device info data */
-    SP_DEVICE_INTERFACE_DATA deviceInfoData;
+    SP_DEVICE_INTERFACE_DATA deviceInterfaceData;
     DWORD Index;
     DWORD requiredLength;
     DWORD predictedLength;
@@ -343,7 +343,7 @@ int freespace_private_scanAndAddDevices() {
 
     // Perform some initialization
     // set to the size of the structure that will contain the device info data
-    deviceInfoData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
+    deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
     Index = 0; // Index into hardwareDeviceInfo
 
     /* 3) Step through the attached device list 1 by 1 and examine
@@ -362,7 +362,7 @@ int freespace_private_scanAndAddDevices() {
                                          0, // No care about specific PDOs
                                          &cls,
                                          Index,
-                                         &deviceInfoData)) {
+                                         &deviceInterfaceData)) {
             if (ERROR_NO_MORE_ITEMS == GetLastError()) {
                 // Last entry found.  Successful termination.
             } else {
@@ -382,7 +382,7 @@ int freespace_private_scanAndAddDevices() {
         requiredLength = 0;
         predictedLength = 0;
         SetupDiGetDeviceInterfaceDetail(hardwareDeviceInfo,
-                                        &deviceInfoData,
+                                        &deviceInterfaceData,
                                         NULL,
                                         0,
                                         &requiredLength,
@@ -404,7 +404,7 @@ int freespace_private_scanAndAddDevices() {
            Step #2 pointed to.  This way we can start to identify the
            attributes of particular HID devices.  */
         if (! SetupDiGetDeviceInterfaceDetail(hardwareDeviceInfo,
-                                              &deviceInfoData,
+                                              &deviceInterfaceData,
                                               functionClassDeviceData,
                                               predictedLength,
                                               &requiredLength,
