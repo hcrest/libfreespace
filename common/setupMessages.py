@@ -808,7 +808,7 @@ DataModeRequest.Fields[1] = [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
-                                 {name:RESERVED},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:RESERVED},
                                  {name:'status',              Documentation:"Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
 ]
@@ -818,7 +818,7 @@ DataModeRequest.Fields[2] =  [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
-                                 {name:RESERVED},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
                                  {name:'status',              Documentation:"Status: Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
 ]
@@ -927,7 +927,13 @@ LinkStatusMessage.Fields[1] = [
     {name:"resetStatus",size:1, cType:'uint8_t', Documentation:"0: did not occur\n\t1: occurred. Self clears."},
     {name:RESERVED,     size:22}
 ]
-LinkStatusMessage.Fields[2] = LinkStatusMessage.Fields[1]
+LinkStatusMessage.Fields[2] = [
+    {name:"status",     size:1, cType:'uint8_t', Documentation:"0: bad\n\t1: good"},
+    {name:"mode",       size:1, cType:'uint8_t', Documentation:"0: normal operation\n\t1: fixed frequency operation\n\t2: RF disabled"},
+    {name:"resetStatus",size:1, cType:'uint8_t', Documentation:"0: did not occur\n\t1: occurred. Self clears."},
+    {name:"txDisabled", size:1, cType:'uint8_t', Documentation:"0: TX is enabled\n\t1: TX is disabled."},
+    {name:RESERVED,     size:22}
+]
 messages.append(LinkStatusMessage)
 
 # ---------------------------------------------------------------------------------------
