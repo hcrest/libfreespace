@@ -281,6 +281,40 @@ UserFrameV2Message.Fields[2] = [
 messages.append(UserFrameV2Message)
 
 # ---------------------------------------------------------------------------------------
+# Body-User Frame Message
+BodyUserFrameMessage = Message("BodyUserFrame", decode=True)
+BodyUserFrameMessage.Documentation = "Conveys the handheld device body and user frame motion."
+BodyUserFrameMessage.addedVersion = ""
+BodyUserFrameMessage.deprecatedVersion = ""
+BodyUserFrameMessage.removedVersion = ""
+BodyUserFrameMessage.appliesTo = []
+BodyUserFrameMessage.ID[2] = {
+    ConstantID:34
+}
+BodyUserFrameMessage.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"Correlates the position report with the Body Frame Motion Report"},
+    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation:"Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
+    {name:"linearAccelY",   size:2, cType:'int16_t'},
+    {name:"linearAccelZ",   size:2, cType:'int16_t'},
+    {name:"angularVelX",    size:2, cType:'int16_t', Documentation:"Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
+    {name:"angularVelY",    size:2, cType:'int16_t'},
+    {name:"angularVelZ",    size:2, cType:'int16_t'},
+    {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
+    {name:"linearPosY",     size:2, cType:'int16_t'},
+    {name:"linearPosZ",     size:2, cType:'int16_t'},
+    {name:"angularPosB",    size:2, cType:'int16_t', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosC",    size:2, cType:'int16_t'},
+    {name:"angularPosD",    size:2, cType:'int16_t'},
+    {name:"angularPosA",    size:2, cType:'int16_t'}
+]
+
+messages.append(BodyUserFrameMessage)
+
+# ---------------------------------------------------------------------------------------
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
@@ -589,6 +623,7 @@ FRSWriteRequest.ID[2] = {
     SubMessageID:{size:1, id:6}
 }
 FRSWriteRequest.Fields[2] = [
+    {name:RESERVED,  size:1},
     {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
     {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'}
 ]
@@ -627,6 +662,7 @@ FRSWriteData.ID[2] = {
     SubMessageID:{size:1, id:7}
 }
 FRSWriteData.Fields[2] = [
+    {name:RESERVED,  size:1},
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
     {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
@@ -664,6 +700,7 @@ FRSReadRequest.ID[2] = {
     SubMessageID:{size:1, id:8}
 }
 FRSReadRequest.Fields[2] = [
+    {name:RESERVED,  size:1},
     {name:"readOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
@@ -892,16 +929,16 @@ ProductIDResponse.Fields[1] = [
     {name:RESERVED,         size:2}
 ]
 ProductIDResponse.Fields[2] = [
-    {name:'swPartNumber',   size:4, cType:'uint32_t'},
-    {name:'swBuildNumber',  size:4, cType:'uint32_t'},
-    {name:'swVersionPatch', size:2, cType:'uint16_t'},
-    {name:'swVersionMinor', size:1, cType:'uint8_t'},
-    {name:'swVersionMajor', size:1, cType:'uint8_t'},
-    {name:'serialNumber',   size:4, cType:'uint32_t'},
     {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:6, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
                                           {name:'startup',             Documentation:"The device has just started up. This bit self clears after the first message is sent."},
                                           {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
-]
+    {name:'swVersionMajor', size:1, cType:'uint8_t'},
+    {name:'swVersionMinor', size:1, cType:'uint8_t'},
+    {name:'swPartNumber',   size:4, cType:'uint32_t'},
+    {name:'swBuildNumber',  size:4, cType:'uint32_t'},
+    {name:'serialNumber',   size:4, cType:'uint32_t'},
+    {name:'swVersionPatch', size:2, cType:'uint16_t'},
+    ]
 
 messages.append(ProductIDResponse)
 
@@ -967,10 +1004,10 @@ FRSReadResponse.ID[2] = {
     SubMessageID:{size:1, id:8}
 }
 FRSReadResponse.Fields[2] = [
-    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:12, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:12, cType:'uint32_t'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
@@ -1011,7 +1048,6 @@ FRSWriteResponse.ID[2] = {
     SubMessageID:{size:1, id:6}
 }
 FRSWriteResponse.Fields[2] = [
-    {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
 1: unrecognized FRS type\n\t\
@@ -1022,7 +1058,8 @@ FRSWriteResponse.Fields[2] = [
 6: data received while not in write mode\n\t\
 7: invalid length\n\t\
 8: record valid (the complete record passed internal validation checks)\n\t\
-9:record invalid (the complete record failed internal validation checks)"}
+9:record invalid (the complete record failed internal validation checks)"},
+    {name:"wordOffset", size:2,  cType:'uint16_t'}
 ]
 
 messages.append(FRSWriteResponse)
