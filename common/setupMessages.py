@@ -1220,7 +1220,7 @@ DataModeResponse.Fields[1] = [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
-                                 {name:RESERVED},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:RESERVED},
                                  {name:RESERVED}]}
 ]
@@ -1230,7 +1230,7 @@ DataModeResponse.Fields[2] = [
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
                                  {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
-                                 {name:RESERVED},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
                                  {name:RESERVED}]}
 ]
