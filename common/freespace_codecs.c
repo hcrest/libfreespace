@@ -80,9 +80,9 @@ LIBFREESPACE_API int freespace_decodeMouseMovement(const uint8_t* message, int l
     s->button6 = getBit(message[1], 5);
     s->button7 = getBit(message[1], 6);
     s->button8 = getBit(message[1], 7);
-    s->deltaX = (int16_t) message[2];
-    s->deltaY = (int16_t) message[3];
-    s->deltaWheel = (int16_t) message[4];
+    s->deltaX = (int8_t) message[2];
+    s->deltaY = (int8_t) message[3];
+    s->deltaWheel = (int8_t) message[4];
 	return FREESPACE_SUCCESS;
 }
 
@@ -94,7 +94,7 @@ LIBFREESPACE_API int freespace_decodeConsumerControl(const uint8_t* message, int
     if ((uint8_t) message[0] != 3) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->usageID = (int16_t) message[1];
+    s->usageID = (uint8_t) message[1];
     s->usageID11_8 = getNibble(message[2], 0);
     s->numPad = getNibble(message[2], 1);
     s->functionButtons = (uint8_t) message[3];
@@ -140,7 +140,7 @@ LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message,
     if ((uint8_t) message[0] != 6) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->payloadLength = (int16_t) message[1];
+    s->payloadLength = (uint8_t) message[1];
 	memcpy(s->payload, &message[2], 14);
 	return FREESPACE_SUCCESS;
 }
@@ -539,15 +539,15 @@ LIBFREESPACE_API int freespace_decodeGen4SDAFormat(const uint8_t* message, int l
     s->scroll = getBit(message[3], 2);
     s->hold = getBit(message[3], 3);
     s->triangle = getBit(message[3], 6);
-    s->deltaWheel = (int16_t) message[4];
+    s->deltaWheel = (int8_t) message[4];
 	s->accelX = toInt(message[5], message[6]);
 	s->accelY = toInt(message[7], message[8]);
 	s->accelZ = toInt(message[9], message[10]);
 	s->rotationX = toInt(message[11], message[12]);
 	s->rotationY = toInt(message[13], message[14]);
 	s->rotationZ = toInt(message[15], message[16]);
-    s->xMov = (int16_t) message[17];
-    s->yMov = (int16_t) message[18];
+    s->xMov = (int8_t) message[17];
+    s->yMov = (int8_t) message[18];
 	s->sampleBase = toUInt32(message[19], message[20], message[21], message[22]);
 	s->command = toInt(message[23], message[24]);
 	return FREESPACE_SUCCESS;
@@ -565,7 +565,7 @@ LIBFREESPACE_API int freespace_decodeFactoryCalibrationReadData(const uint8_t* m
     if ((uint8_t) message[1] != 16) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->wordOffset = (int16_t) message[2];
+    s->wordOffset = (uint8_t) message[2];
     s->dataLength = getNibble(message[3], 0);
 	memcpy(s->factCalData, &message[4], 20);
 	return FREESPACE_SUCCESS;
@@ -644,10 +644,10 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
 	s->swBuildNumber = toUInt32(message[6], message[7], message[8], message[9]);
 	s->swicn = toUInt32(message[10], message[11], message[12], message[13]);
 	s->swVersionPatch = toInt(message[14], message[15]);
-    s->swVersionMinor = (int16_t) message[16];
-    s->swVersionMajor = (int16_t) message[17];
-    s->hwPlatformID = (int16_t) message[18];
-    s->hwRevision = (int16_t) message[19];
+    s->swVersionMinor = (uint8_t) message[16];
+    s->swVersionMajor = (uint8_t) message[17];
+    s->hwPlatformID = (uint8_t) message[18];
+    s->hwRevision = (uint8_t) message[19];
 	s->serialNumber = toUInt32(message[20], message[21], message[22], message[23]);
     s->deviceClass = (uint8_t) ((message[24] >> 0) & 0x7F);
     s->invalidNS = getBit(message[24], 7);
@@ -708,7 +708,7 @@ LIBFREESPACE_API int freespace_decodeSPIOperationResponse(const uint8_t* message
     s->byte21 = (uint8_t) message[23];
     s->byte22 = (uint8_t) message[24];
     s->byte23 = (uint8_t) message[25];
-    s->length = (int16_t) message[26];
+    s->length = (uint8_t) message[26];
 	return FREESPACE_SUCCESS;
 }
 
@@ -773,8 +773,8 @@ LIBFREESPACE_API int freespace_decodeUnknownCRSNotificationResponse(const uint8_
     if ((uint8_t) message[1] != 57) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->unknownReportID = (int16_t) message[2];
-    s->unknownSubMessageID = (int16_t) message[3];
+    s->unknownReportID = (uint8_t) message[2];
+    s->unknownSubMessageID = (uint8_t) message[3];
 	return FREESPACE_SUCCESS;
 }
 
@@ -944,7 +944,7 @@ LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int le
     if ((uint8_t) message[0] != 10) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->batteryStrength = (int16_t) message[1];
+    s->batteryStrength = (uint8_t) message[1];
 	return FREESPACE_SUCCESS;
 }
 
@@ -961,9 +961,9 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
     s->button3 = getBit(message[1], 2);
     s->button4 = getBit(message[1], 3);
     s->button5 = getBit(message[1], 4);
-    s->deltaX = (int16_t) message[2];
-    s->deltaY = (int16_t) message[3];
-    s->deltaWheel = (int16_t) message[4];
+    s->deltaX = (int8_t) message[2];
+    s->deltaY = (int8_t) message[3];
+    s->deltaWheel = (int8_t) message[4];
 	s->sequenceNumber = toUInt32(message[5], message[6], message[7], message[8]);
 	s->linearAccelX = toInt(message[9], message[10]);
 	s->linearAccelY = toInt(message[11], message[12]);
@@ -987,9 +987,9 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
     s->button3 = getBit(message[1], 2);
     s->button4 = getBit(message[1], 3);
     s->button5 = getBit(message[1], 4);
-    s->deltaX = (int16_t) message[2];
-    s->deltaY = (int16_t) message[3];
-    s->deltaWheel = (int16_t) message[4];
+    s->deltaX = (int8_t) message[2];
+    s->deltaY = (int8_t) message[3];
+    s->deltaWheel = (int8_t) message[4];
 	s->sequenceNumber = toUInt32(message[5], message[6], message[7], message[8]);
 	s->linearPosX = toInt(message[9], message[10]);
 	s->linearPosY = toInt(message[11], message[12]);
@@ -1034,7 +1034,7 @@ LIBFREESPACE_API int freespace_decodeScrollMotion(const uint8_t* message, int le
     if ((uint8_t) message[0] != 129) {
         return FREESPACE_ERROR_MALFORMED_MESSAGE;
     }
-    s->deltaWheel = (int16_t) message[1];
+    s->deltaWheel = (int8_t) message[1];
 	return FREESPACE_SUCCESS;
 }
 
