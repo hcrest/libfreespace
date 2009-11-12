@@ -863,6 +863,25 @@ DataModeRequest.Fields[2] =  [
 messages.append(DataModeRequest)
 
 # ---------------------------------------------------------------------------------------
+# PER Request Message
+PerRequest = Message("PerRequest", encode=True)
+PerRequest.Documentation = "Configures and executes packet error rate tests.  WiCE(tm) only."
+PerRequest.addedVersion = "0.1.0"
+PerRequest.deprecatedVersion = ""
+PerRequest.removedVersion = ""
+PerRequest.appliesTo = [10002292]
+PerRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:16}
+}
+PerRequest.Fields[2] = [
+    {name:"op",         size:1, cType:'uint8_t', Documentation:"0: sets the frequency set for fixed-frequency PER tests.  1: starts a PER test."},
+    {name:"payload",    size:5, cType:'uint8_t', Documentation:"op == 0: Sets fixed channels for the test.  All 5 0xFF will clear the fixed frequency state.\nop == 1: Starts a PER test of duration ((payload[1] * 256 + payload[0]) * 256) WiCE(tm) frames."}
+]
+
+messages.append(PerRequest)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
@@ -1235,4 +1254,26 @@ DataModeResponse.Fields[2] = [
                                  {name:RESERVED}]}
 ]
 messages.append(DataModeResponse)
+
+# ---------------------------------------------------------------------------------------
+# PER Response Message
+PerResponse = Message("PerResponse", decode=True)
+PerResponse.Documentation = "This report provides the results of a packet error rate test.  WiCE(tm) only."
+PerResponse.addedVersion = "0.1.0"
+PerResponse.deprecatedVersion = ""
+PerResponse.removedVersion = ""
+PerResponse.appliesTo = [10002292]
+
+PerResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:16}
+}
+PerResponse.Fields[2] = [
+    {name:RESERVED,  size:1},
+    {name:"count",   size:4, cType:'uint32_t', Documentation:"Frame count of the PER test.  The duration."},
+    {name:"msError", size:4, cType:'uint32_t', Documentation:"Number of master-to-slave errors detected during the test.  Maximum 1 per frame."},
+    {name:"smError", size:4, cType:'uint32_t', Documentation:"Number of slave-to-master errors detected during the test.  Maximum 2 per frame."},
+    {name:"frError", size:4, cType:'uint32_t', Documentation:"Number of frame errors detected during the test.  A frame error occurred if both slave-to-master messages in a frame were errors.  Maximum 1 per frame."}
+]
+messages.append(PerResponse)
 
