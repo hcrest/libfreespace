@@ -534,6 +534,10 @@ TxDisableMessage.addedVersion = ""
 TxDisableMessage.deprecatedVersion = ""
 TxDisableMessage.removedVersion = ""
 TxDisableMessage.appliesTo = []
+TxDisableMessage.ID[1] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:80}
+}
 TxDisableMessage.ID[2] = {
     ConstantID:7,
     SubMessageID:{size:1, id:14}
