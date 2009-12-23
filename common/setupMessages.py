@@ -30,27 +30,35 @@ ConstantID = 'constID'
 SubMessageID = 'subId'
 Documentation = 'comment'
 
-
 # ---------------------------------------------------------------------------------------
 # -------------------------------- Message Class ----------------------------------------
 # ---------------------------------------------------------------------------------------
-
 
 class Message:
     def __init__(self, name="", encode=False, decode=False, shouldGenerate=True):
         self.name=name
         self.encode = encode
         self.decode = decode
-        self.Fields = []
+        self.Fields = [[], [], []]  # keep a separate list for each version of the HID message protocol
+        self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
         self.enumName = "FREESPACE_MESSAGE_" + self.name.upper()
+        if self.decode:
+            self.className = "FreespaceMsgIn" + self.name
+        else:
+            self.className = "FreespaceMsgOut" + self.name
         self.structName = self.name[0].lower() + self.name[1:]
         self.shouldGenerate = shouldGenerate
+        # Information about firmware versions
+        self.addedVersion = ""      # what is the first firmware version you can use this message on
+        self.deprecatedVersion = "" # when you should stop using this message
+        self.removedVersion = ""    # when the message is no longer in the firmware
+        self.appliesTo = []         # what firmware (i.e. software part numbers) does this message apply to
     
     def getMessageSize(self):
         toRet = 1 # Add one for the opening message type byte
-        if self.ID.has_key('subId'):
-            toRet += self.ID['subId']['size']
+        if self.ID[1].has_key('subId'):
+            toRet += self.ID[1]['subId']['size']
         for element in self.Fields:
             toRet += element['size']
         return toRet
@@ -67,64 +75,21 @@ messages = []
 # ---------------------------------------------------------------------------------------
 # -------------------------------- HID Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
-    
-    
-# ---------------------------------------------------------------------------------------
-# Mouse Movement Message
-MouseMovement = Message("MouseMovement", decode=True)
-MouseMovement.Documentation = "DEPRECATED. This report implements a HID Mouse with 8 buttons and a scroll wheel"
-MouseMovement.ID = {
-    ConstantID:2
-}
-MouseMovement.Fields = [
-    {name:"buttons",    size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
-    {name:"deltaX",     size:1, cType:'int8_t', Documentation:"Changes in pointer location in dimensionless units. Positive moves pointer right."},
-    {name:"deltaY",     size:1, cType:'int8_t', Documentation:"Changes in pointer location in dimensionless units. Positive moves pointer down."},
-    {name:"deltaWheel", size:1, cType:'int8_t', Documentation:"Reports scroll wheel motion in detents. Up is positive."}
-]
-
-messages.append(MouseMovement)
-
-# ---------------------------------------------------------------------------------------
-# Consumer Control Report
-ConsumerControl = Message("ConsumerControl", decode=True)
-ConsumerControl.Documentation = "DEPRECATED: Indicates buttons that operate a consumer electronics product."
-ConsumerControl.ID = {
-    ConstantID:3
-}
-ConsumerControl.Fields = [
-    {name:"usageID",         size:1, cType:'uint8_t', Documentation:"A 12-bit field that carries a consumer control usage code"},
-    {name:"numAndUsage",     size:1, nibbles:[{name:'usageID11_8'}, {name:'numPad'}]},
-    {name:"functionButtons", size:1, cType:'uint8_t', Documentation:"Indicates up to 255 button presses"}
-]
-
-messages.append(ConsumerControl)
-
-# ---------------------------------------------------------------------------------------
-# Keyboard Report
-KeyboardReport = Message("KeyboardReport", decode=True)
-KeyboardReport.Documentation = "DEPRECATED. Indicates buttons from a computer keyboard or keypad. Refer to the USB HID Usage Tables Document Keyboard Page for more information"
-KeyboardReport.ID = {
-    ConstantID:4
-}
-KeyboardReport.Fields = [
-    {name:"modifiers", size:1, bits:[{name:'LCtrl'},{name:'LShift'},{name:'LAlt'},{name:'LGui'},{name:'RCtrl'},{name:'RShift'},{name:'RAlt'},{name:'RGui'}]},
-    {name:RESERVED,    size:1},
-    {name:"keyID",     size:1, cType:'int16_t'}
-]
-
-messages.append(KeyboardReport)
 
 # ---------------------------------------------------------------------------------------
 # Coprocessor Pass-through Out Report
 CoprocessorOutReport = Message("CoprocessorOutReport", encode=True)
 CoprocessorOutReport.Documentation = "Reserved for passing message through from the Freespace coprocessor to the USB host."
-CoprocessorOutReport.ID = {
+CoprocessorOutReport.addedVersion = "1.0.0"
+CoprocessorOutReport.deprecatedVersion = ""
+CoprocessorOutReport.removedVersion = ""
+CoprocessorOutReport.appliesTo = [10001602]
+CoprocessorOutReport.ID[1] = {
     ConstantID:5
 }
-CoprocessorOutReport.Fields = [
-    {name:"payloadLength", size:1, cType:'int16_t'},
-    {name:"payload",       size:14}
+CoprocessorOutReport.Fields[1] = [
+    {name:"payloadLength", size:1, cType:'uint8_t'},
+    {name:"payload",       size:14, cType:'uint8_t'}
 ]
 
 messages.append(CoprocessorOutReport)
@@ -132,13 +97,17 @@ messages.append(CoprocessorOutReport)
 # ---------------------------------------------------------------------------------------
 # Coprocessor Pass-through In Report
 CoprocessorInReport = Message("CoprocessorInReport", decode=True)
-CoprocessorInReport.Documentation = "Reserved for proprietary diagnostics, testing, and debugging use."
-CoprocessorInReport.ID = {
+CoprocessorInReport.Documentation = "Used for passing messages through from the USB host to the Freespace coprocessor interface."
+CoprocessorInReport.addedVersion = "1.0.0"
+CoprocessorInReport.deprecatedVersion = ""
+CoprocessorInReport.removedVersion = ""
+CoprocessorInReport.appliesTo = [10001602]
+CoprocessorInReport.ID[1] = {
     ConstantID:6
 }
-CoprocessorInReport.Fields = [
+CoprocessorInReport.Fields[1] = [
     {name:"payloadLength", size:1, cType:'uint8_t'},
-    {name:"payload",       size:14}
+    {name:"payload",       size:14, cType:'uint8_t'}
 ]
 
 messages.append(CoprocessorInReport)
@@ -147,25 +116,55 @@ messages.append(CoprocessorInReport)
 # Battery Level Request Message
 BatteryLevelRequest = Message("BatteryLevelRequest", encode=True)
 BatteryLevelRequest.Documentation = "Sent by the host to request the battery status of the handheld unit."
-BatteryLevelRequest.ID = {
+BatteryLevelRequest.addedVersion = "1.0.0"
+BatteryLevelRequest.deprecatedVersion = ""
+BatteryLevelRequest.removedVersion = ""
+BatteryLevelRequest.appliesTo = [10001602]
+BatteryLevelRequest.ID[1] = {
     ConstantID:9
 }
-BatteryLevelRequest.Fields = [
+BatteryLevelRequest.Fields[1] = [
     {name:RESERVED, size:1}
 ]
 
 messages.append(BatteryLevelRequest)
 
 # ---------------------------------------------------------------------------------------
+# Battery Level Request V2 Message
+BatteryLevelRequestV2 = Message("BatteryLevelRequestV2", encode=True)
+BatteryLevelRequestV2.Documentation = "Sent by the host to request the battery status of the handheld unit."
+BatteryLevelRequestV2.addedVersion = ""
+BatteryLevelRequestV2.deprecatedVersion = ""
+BatteryLevelRequestV2.removedVersion = ""
+BatteryLevelRequestV2.appliesTo = []
+BatteryLevelRequestV2.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:5}
+}
+
+messages.append(BatteryLevelRequestV2)
+
+# ---------------------------------------------------------------------------------------
 # Battery Level Message
 BatteryLevel = Message("BatteryLevel", decode=True)
 BatteryLevel.Documentation = "Indicates the battery strength of the handheld unit."
-BatteryLevel.ID = {
+BatteryLevel.addedVersion = "1.0.0"
+BatteryLevel.deprecatedVersion = ""
+BatteryLevel.removedVersion = ""
+BatteryLevel.appliesTo = [10001602]
+BatteryLevel.ID[1] = {
     ConstantID:10
 }
-BatteryLevel.Fields = [
+BatteryLevel.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:5}
+}
+BatteryLevel.Fields[1] = [
     {name:"batteryStrength", size:1, cType:'uint8_t', Documentation:"A percentage of the operating voltage range (0-100%)"},
-    {name:RESERVED,        size:2}
+    {name:RESERVED,          size:2}
+]
+BatteryLevel.Fields[2] = [
+    {name:"batteryStrength", size:1, cType:'uint8_t', Documentation:"A percentage of the operating voltage range (0-100%)"}
 ]
 
 messages.append(BatteryLevel)
@@ -174,19 +173,23 @@ messages.append(BatteryLevel)
 # Body Frame Message
 BodyFrameMessage = Message("BodyFrame", decode=True)
 BodyFrameMessage.Documentation = "Conveys the motion relative to the body frame of the Freespace handheld device. \n The data have been processed to remove tremor and other unwanted side effects."
-BodyFrameMessage.ID = {
+BodyFrameMessage.addedVersion = "1.0.0"
+BodyFrameMessage.deprecatedVersion = ""
+BodyFrameMessage.removedVersion = ""
+BodyFrameMessage.appliesTo = [10001602, 10001853]
+BodyFrameMessage.ID[1] = {
     ConstantID:32
 }
-BodyFrameMessage.Fields = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:RESERVED},{name:RESERVED},{name:RESERVED}]},
-    {name:"deltaX",         size:1, cType:'int8_t'},
-    {name:"deltaY",         size:1, cType:'int8_t'},
-    {name:"deltaWheel",     size:1, cType:'int8_t'},
+BodyFrameMessage.Fields[1] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
     {name:"sequenceNumber", size:4, cType:'uint32_t', Documentation:"A monotonically increasing integer generated by the Freespace sensor board at a nominal rate of 125 Hz.\n\tCan be used to correlate body frame messages with the user frame messages"},
-    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation: "Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
+    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation:"Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
     {name:"linearAccelY",   size:2, cType:'int16_t'},
     {name:"linearAccelZ",   size:2, cType:'int16_t'},
-    {name:"angularVelX",    size:2, cType:'int16_t', Documentation: "Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
+    {name:"angularVelX",    size:2, cType:'int16_t', Documentation:"Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
     {name:"angularVelY",    size:2, cType:'int16_t'},
     {name:"angularVelZ",    size:2, cType:'int16_t'}
 ]
@@ -194,17 +197,49 @@ BodyFrameMessage.Fields = [
 messages.append(BodyFrameMessage)
 
 # ---------------------------------------------------------------------------------------
+# Body Frame V2 Message
+# From V1 to V2 the sequence number changes from uint32_t to uint16_t. That's why there are two messages
+BodyFrameV2Message = Message("BodyFrameV2", decode=True)
+BodyFrameV2Message.Documentation = "Conveys the motion relative to the body frame of the Freespace handheld device. \n The data have been processed to remove tremor and other unwanted side effects."
+BodyFrameV2Message.addedVersion = ""
+BodyFrameV2Message.deprecatedVersion = ""
+BodyFrameV2Message.removedVersion = ""
+BodyFrameV2Message.appliesTo = []
+BodyFrameV2Message.ID[2] = {
+    ConstantID:32
+}
+BodyFrameV2Message.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"A monotonically increasing integer generated by the Freespace sensor board at a nominal rate of 125 Hz.\n\tCan be used to correlate body frame messages with the user frame messages"},
+    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation:"Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
+    {name:"linearAccelY",   size:2, cType:'int16_t'},
+    {name:"linearAccelZ",   size:2, cType:'int16_t'},
+    {name:"angularVelX",    size:2, cType:'int16_t', Documentation:"Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
+    {name:"angularVelY",    size:2, cType:'int16_t'},
+    {name:"angularVelZ",    size:2, cType:'int16_t'}
+]
+
+messages.append(BodyFrameV2Message)
+
+# ---------------------------------------------------------------------------------------
 # User Frame Message
 UserFrameMessage = Message("UserFrame", decode=True)
-UserFrameMessage.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference. \nThe gravity acceleration vector points up along the negative Z  axis."
-UserFrameMessage.ID = {
+UserFrameMessage.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference."
+UserFrameMessage.addedVersion = "1.0.0"
+UserFrameMessage.deprecatedVersion = ""
+UserFrameMessage.removedVersion = ""
+UserFrameMessage.appliesTo = [10001602, 10001853]
+UserFrameMessage.ID[1] = {
     ConstantID:33
 }
-UserFrameMessage.Fields = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:RESERVED},{name:RESERVED},{name:RESERVED}]},
-    {name:"deltaX",         size:1, cType:'int8_t'},
-    {name:"deltaY",         size:1, cType:'int8_t'},
-    {name:"deltaWheel",     size:1, cType:'int8_t'},
+UserFrameMessage.Fields[1] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
     {name:"sequenceNumber", size:4, cType:'uint32_t', Documentation:"Correlates the position report with the Body Frame Motion Report"},
     {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
     {name:"linearPosY",     size:2, cType:'int16_t'},
@@ -218,13 +253,79 @@ UserFrameMessage.Fields = [
 messages.append(UserFrameMessage)
 
 # ---------------------------------------------------------------------------------------
-# Data Motion Control Message
-DataMotion = Message("DataMotionControl", encode=True)
-DataMotion.Documentation = "This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
-DataMotion.ID = {
+# User Frame V2 Message
+# From V1 to V2 sequenceNumber uint32_t -> uint16_t and angularPosB eliminated
+UserFrameV2Message = Message("UserFrameV2", decode=True)
+UserFrameV2Message.Documentation = "Conveys the handheld device position and orientation with respect to a user frame of reference."
+UserFrameV2Message.addedVersion = ""
+UserFrameV2Message.deprecatedVersion = ""
+UserFrameV2Message.removedVersion = ""
+UserFrameV2Message.appliesTo = []
+UserFrameV2Message.ID[2] = {
+    ConstantID:33
+}
+UserFrameV2Message.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"Correlates the position report with the Body Frame Motion Report"},
+    {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
+    {name:"linearPosY",     size:2, cType:'int16_t'},
+    {name:"linearPosZ",     size:2, cType:'int16_t'},
+    {name:"angularPosB",    size:2, cType:'int16_t', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosC",    size:2, cType:'int16_t'},
+    {name:"angularPosD",    size:2, cType:'int16_t'}
+]
+
+messages.append(UserFrameV2Message)
+
+# ---------------------------------------------------------------------------------------
+# Body-User Frame Message
+BodyUserFrameMessage = Message("BodyUserFrame", decode=True)
+BodyUserFrameMessage.Documentation = "Conveys the handheld device body and user frame motion."
+BodyUserFrameMessage.addedVersion = ""
+BodyUserFrameMessage.deprecatedVersion = ""
+BodyUserFrameMessage.removedVersion = ""
+BodyUserFrameMessage.appliesTo = []
+BodyUserFrameMessage.ID[2] = {
     ConstantID:34
 }
-DataMotion.Fields = [
+BodyUserFrameMessage.Fields[2] = [
+    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
+    {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+    {name:"sequenceNumber", size:2, cType:'uint16_t', Documentation:"Correlates the position report with the Body Frame Motion Report"},
+    {name:"linearAccelX",   size:2, cType:'int16_t', Documentation:"Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference."},
+    {name:"linearAccelY",   size:2, cType:'int16_t'},
+    {name:"linearAccelZ",   size:2, cType:'int16_t'},
+    {name:"angularVelX",    size:2, cType:'int16_t', Documentation:"Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference."},
+    {name:"angularVelY",    size:2, cType:'int16_t'},
+    {name:"angularVelZ",    size:2, cType:'int16_t'},
+    {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
+    {name:"linearPosY",     size:2, cType:'int16_t'},
+    {name:"linearPosZ",     size:2, cType:'int16_t'},
+    {name:"angularPosB",    size:2, cType:'int16_t', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosC",    size:2, cType:'int16_t'},
+    {name:"angularPosD",    size:2, cType:'int16_t'},
+    {name:"angularPosA",    size:2, cType:'int16_t'}
+]
+
+messages.append(BodyUserFrameMessage)
+
+# ---------------------------------------------------------------------------------------
+# Data Motion Control Message
+DataMotion = Message("DataMotionControl", encode=True)
+DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
+DataMotion.addedVersion = "1.0.0"
+DataMotion.deprecatedVersion = "1.0.5"
+DataMotion.removedVersion = ""
+DataMotion.appliesTo = [10001602, 10001853]
+DataMotion.ID[1] = {
+    ConstantID:34
+}
+DataMotion.Fields[1] = [
     {name:"flags", size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
                                  {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
                                  {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
@@ -240,172 +341,111 @@ messages.append(DataMotion)
 # ---------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------
-# Configuration Message
-ConfigurationMessage = Message("ConfigurationMessage", encode=True)
-ConfigurationMessage.Documenation = "Used by the host to configure both the loop and dongle."
-ConfigurationMessage.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:1}
-}
-ConfigurationMessage.Fields = [
-    {name:"SDA", size:1, cType:'int16_t', Documentation:"SDA(1)/NORMAL(0)"},
-    {name:RESERVED,   size:5}
-]
-
-messages.append(ConfigurationMessage)
-
-# ---------------------------------------------------------------------------------------
 # Pairing Message
 PairingMessage = Message("PairingMessage", encode=True)
-PairingMessage.Documentation = "Used by the host to put the dongle into normal pairing mode."
-PairingMessage.ID = {
+PairingMessage.Documentation = "Used by the host to put the dongle into pairing mode."
+PairingMessage.addedVersion = "1.0.0"
+PairingMessage.deprecatedVersion = ""
+PairingMessage.removedVersion = ""
+PairingMessage.appliesTo = [10001853]
+PairingMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:13}
 }
-PairingMessage.Fields = [
+PairingMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:2}
+}
+PairingMessage.Fields[1] = [
     {name:RESERVED,   size:6}
 ]
 
 messages.append(PairingMessage)
 
 # ---------------------------------------------------------------------------------------
-# Debug Message
-DebugMessage = Message("DebugMessage", encode=True)
-DebugMessage.Documentation = "Used for debug messages."
-DebugMessage.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:15}
-}
-DebugMessage.Fields = [
-    {name:RESERVED,   size:6}
-]
-
-messages.append(DebugMessage)
-
-# ---------------------------------------------------------------------------------------
-# Factory Calibration Read Request Message
-FactoryCalibrationReadReq = Message("FactoryCalibrationReadRequest", encode=True)
-FactoryCalibrationReadReq.Documentation = "This is sent from dongle towards the loop to request a chunk of cal data to be sent. This is used in the Zebra system architecture."
-FactoryCalibrationReadReq.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:16}
-}
-FactoryCalibrationReadReq.Fields = [
-    {name:"wordOffsetRequested", size:1, cType:'uint8_t'},
-    {name:RESERVED,   size:5}
-]
-
-messages.append(FactoryCalibrationReadReq)
-
-# ---------------------------------------------------------------------------------------
-# Dongle Reset to Bootloader
-DongleReset = Message("DongleReset", encode=True)
-DongleReset.Documentation = "This is sent from host to dongle to trigger a reset into the bootloader.\nThe 32-bit loaderkey value is placed at a special location in RAM and the system is reset.\nIf the loader key has the proper value, the bootloader will then take control.\nOtherwise the bootloader will transfer control to the application immediately."
-DongleReset.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:20}
-}
-DongleReset.Fields = [
-    {name:"loaderKey", size:4, cType:'uint32_t'},
-    {name:RESERVED,    size:2}
-]
-
-messages.append(DongleReset)
-
-# ---------------------------------------------------------------------------------------
-# Factory Test Dongle Status Request
-FTDongleStatusRequest = Message("FTDongleStatusRequest", encode=True)
-FTDongleStatusRequest.Documentation = "This is sent from the host towards the FT dongle to update or request the current status of the dongle"
-FTDongleStatusRequest.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:21}
-}
-FTDongleStatusRequest.Fields = [
-    {name:'flags', size:1, bits:[{name:'power',     Documentation:"Power:\n\t 0:disable DUT power\n\t 1:enable DUT power"},
-                                 {name:'reset',     Documentation:"Reset:\n\t 0:deassert DUT reset signal\n\t 1:assert DUT reset signal"},
-                                 {name:'presence',  Documentation:"Presence:\n\t 0:deassert presence signal\n\t 1:assert presence signal"},
-                                 {name:RESERVED},
-                                 {name:RESERVED},
-                                 {name:RESERVED},
-                                 {name:RESERVED},
-                                 {name:'operation', Documentation:"Operation:\n\t 0:read status. Values for presence, reset, and power are don't cares\n\t 1: update status. Status is set to values indicated by presence, power, and reset"}]},
-    {name:RESERVED, size:5}
-]
-
-messages.append(FTDongleStatusRequest)
-
-# ---------------------------------------------------------------------------------------
-# Statistics Request
-StatisticsRequest = Message("StatisticsRequest", encode=True)
-StatisticsRequest.Documentation = "This is sent from the host towards the loop to request a statistics report."
-StatisticsRequest.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:22}
-}
-StatisticsRequest.Fields = [
-    {name:RESERVED, size:6}
-]
-
-messages.append(StatisticsRequest)
-
-# ---------------------------------------------------------------------------------------
-# Zebra System Test
-ZebraSystemTest = Message("ZebraSystemTest", encode=True)
-ZebraSystemTest.Documentation = "This message is used during Zebra Sytem test to collect link (RF+USB) strength statistics."
-ZebraSystemTest.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:31}
-}
-ZebraSystemTest.Fields = [
-    {name:'config',     size:1, bits:[{name:'reset',         Documentation:"1 to reset, 0 for normal"},
-                                      {name:'mode',  size:2, Documentation:"0: RF+USB, 1: USB"},
-                                      {name:RESERVED},{name:RESERVED},{name:RESERVED},{name:RESERVED},{name:RESERVED}]},
-    {name:RESERVED,     size:1},
-    {name:"pcSequence", size:2, cType:'int16_t'},
-    {name:RESERVED,     size:2}
-]
-
-messages.append(ZebraSystemTest)
-
-# ---------------------------------------------------------------------------------------
 # Product ID Request Message
 ProductIDRequest = Message("ProductIDRequest", encode=True)
 ProductIDRequest.Documentation = "This is sent from the host to the attached device(dongle) to request the product ID information. The dongle will forward this request to the Loop."
-ProductIDRequest.ID = {
+ProductIDRequest.addedVersion = "1.0.0"
+ProductIDRequest.deprecatedVersion = ""
+ProductIDRequest.removedVersion = ""
+ProductIDRequest.appliesTo = [10001602, 10001853]
+ProductIDRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:32}
 }
-ProductIDRequest.Fields = [
+ProductIDRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:9}
+}
+ProductIDRequest.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
 messages.append(ProductIDRequest)
 
 # ---------------------------------------------------------------------------------------
-# Loop LED Set Request
-LoopLEDSetRequest = Message("LoopLEDSetRequest", encode=True)
-LoopLEDSetRequest.Documentation = "This request causes the Loop to set a status LED to a particular value"
-LoopLEDSetRequest.ID = {
+# LED Set Request
+LEDSetRequest = Message("LEDSetRequest", encode=True)
+LEDSetRequest.Documentation = "This request causes the Loop or dongle to set a status LED to a particular value"
+LEDSetRequest.addedVersion = "1.0.0"
+LEDSetRequest.deprecatedVersion = ""
+LEDSetRequest.removedVersion = ""
+LEDSetRequest.appliesTo = [10001602, 10001853]
+LEDSetRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:34}
 }
-LoopLEDSetRequest.Fields = [
-    {name:'onOff',     size:1, cType:'uint8_t', Documentation:"0: Off, 1: On"},
-    {name:'selectLED', size:1, cType:'uint8_t', Documentation:"LED Select: 0-green(all devices)\n\t 1-red(all devices)\n\t 2-yellow(all devices)\n\t 3-blue(all devices)\n\t 4-FTA green\n\t 5-FTA red\n\t 6-S2U yellow\n\t 7-S2U blue\n\t 8-Dominion LED PWM\n\t 9-Dominion LED1\n\t 10-Dominion LED2"},
+LEDSetRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:10}
+}
+LEDSetRequest.Fields[1] = [
+    {name:'onOff',     size:1, cType:'uint8_t', Documentation:"WP160: 0-Off, 1-On, 2-Release, FSAP160: 0-cause0, 1-cause1, 2-cause2"},
+    {name:'selectLED', size:1, cType:'uint8_t', Documentation:"LED Select: 0-green(all devices)\n\t 1-red(all devices)\n\t 2-yellow(all devices)\n\t 3-blue(all devices)\n\t 4-FTA green\n\t 5-FTA red\n\t 6-S2U yellow\n\t 7-S2U blue\n\t 8-Dominion LED PWM\n\t 9-Dominion LED1\n\t 10-Dominion LED2\n\t 11-RFT LED A\n\t 12-RFT LED B"},
     {name:RESERVED,    size:4}
 ]
+LEDSetRequest.Fields[2] = LEDSetRequest.Fields[1]
 
-messages.append(LoopLEDSetRequest)
+messages.append(LEDSetRequest)
+
+# ---------------------------------------------------------------------------------------
+# Link Quality Request Message
+LinkQualityRequest = Message("LinkQualityRequest", encode=True)
+LinkQualityRequest.Documentation = "Controls link quality status reporting"
+LinkQualityRequest.addedVersion = "1.0.0"
+LinkQualityRequest.deprecatedVersion = ""
+LinkQualityRequest.removedVersion = ""
+LinkQualityRequest.appliesTo = [10001853]
+LinkQualityRequest.ID[1] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:48}
+}
+LinkQualityRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:3}
+}
+LinkQualityRequest.Fields[1] = [
+    {name:'enable', size:1, cType:'uint8_t', Documentation:"0: disable status messages, 1: enable status messages"},
+    {name:RESERVED, size:5}
+]
+LinkQualityRequest.Fields[2] = LinkQualityRequest.Fields[1]
+
+messages.append(LinkQualityRequest)
 
 # ---------------------------------------------------------------------------------------
 # Always On Request Message
 AlwaysOnRequest = Message("AlwaysOnRequest", encode=True)
 AlwaysOnRequest.Documentation = "This message forces the Loop into an always on state. It is relayed to the Loop from the dongle."
-AlwaysOnRequest.ID = {
+AlwaysOnRequest.addedVersion = "1.0.0"
+AlwaysOnRequest.deprecatedVersion = ""
+AlwaysOnRequest.removedVersion = ""
+AlwaysOnRequest.appliesTo = [10001602, 10001853]
+AlwaysOnRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:49}
 }
-AlwaysOnRequest.Fields = [
+AlwaysOnRequest.Fields[1] = [
     {name:RESERVED,    size:6}
 ]
 
@@ -414,12 +454,20 @@ messages.append(AlwaysOnRequest)
 # ---------------------------------------------------------------------------------------
 # Frequency Fix Request Message
 FrequencyFixRequest = Message("FrequencyFixRequest", encode=True)
-FrequencyFixRequest.Documentation = "This message causes the FR frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.\n\t When the loop is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep."
-FrequencyFixRequest.ID = {
+FrequencyFixRequest.Documentation = "This message causes the RF frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.\n\t When the loop is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep."
+FrequencyFixRequest.addedVersion = "1.0.0"
+FrequencyFixRequest.deprecatedVersion = ""
+FrequencyFixRequest.removedVersion = ""
+FrequencyFixRequest.appliesTo = [10001602, 10001853]
+FrequencyFixRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:50}
 }
-FrequencyFixRequest.Fields = [
+FrequencyFixRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:11}
+}
+FrequencyFixRequest.Fields[1] = [
     {name:'channel0', size:1, cType:'uint8_t'},
     {name:'channel1', size:1, cType:'uint8_t'},
     {name:'channel2', size:1, cType:'uint8_t'},
@@ -427,18 +475,29 @@ FrequencyFixRequest.Fields = [
     {name:'channel4', size:1, cType:'uint8_t'},
     {name:'device',   size:1, cType:'uint8_t', Documentation:"1 for dongle, 2 for loop"}
 ]
+FrequencyFixRequest.Fields[2] = [
+    {name:'channel0', size:1, cType:'uint8_t'},
+    {name:'channel1', size:1, cType:'uint8_t'},
+    {name:'channel2', size:1, cType:'uint8_t'},
+    {name:'channel3', size:1, cType:'uint8_t'},
+    {name:'channel4', size:1, cType:'uint8_t'}
+]
 
 messages.append(FrequencyFixRequest)
 
 # ---------------------------------------------------------------------------------------
 # Software Reset Message
 SoftwareReset = Message("SoftwareResetMessage", encode=True)
-SoftwareReset.Documentation = "This message software resets the selected device."
-SoftwareReset.ID = {
+SoftwareReset.Documentation = "This message causes the dongle to reset itself."
+SoftwareReset.addedVersion = "1.0.0"
+SoftwareReset.deprecatedVersion = ""
+SoftwareReset.removedVersion = ""
+SoftwareReset.appliesTo = [10001853]
+SoftwareReset.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:51}
 }
-SoftwareReset.Fields = [
+SoftwareReset.Fields[1] = [
     {name:"device", size:1, cType:'uint8_t', Documentation:"1 for dongle"},
     {name:RESERVED, size:5}
 ]
@@ -448,16 +507,43 @@ messages.append(SoftwareReset)
 # ---------------------------------------------------------------------------------------
 # Dongle RF Disable Message
 DongleRFDisableMessage = Message("DongleRFDisableMessage", encode=True)
-DongleRFDisableMessage.Documentation = "This message disables the RF on the dongle. The RF is disabled until the next soft/hard reset."
-DongleRFDisableMessage.ID = {
+DongleRFDisableMessage.Documentation = "This message disables the RF on the dongle."
+DongleRFDisableMessage.addedVersion = "1.0.0"
+DongleRFDisableMessage.deprecatedVersion = ""
+DongleRFDisableMessage.removedVersion = ""
+DongleRFDisableMessage.appliesTo = [10001602, 10001853]
+DongleRFDisableMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:52}
 }
-DongleRFDisableMessage.Fields = [
+DongleRFDisableMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:13}
+}
+DongleRFDisableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
 messages.append(DongleRFDisableMessage)
+
+# ---------------------------------------------------------------------------------------
+# TX Disable Message
+TxDisableMessage = Message("TxDisableMessage", encode=True)
+TxDisableMessage.Documentation = "This message disables the RF transmission on the dongle."
+TxDisableMessage.addedVersion = ""
+TxDisableMessage.deprecatedVersion = ""
+TxDisableMessage.removedVersion = ""
+TxDisableMessage.appliesTo = []
+TxDisableMessage.ID[1] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:80}
+}
+TxDisableMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:14}
+}
+
+messages.append(TxDisableMessage)
 
 # ---------------------------------------------------------------------------------------
 # Dongle RF Supress Home Frequency Message
@@ -467,410 +553,415 @@ RFSupressMessage.Documentation = "This message is for RF Home frequency supressi
 Hillcrest adds an extra 1MHz to this boundary, so Low and High should be -12MHz from the center channel of the 802.11\n\t\
 and +12MHz from the center channel of 802.11 respectively. These values must be in the range [1,82].\n\t\
 To disable home frequency suppression, set either Low or High to be out-of-range. 0xFF is the preferred value for disabling suppression."
-RFSupressMessage.ID = {
+RFSupressMessage.addedVersion = "1.0.0"
+RFSupressMessage.deprecatedVersion = ""
+RFSupressMessage.removedVersion = ""
+RFSupressMessage.appliesTo = [10001853]
+RFSupressMessage.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:53}
 }
-RFSupressMessage.Fields = [
+RFSupressMessage.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:15}
+}
+RFSupressMessage.Fields[1] = [
     {name:'low',  size:1, cType:'uint8_t'},
     {name:'high', size:1, cType:'uint8_t'},                        
     {name:RESERVED, size:4}
 ]
+RFSupressMessage.Fields[2] = RFSupressMessage.Fields[1]
 
 messages.append(RFSupressMessage)
 
 # ---------------------------------------------------------------------------------------
-# SPI Operation Message
-SPIOperationMessage = Message("SPIOperationMessage", encode=True)
-SPIOperationMessage.Documentation = "This message carries a generic SPI operation to be sent to a test module, such as FSRK-E.\n\tThe SPI response message is sent back to the host."
-SPIOperationMessage.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:54}
-}
-SPIOperationMessage.Fields = [
-    {name:'byte0', size:1, cType:'uint8_t'},
-    {name:'byte1', size:1, cType:'uint8_t'},
-    {name:'byte2', size:1, cType:'uint8_t'},
-    {name:'byte3', size:1, cType:'uint8_t'},
-    {name:'byte4', size:1, cType:'uint8_t'},
-    {name:'byte5', size:1, cType:'uint8_t'}
-]
-
-messages.append(SPIOperationMessage)
-
-# ---------------------------------------------------------------------------------------
-# Event Report Configuration Set Request
-EventReportConfigSetRequest = Message("EventReportConfigSetRequest", encode=True)
-EventReportConfigSetRequest.Documentation = "This message is sent from the host to an FSRK-E adapter test module,\n\t to configure which events will cause the test module to send an event report message to the host.\n\t A bit set to one indicates the reporting for that event is enabled."
-EventReportConfigSetRequest.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:55}
-}
-EventReportConfigSetRequest.Fields = [
-    {name:'flags0', size:1, bits:[{name:'intc',  Documentation:"Summary interrupt detected."},
-                                  {name:'xyMov', Documentation:"X-Y pointer movement data ready."},
-                                  {name:'acSt',  Documentation:"Activity classification status change"},
-                                  {name:'reset', Documentation:"Test module reset detected."},
-                                  {name:'motDr', Documentation:"Motion data ready"},
-                                  {name:'wom',   Documentation:"Wake-on-motion detected."},
-                                  {name:'motOv', Documentation:"Motion data overflow"},
-                                  {name:'acEv',  Documentation:"Activity classification event detected."}]},
-    {name:'flags1', size:1, bits:[{name:'sdaDr', Documentation:"SDA data ready."},
-                                  {name:'sdaOv', Documentation:"SDA data overflow."},
-                                  {name:'cfgSt', Documentation:"Configuration StatusChange"},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED}]},
-    {name:RESERVED, size:4}
-]
-
-messages.append(EventReportConfigSetRequest)
-
-# ---------------------------------------------------------------------------------------
-# Event Report Configuration Get Request
-EventReportConfigGetRequest = Message("EventReportConfigGetRequest", encode=True)
-EventReportConfigGetRequest.Documentation = "This message is sent from the host to an FSRK-E adapter test module to request the current configuration for event reports."
-EventReportConfigGetRequest.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:56}
-}
-EventReportConfigGetRequest.Fields = [
-    {name:RESERVED, size:6}
-]
-
-messages.append(EventReportConfigGetRequest)
-
-# ---------------------------------------------------------------------------------------
-# Unknown CRS Notification
-UnknownCRSNotification = Message("UnknownCRSNotification", encode=True)
-UnknownCRSNotification.Documentation = "This message is sent from a base station handheld. It indicates that the base station did not\n\t recognize a CRS message that the handheld had sent. This message will never be sent over USB."
-UnknownCRSNotification.ID = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:57}
-}
-UnknownCRSNotification.Fields = [
-    {name:'unknownReportID',     size:1, cType:'uint8_t', Documentation:"This is the HID report ID of the unknown message received by the base station."},
-    {name:'unknownSubMessageID', size:1, cType:'uint8_t', Documentation:"This is the HID sub-message ID of the unknown message received by the base station."},
-    {name:RESERVED, size:4}
-]
-
-messages.append(UnknownCRSNotification)
-
-# ---------------------------------------------------------------------------------------
-# FRS Read Loop Request Message
+# FRS Loop Read Request Message
 FRSLoopReadRequest = Message("FRSLoopReadRequest", encode=True)
 FRSLoopReadRequest.Documentation = "This is sent from dongle towards the loop to request flash record to be sent.\n\tThe data sent starts from the word offset and continues through to the end of the record."
-FRSLoopReadRequest.ID = {
+FRSLoopReadRequest.addedVersion = "1.0.0"
+FRSLoopReadRequest.deprecatedVersion = ""
+FRSLoopReadRequest.removedVersion = ""
+FRSLoopReadRequest.appliesTo = [10001602, 10001853]
+FRSLoopReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadRequest.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSLoopReadRequest.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
 ]
 
 messages.append(FRSLoopReadRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Loop Request Message
+# FRS Loop Write Request Message
 FRSLoopWriteRequest = Message("FRSLoopWriteRequest", encode=True)
 FRSLoopWriteRequest.Documentation = "This is sent from the host towards the loop to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
-FRSLoopWriteRequest.ID = {
+FRSLoopWriteRequest.addedVersion = "1.0.0"
+FRSLoopWriteRequest.deprecatedVersion = ""
+FRSLoopWriteRequest.removedVersion = ""
+FRSLoopWriteRequest.appliesTo = [10001602, 10001853]
+FRSLoopWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteRequest.Fields = [
-    {name:"length", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSLoopWriteRequest.Fields[1] = [
+    {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
+    {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:RESERVED,  size:2}
 ]
 
 messages.append(FRSLoopWriteRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Loop Data Message
+# FRS Write Request Message
+FRSWriteRequest = Message("FRSWriteRequest", encode=True)
+FRSWriteRequest.Documentation = "This is sent from the host towards the device to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
+FRSWriteRequest.addedVersion = ""
+FRSWriteRequest.deprecatedVersion = ""
+FRSWriteRequest.removedVersion = ""
+FRSWriteRequest.appliesTo = []
+FRSWriteRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:6}
+}
+FRSWriteRequest.Fields[2] = [
+    {name:RESERVED,  size:1},
+    {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
+    {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'}
+]
+
+messages.append(FRSWriteRequest)
+
+# ---------------------------------------------------------------------------------------
+# FRS Loop Write Data Message
 FRSLoopWriteData = Message("FRSLoopWriteData", encode=True)
 FRSLoopWriteData.Documentation = "This message is sent from the host towards the loop to write data to the record a previous write request indicated."
-FRSLoopWriteData.ID = {
+FRSLoopWriteData.addedVersion = "1.0.0"
+FRSLoopWriteData.deprecatedVersion = ""
+FRSLoopWriteData.removedVersion = ""
+FRSLoopWriteData.appliesTo = [10001602, 10001853]
+FRSLoopWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:63}
 }
-FRSLoopWriteData.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"data",       size:4}
+FRSLoopWriteData.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
+    {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
 
 messages.append(FRSLoopWriteData)
 
 # ---------------------------------------------------------------------------------------
-# FRS Read Dongle Request Message
+# FRS Write Data Message
+FRSWriteData = Message("FRSWriteData", encode=True)
+FRSWriteData.Documentation = "This message is sent from the host towards the device to write data to the record a previous write request indicated."
+FRSWriteData.addedVersion = ""
+FRSWriteData.deprecatedVersion = ""
+FRSWriteData.removedVersion = ""
+FRSWriteData.appliesTo = []
+FRSWriteData.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:7}
+}
+FRSWriteData.Fields[2] = [
+    {name:RESERVED,  size:1},
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
+    {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
+]
+
+messages.append(FRSWriteData)
+
+# ---------------------------------------------------------------------------------------
+# FRS Dongle Read Request Message
 FRSDongleReadRequest = Message("FRSDongleReadRequest", encode=True)
-FRSDongleReadRequest.ID = {
+FRSDongleReadRequest.addedVersion = "1.0.0"
+FRSDongleReadRequest.deprecatedVersion = ""
+FRSDongleReadRequest.removedVersion = ""
+FRSDongleReadRequest.appliesTo = [10001602, 10001853]
+FRSDongleReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:59}
 }
-FRSDongleReadRequest.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSDongleReadRequest.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
 ]
 
 messages.append(FRSDongleReadRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Dongle Request Message
+# FRS Read Request Message
+FRSReadRequest = Message("FRSReadRequest", encode=True)
+FRSReadRequest.addedVersion = ""
+FRSReadRequest.deprecatedVersion = ""
+FRSReadRequest.removedVersion = ""
+FRSReadRequest.appliesTo = []
+FRSReadRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:8}
+}
+FRSReadRequest.Fields[2] = [
+    {name:RESERVED,  size:1},
+    {name:"readOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
+]
+
+messages.append(FRSReadRequest)
+
+# ---------------------------------------------------------------------------------------
+# FRS Dongle Write Request Message
 FRSDongleWriteRequest = Message("FRSDongleWriteRequest", encode=True)
-FRSDongleWriteRequest.ID = {
+FRSDongleWriteRequest.addedVersion = "1.0.0"
+FRSDongleWriteRequest.deprecatedVersion = ""
+FRSDongleWriteRequest.removedVersion = ""
+FRSDongleWriteRequest.appliesTo = [10001602, 10001853]
+FRSDongleWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:62}
 }
-FRSDongleWriteRequest.Fields = [
-    {name:"length", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSDongleWriteRequest.Fields[1] = [
+    {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
+    {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:RESERVED,  size:2}
 ]
 
 messages.append(FRSDongleWriteRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Dongle Data Message
+# FRS Dongle Write Data Message
 FRSDongleWriteData = Message("FRSDongleWriteData", encode=True)
-FRSDongleWriteData.ID = {
+FRSDongleWriteData.addedVersion = "1.0.0"
+FRSDongleWriteData.deprecatedVersion = ""
+FRSDongleWriteData.removedVersion = ""
+FRSDongleWriteData.appliesTo = [10001602, 10001853]
+FRSDongleWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:64}
 }
-FRSDongleWriteData.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"data",       size:4}
+FRSDongleWriteData.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
+    {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
 
 messages.append(FRSDongleWriteData)
 
 # ---------------------------------------------------------------------------------------
-# FRS Read EFlash Request Message
+# FRS EFlash Read Request Message
 FRSEFlashReadRequest = Message("FRSEFlashReadRequest", encode=True)
-FRSEFlashReadRequest.ID = {
+FRSEFlashReadRequest.addedVersion = "1.0.0"
+FRSEFlashReadRequest.deprecatedVersion = ""
+FRSEFlashReadRequest.removedVersion = ""
+FRSEFlashReadRequest.appliesTo = [10001602, 10001853]
+FRSEFlashReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:65}
 }
-FRSEFlashReadRequest.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSEFlashReadRequest.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
 ]
 
 messages.append(FRSEFlashReadRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write EFlash Request Message
+# FRS EFlash Write Request Message
 FRSEFlashWriteRequest = Message("FRSEFlashWriteRequest", encode=True)
-FRSEFlashWriteRequest.ID = {
+FRSEFlashWriteRequest.addedVersion = "1.0.0"
+FRSEFlashWriteRequest.deprecatedVersion = ""
+FRSEFlashWriteRequest.removedVersion = ""
+FRSEFlashWriteRequest.appliesTo = [10001602, 10001853]
+FRSEFlashWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:66}
 }
-FRSEFlashWriteRequest.Fields = [
-    {name:"length", size:2, cType:'int16_t'},
-    {name:"FRStype",    size:2, cType:'int16_t'},
-    {name:RESERVED,   size:2}
+FRSEFlashWriteRequest.Fields[1] = [
+    {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
+    {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
+    {name:RESERVED,  size:2}
 ]
 
 messages.append(FRSEFlashWriteRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write EFlash Data Message
+# FRS EFlash Write Data Message
 FRSEFlashWriteData = Message("FRSEFlashWriteData", encode=True)
-FRSEFlashWriteData.ID = {
+FRSEFlashWriteData.addedVersion = "1.0.0"
+FRSEFlashWriteData.deprecatedVersion = ""
+FRSEFlashWriteData.removedVersion = ""
+FRSEFlashWriteData.appliesTo = [10001602, 10001853]
+FRSEFlashWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:67}
 }
-FRSEFlashWriteData.Fields = [
-    {name:"wordOffset", size:2, cType:'int16_t'},
-    {name:"data",       size:4}
+FRSEFlashWriteData.Fields[1] = [
+    {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
+    {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
 
 messages.append(FRSEFlashWriteData)
 
 # ---------------------------------------------------------------------------------------
-# Loop Bootloader Command
-LoopBootloaderCommand = Message("LoopBootloaderCommand", encode=True)
-LoopBootloaderCommand.Documentation = "This is sent from host to a handheld(loop) to trigger a reset into the bootloader.\n\t\
-The 32-bit loaderkey command value is placed at a special location in RAM and the system is reset.\n\t\
-If the loaderkey has the proper value, the bootloader will act on the command.\n\t\
-Otherwise the bootloader will transfer control to the application immediately."
-LoopBootloaderCommand.ID = {
+# Dongle RF Enable Message
+DongleRFEnableMessage = Message("DongleRFEnableMessage", encode=True)
+DongleRFEnableMessage.Documentation = "This message enables the RF on the dongle."
+DongleRFEnableMessage.addedVersion = "1.0.2"
+DongleRFEnableMessage.deprecatedVersion = ""
+DongleRFEnableMessage.removedVersion = ""
+DongleRFEnableMessage.appliesTo = [10001602, 10001853]
+DongleRFEnableMessage.ID[1] = {
     ConstantID:7,
-    SubMessageID:{size:1, id:68}
+    SubMessageID:{size:1, id:71}
 }
-LoopBootloaderCommand.Fields = [
-    {name:"loaderKeyCommand", size:4, cType:'uint32_t', Documentation:"Loader Key Commands:\n\t \
-    Launch application: 0xb9e3aa6e \n\t \
-    Upgrade Image:      0x461c5592 \n\t \
-    Validate Image:     0xc452801e"},
-    {name:RESERVED, size:2}
-]
-
-messages.append(LoopBootloaderCommand)
-
-# ---------------------------------------------------------------------------------------
-# Loop Bootloader Status Request
-LoopBootloaderStatusRequest = Message("LoopBootloaderStatusRequest", encode=True)
-LoopBootloaderStatusRequest.Documentation = "This is sent from host to a handheld to request that it send a bootloader status report message."
-LoopBootloaderStatusRequest.ID = {
+DongleRFEnableMessage.ID[2] = {
     ConstantID:7,
-    SubMessageID:{size:1, id:69}
+    SubMessageID:{size:1, id:12}
 }
-LoopBootloaderStatusRequest.Fields = [
+DongleRFEnableMessage.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 
-messages.append(LoopBootloaderStatusRequest)
+messages.append(DongleRFEnableMessage)
 
 # ---------------------------------------------------------------------------------------
-# ------------------------- Generic In Reports (ID 8) -----------------------------------
-# ---------------------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------------------
-# Gen4 SDA Format
-Gen4SDAFormat = Message("Gen4SDAFormat", decode=True)
-Gen4SDAFormat.Documentation = "The Gen4 SDA format is used by FSRK Gen4 dongle, which has USB product ID = 0xC007."
-Gen4SDAFormat.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:1}
+# Data Mode Request Message
+DataModeRequest = Message("DataModeRequest", encode=True)
+DataModeRequest.Documentation = "This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
+DataModeRequest.addedVersion = "1.0.5"
+DataModeRequest.deprecatedVersion = ""
+DataModeRequest.removedVersion = ""
+DataModeRequest.appliesTo = [10001602, 10001853]
+DataModeRequest.ID[1] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:73}
 }
-Gen4SDAFormat.Fields = [
-    {name:'reportCount', size:1, cType:'int16_t'},
-    {name:'buttons',     size:1, bits:[{name:'left'},{name:'right'},{name:'scroll'},{name:'hold'},{name:RESERVED},{name:RESERVED},{name:'triangle'},{name:RESERVED}]},
-    {name:'deltaWheel',  size:1, cType:'int8_t'},
-    {name:'accelX',      size:2, cType:'int16_t'},
-    {name:'accelY',      size:2, cType:'int16_t'},
-    {name:'accelZ',      size:2, cType:'int16_t'},
-    {name:'rotationX',   size:2, cType:'int16_t'},
-    {name:'rotationY',   size:2, cType:'int16_t'},
-    {name:'rotationZ',   size:2, cType:'int16_t'},
-    {name:'xMov',        size:1, cType:'int8_t'},
-    {name:'yMov',        size:1, cType:'int8_t'},
-    {name:'sampleBase',  size:4, cType:'uint32_t'},
-    {name:'command',     size:2, cType:'uint16_t'}
-]
-
-messages.append(Gen4SDAFormat)
-
-# ---------------------------------------------------------------------------------------
-# CRC Error Indication Message
-CRCErrorIndication = Message("CRCErrorIndication", decode=True)
-CRCErrorIndication.Documentation = "The factory test dongle will send this message when a CRC message occurred over the wired factory test interface."
-CRCErrorIndication.ID = {
-    ConstantID:8,
+DataModeRequest.ID[2] = {
+    ConstantID:7,
     SubMessageID:{size:1, id:4}
 }
-CRCErrorIndication.Fields = [
-    {name:RESERVED,     size:25}
+DataModeRequest.Fields[1] = [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
+                                 {name:RESERVED},
+                                 {name:'status',              Documentation:"Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
+]
+DataModeRequest.Fields[2] =  [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 enables User Frame Position reports"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 enables Mouse Movement reports."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
+                                 {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
+                                 {name:'status',              Documentation:"Status: Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
 ]
 
-messages.append(CRCErrorIndication)
+messages.append(DataModeRequest)
 
 # ---------------------------------------------------------------------------------------
-# Factory Calibration Read Data
-FactoryCalibrationReadData = Message("FactoryCalibrationReadData", decode=True)
-FactoryCalibrationReadData.Documentation = "This is sent from the loop to the dongle to convey the factory calibration data. This is only used by the Zebra architecture products."
-FactoryCalibrationReadData.ID = {
-    ConstantID:8,
+# PER Request Message
+PerRequest = Message("PerRequest", encode=True)
+PerRequest.Documentation = "Configures and executes packet error rate tests.  WiCE(tm) only."
+PerRequest.addedVersion = "0.1.0"
+PerRequest.deprecatedVersion = ""
+PerRequest.removedVersion = ""
+PerRequest.appliesTo = [10002292]
+PerRequest.ID[2] = {
+    ConstantID:7,
     SubMessageID:{size:1, id:16}
 }
-FactoryCalibrationReadData.Fields = [
-    {name:"wordOffset",  size:1, cType:'uint8_t', Documentation:"wordOffset indicates the number of words offset from the beginning of the factory calibration data the message begins."},
-    {name:"nibs",        size:1, nibbles:[{name:'dataLength', Documentation:"Indicates the number of data words contained within the message, typically 5 words."}, {name:RESERVED}]},
-    {name:"factCalData", size:20},
-    {name:RESERVED,      size:23}
+PerRequest.Fields[2] = [
+    {name:"op",         size:1, cType:'uint8_t', Documentation:"0: sets the frequency set for fixed-frequency PER tests.  1: starts a PER test."},
+    {name:"payload",    size:5, cType:'uint8_t', Documentation:"op == 0: Sets fixed channels for the test.  All 5 0xFF will clear the fixed frequency state.\nop == 1: Starts a PER test of duration ((payload[1] * 256 + payload[0]) * 256) WiCE(tm) frames."}
 ]
 
-messages.append(FactoryCalibrationReadData)
+messages.append(PerRequest)
 
 # ---------------------------------------------------------------------------------------
-# Factory Test Dongle Status Response
-FTDongleStatusResponse = Message("FTDongleStatusResponse", decode=True)
-FTDongleStatusResponse.Documentation = "This is sent from the FT dongle towards the host to indicate the current status of the dongle"
-FTDongleStatusResponse.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:21}
-}
-FTDongleStatusResponse.Fields = [
-    {name:'flags', size:1, bits:[{name:'power',    Documentation:"0: DUT power is disabled, 1: DUT power is enabled"},
-                                 {name:'reset',    Documentation:"0: DUT reset is deasserted, 1: DUT is reset asserted"},
-                                 {name:'presence', Documentation:"0: presence signal is deasserted, 1: presence signal is asserted"}]},
-    {name:'status', size:1, cType:'uint8_t', Documentation:"Status:\n\t\
-    -0xFF: This is not a factory calibration dongle. Not guaranteed to be supported.\n\t\
-    -0x00: Idle. The factory calibration dongle is waiting to be connected to a Loop.\n\t\
-    -0x01: Connecting. The factory calibration dongle is currently debouncing its Loop presence detect line or synchronizing with a Loop.\n\t\
-    -0x02: Connected. The factory calibration dongle is fully connected to a Loop. Communications have been established and command/response messages can be sent to/received from the Loop."},
-    {name:RESERVED, size:23}
-]
-
-messages.append(FTDongleStatusResponse)
+# ------------------------- Generic In Reports ------------------------------------------
+# ---------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------
-# Statistics Response
-StatisticsResponse = Message("StatisticsResponse", decode=True)
-StatisticsResponse.Documentation = "This message is sent in response to a statistics request."
-StatisticsResponse.ID = {
+# Pairing Response Message
+PairingResponse = Message("PairingResponse", decode=True)
+PairingResponse.Documentation = "Pairing response is used to either respond to pairing requests from the host or to send pairing status updates to the host that describe events during the pairing process."
+PairingResponse.addedVersion = "1.0.0"
+PairingResponse.deprecatedVersion = ""
+PairingResponse.removedVersion = ""
+PairingResponse.appliesTo = [10001853]
+PairingResponse.ID[1] = {
     ConstantID:8,
-    SubMessageID:{size:1, id:22}
+    SubMessageID:{size:1, id:13}
 }
-StatisticsResponse.Fields = [
-    {name:'stackSpace', size:2, cType:'int16_t'},
-    {name:'runTime',    size:2, cType:'int16_t'},
-    {name:RESERVED,     size:21}
+PairingResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:2}
+}
+PairingResponse.Fields[1] = [
+    {name:'flags',    size:1, bits:[{name:'pairing',     size:1, Documentation:"0: not pairing.\n\t 1: pairing"},
+                                    {name:'autoPairing', size:1, Documentation:"0: dongle is not in auto-pairing\n\t1: dongle is in auto-pairing"},
+                                    {name:'success',     size:1, Documentation:"0: not successful or still in progress\n\t1: successful"},
+                                    {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]},
+    {name:RESERVED,         size:24}
+]
+PairingResponse.Fields[2] = [
+    {name:'flags',    size:1, bits:[{name:'pairing',     size:1, Documentation:"0: not pairing.\n\t 1: pairing"},
+                                    {name:'autoPairing', size:1, Documentation:"0: dongle is not in auto-pairing\n\t1: dongle is in auto-pairing"},
+                                    {name:'success',     size:1, Documentation:"0: not successful or still in progress\n\t1: successful"},
+                                    {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]},
+    {name:RESERVED,         size:6}
 ]
 
-messages.append(StatisticsResponse)
-
-# ---------------------------------------------------------------------------------------
-# Zebra System Test
-ZebraSystemTestResponse = Message("ZebraSystemTestResponse", decode=True)
-ZebraSystemTestResponse.Documentation = "This message is used during Zebra System test to collection link(RF+USB) strength statistics."
-ZebraSystemTestResponse.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:31}
-}
-ZebraSystemTestResponse.Fields = [
-    {name:'modeReset',         size:1, bits:[{name:'reset',        Documentation:"1 to reset, 0 for normal"},
-                                             {name:'mode', size:2, Documentation:"0 - RF+USB, 1 - USB"},
-                                             {name:RESERVED},{name:RESERVED},{name:RESERVED},{name:RESERVED},{name:RESERVED}]},
-    {name:RESERVED,            size:1},
-    {name:'pcSequence',        size:2, cType:'uint16_t'},
-    {name:'dongleOutSequence', size:2, cType:'uint16_t'},
-    {name:'rfSequence',        size:2, cType:'uint16_t'},
-    {name:'dongleInSequence',  size:2, cType:'uint16_t'},
-    {name:RESERVED,            size:15}
-]
-
-messages.append(ZebraSystemTestResponse)
+messages.append(PairingResponse)
 
 # ---------------------------------------------------------------------------------------
 # Product ID Response Message
 ProductIDResponse = Message("ProductIDResponse", decode=True)
 ProductIDResponse.Documentation = "This is sent from the polled device towards the host to convey the product ID information."
-ProductIDResponse.ID = {
+ProductIDResponse.addedVersion = "1.0.0"
+ProductIDResponse.deprecatedVersion = ""
+ProductIDResponse.removedVersion = ""
+ProductIDResponse.appliesTo = [10001602, 10001853]
+ProductIDResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:32}
 }
-ProductIDResponse.Fields = [
+ProductIDResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:9}
+}
+ProductIDResponse.Fields[1] = [
     {name:'swPartNumber',   size:4, cType:'uint32_t'},
     {name:'swBuildNumber',  size:4, cType:'uint32_t'},
     {name:'swicn',          size:4, cType:'uint32_t'},
-    {name:'swVersionPatch', size:2, cType:'int16_t'},
+    {name:'swVersionPatch', size:2, cType:'uint16_t'},
     {name:'swVersionMinor', size:1, cType:'uint8_t'},
     {name:'swVersionMajor', size:1, cType:'uint8_t'},
-    {name:'hwPlatformID',   size:1, cType:'uint8_t'},
-    {name:'hwRevision',     size:1, cType:'uint8_t'},
+    {name:RESERVED,         size:2},
     {name:'serialNumber',   size:4, cType:'uint32_t'},
-    {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:7, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device. The Zebra dongle device class is 1\n\t 2: data-generating device. The Zebra loop device class is 2."},
-                                          {name:'invalidNS',            Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
+    {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:7, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
+                                          {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
     {name:RESERVED,         size:2}
 ]
+ProductIDResponse.Fields[2] = [
+    {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:6, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
+                                          {name:'startup',             Documentation:"The device has just started up. This bit self clears after the first message is sent."},
+                                          {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
+    {name:'swVersionMajor', size:1, cType:'uint8_t'},
+    {name:'swVersionMinor', size:1, cType:'uint8_t'},
+    {name:'swPartNumber',   size:4, cType:'uint32_t'},
+    {name:'swBuildNumber',  size:4, cType:'uint32_t'},
+    {name:'serialNumber',   size:4, cType:'uint32_t'},
+    {name:'swVersionPatch', size:2, cType:'uint16_t'},
+    ]
 
 messages.append(ProductIDResponse)
 
@@ -878,169 +969,137 @@ messages.append(ProductIDResponse)
 # Link Quality Status Message
 LinkStatusMessage = Message("LinkStatus", decode=True)
 LinkStatusMessage.Documentation = "This message is sent from a compliance test-ready dongle to indicate the dongle's current status."
-LinkStatusMessage.ID = {
+LinkStatusMessage.addedVersion = "1.0.0"
+LinkStatusMessage.deprecatedVersion = ""
+LinkStatusMessage.removedVersion = ""
+LinkStatusMessage.appliesTo = [10001853]
+LinkStatusMessage.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:48}
 }
-LinkStatusMessage.Fields = [
-    {name:"status",     size:1, cType:'uint8_t'},
-    {name:"mode",       size:1, cType:'uint8_t'},
-    {name:"resetStatus",size:1, cType:'uint8_t'},
+LinkStatusMessage.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:3}
+}
+LinkStatusMessage.Fields[1] = [
+    {name:"status",     size:1, cType:'uint8_t', Documentation:"0: bad\n\t1: good"},
+    {name:"mode",       size:1, cType:'uint8_t', Documentation:"0: normal operation\n\t1: fixed frequency operation\n\t2: RF disabled"},
+    {name:"resetStatus",size:1, cType:'uint8_t', Documentation:"0: did not occur\n\t1: occurred. Self clears."},
     {name:RESERVED,     size:22}
 ]
-
+LinkStatusMessage.Fields[2] = [
+    {name:"status",     size:1, cType:'uint8_t', Documentation:"0: bad\n\t1: good"},
+    {name:"mode",       size:1, cType:'uint8_t', Documentation:"0: normal operation\n\t1: fixed frequency operation\n\t2: RF disabled"},
+    {name:"resetStatus",size:1, cType:'uint8_t', Documentation:"0: did not occur\n\t1: occurred. Self clears."},
+    {name:"txDisabled", size:1, cType:'uint8_t', Documentation:"0: TX is enabled\n\t1: TX is disabled."},
+    {name:RESERVED,     size:22}
+]
 messages.append(LinkStatusMessage)
 
 # ---------------------------------------------------------------------------------------
 # Always On Response Message
 AlwaysOnResponse = Message("AlwaysOnResponse", decode=True)
 AlwaysOnResponse.Documentation = "This message is sent from a the loop to acknowledge an always on mode request message."
-AlwaysOnResponse.ID = {
+AlwaysOnResponse.addedVersion = "1.0.0"
+AlwaysOnResponse.deprecatedVersion = ""
+AlwaysOnResponse.removedVersion = ""
+AlwaysOnResponse.appliesTo = [10001602, 10001853]
+AlwaysOnResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:49}
 }
-AlwaysOnResponse.Fields = [
+AlwaysOnResponse.Fields[1] = [
     {name:RESERVED,     size:25}
 ]
 
 messages.append(AlwaysOnResponse)
 
 # ---------------------------------------------------------------------------------------
-# SPI Operation Response Message
-SPIOperationResponse = Message("SPIOperationResponse", decode=True)
-SPIOperationResponse.Documentation = "This message is sent in response to an SPI operation request generic out message.\n\t This format is used for the 27 byte (Gen4) size generic in message."
-SPIOperationResponse.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:54}
+# FRS Read Response Message
+FRSReadResponse = Message("FRSReadResponse", decode=True)
+FRSReadResponse.Documentation = "This is sent from the device to the host to convey an FRS record."
+FRSReadResponse.addedVersion = ""
+FRSReadResponse.deprecatedVersion = ""
+FRSReadResponse.removedVersion = ""
+FRSReadResponse.appliesTo = []
+FRSReadResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:8}
 }
-SPIOperationResponse.Fields = [
-    {name:'byte0',  size:1, cType:'uint8_t'},
-    {name:'byte1',  size:1, cType:'uint8_t'},
-    {name:'byte2',  size:1, cType:'uint8_t'},
-    {name:'byte3',  size:1, cType:'uint8_t'},
-    {name:'byte4',  size:1, cType:'uint8_t'},
-    {name:'byte5',  size:1, cType:'uint8_t'},
-    {name:'byte6',  size:1, cType:'uint8_t'},
-    {name:'byte7',  size:1, cType:'uint8_t'},
-    {name:'byte8',  size:1, cType:'uint8_t'},
-    {name:'byte9',  size:1, cType:'uint8_t'},
-    {name:'byte10', size:1, cType:'uint8_t'},
-    {name:'byte11', size:1, cType:'uint8_t'},
-    {name:'byte12', size:1, cType:'uint8_t'},
-    {name:'byte13', size:1, cType:'uint8_t'},
-    {name:'byte14', size:1, cType:'uint8_t'},
-    {name:'byte15', size:1, cType:'uint8_t'},
-    {name:'byte16', size:1, cType:'uint8_t'},
-    {name:'byte17', size:1, cType:'uint8_t'},
-    {name:'byte18', size:1, cType:'uint8_t'},
-    {name:'byte19', size:1, cType:'uint8_t'},
-    {name:'byte20', size:1, cType:'uint8_t'},
-    {name:'byte21', size:1, cType:'uint8_t'},
-    {name:'byte22', size:1, cType:'uint8_t'},
-    {name:'byte23', size:1, cType:'uint8_t'},
-    {name:'length', size:1, cType:'uint8_t'},
+FRSReadResponse.Fields[2] = [
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
+                                         {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:12, cType:'uint32_t'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
-messages.append(SPIOperationResponse)
+messages.append(FRSReadResponse)
 
 # ---------------------------------------------------------------------------------------
-# Event Report Configuration Response
-EventReportConfigurationResponse = Message("EventReportConfigurationResponse", decode=True)
-EventReportConfigurationResponse.Documentation = "This message is sent from the FSRK-E adapter test module to the host in response to a request for the current configuration for event reporting."
-EventReportConfigurationResponse.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:55}
-}
-EventReportConfigurationResponse.Fields = [
-    {name:'flags0', size:1, bits:[{name:'intc',  Documentation:"Summary interrupt detected."},
-                                  {name:'xyMov', Documentation:"X-Y pointer movement data ready."},
-                                  {name:'acSt',  Documentation:"Activity classification status change"},
-                                  {name:'reset', Documentation:"Test module reset detected."},
-                                  {name:'motDr', Documentation:"Motion data ready"},
-                                  {name:'wom',   Documentation:"Wake-on-motion detected."},
-                                  {name:'motOv', Documentation:"Motion data overflow"},
-                                  {name:'acEv',  Documentation:"Activity classification event detected."}]},
-    {name:'flags1', size:1, bits:[{name:'sdaDr', Documentation:"SDA data ready."},
-                                  {name:'sdaOv', Documentation:"SDA data overflow."},
-                                  {name:'cfgSt', Documentation:"Configuration StatusChange"},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED},
-                                  {name:RESERVED}]},
-    {name:RESERVED, size:23}    
-]
-
-messages.append(EventReportConfigurationResponse)
-
-# ---------------------------------------------------------------------------------------
-# Event Report Message
-EventReport = Message("EventReport", decode=True)
-EventReport.Documentation = "This message is sent from the FSRK-E adapter test module to report that a particular\n\t \
-event, for which event reporting has been enabled, has occured.\n\t \
-The contents of the report are a set of 8 register data reports. Each 2 bytes.\n\t \
-The selection of registers reported is determined by the adapter board firmware."
-EventReport.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:56}
-}
-EventReport.Fields = [
-    {name:'register0', size:2, cType:'uint16_t'},
-    {name:'register1', size:2, cType:'uint16_t'},
-    {name:'register2', size:2, cType:'uint16_t'},
-    {name:'register3', size:2, cType:'uint16_t'},
-    {name:'register4', size:2, cType:'uint16_t'},
-    {name:'register5', size:2, cType:'uint16_t'},
-    {name:'register6', size:2, cType:'uint16_t'},
-    {name:'register7', size:2, cType:'uint16_t'},
-    {name:RESERVED,    size:9}    
-]
-
-messages.append(EventReport)
-
-# ---------------------------------------------------------------------------------------
-# Unknown CRS Notification
-UnknownCRSNotificationResponse = Message("UnknownCRSNotificationResponse", decode=True)
-UnknownCRSNotificationResponse.Documentation = "This message is sent from a handheld to a base station. It indicates that the handheld did not recognize a CRS message that the base station had sent.\n\t This message will never be sent over USB"
-UnknownCRSNotificationResponse.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:57}
-}
-UnknownCRSNotificationResponse.Fields = [
-    {name:"unknownReportID",     size:1, cType:'uint8_t', Documentation:"This is the HID report ID of the unknown message received by the handheld."},
-    {name:"unknownSubMessageID", size:1, cType:'uint8_t', Documentation:"This is the HID sub-message ID of the unknown message received by the handheld."},
-    {name:RESERVED,     size:23}    
-]
-
-messages.append(UnknownCRSNotificationResponse)
-
-# ---------------------------------------------------------------------------------------
-# FRS Read Loop Response Message
+# FRS Loop Read Response Message
 FRSLoopReadResponse = Message("FRSLoopReadResponse", decode=True)
-FRSLoopReadResponse.Documentation = "This is sent from the loop to the dongle to convey an FSR record."
-FRSLoopReadResponse.ID = {
+FRSLoopReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
+FRSLoopReadResponse.addedVersion = "1.0.0"
+FRSLoopReadResponse.deprecatedVersion = ""
+FRSLoopReadResponse.removedVersion = ""
+FRSLoopReadResponse.appliesTo = [10001602, 10001853]
+FRSLoopReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadResponse.Fields = [
+FRSLoopReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
-    {name:"data",       size:20},
-    {name:"status",     size:1, nibbles:[{name:'status', Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty"},
+    {name:"data",       size:20, cType:'uint32_t'},
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
-    {name:RESERVED,     size:2}    
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
 messages.append(FRSLoopReadResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Loop Response Message
+# FRS Write Response Message
+FRSWriteResponse = Message("FRSWriteResponse", decode=True)
+FRSWriteResponse.Documentation = "This is sent from the device to the host to indicate status of the write operation."
+FRSWriteResponse.addedVersion = ""
+FRSWriteResponse.deprecatedVersion = ""
+FRSWriteResponse.removedVersion = ""
+FRSWriteResponse.appliesTo = []
+FRSWriteResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:6}
+}
+FRSWriteResponse.Fields[2] = [
+    {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
+0: word received\n\t\
+1: unrecognized FRS type\n\t\
+2: busy\n\t\
+3: write completed\n\t\
+4: write mode entered already\n\t\
+5: write failed\n\t\
+6: data received while not in write mode\n\t\
+7: invalid length\n\t\
+8: record valid (the complete record passed internal validation checks)\n\t\
+9:record invalid (the complete record failed internal validation checks)"},
+    {name:"wordOffset", size:2,  cType:'uint16_t'}
+]
+
+messages.append(FRSWriteResponse)
+
+# ---------------------------------------------------------------------------------------
+# FRS Loop Write Response Message
 FRSLoopWriteResponse = Message("FRSLoopWriteResponse", decode=True)
 FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
-FRSLoopWriteResponse.ID = {
+FRSLoopWriteResponse.addedVersion = "1.0.0"
+FRSLoopWriteResponse.deprecatedVersion = ""
+FRSLoopWriteResponse.removedVersion = ""
+FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
+FRSLoopWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteResponse.Fields = [
+FRSLoopWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
@@ -1059,231 +1118,166 @@ FRSLoopWriteResponse.Fields = [
 messages.append(FRSLoopWriteResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Read Dongle Response Message
+# FRS Dongle Read Response Message
 FRSDongleReadResponse = Message("FRSDongleReadResponse", decode=True)
-FRSDongleReadResponse.ID = {
+FRSDongleReadResponse.Documentation = "This is sent from the dongle to the host to convey an FRS record."
+FRSDongleReadResponse.addedVersion = "1.0.0"
+FRSDongleReadResponse.deprecatedVersion = ""
+FRSDongleReadResponse.removedVersion = ""
+FRSDongleReadResponse.appliesTo = [10001602, 10001853]
+FRSDongleReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:59}
 }
-FRSDongleReadResponse.Fields = [
-    {name:"wordOffset", size:2,  cType:'uint16_t'},
-    {name:"data",       size:20},
-    {name:"status",     size:1, nibbles:[{name:'status'},{name:'dataLength'}]},
-    {name:RESERVED,     size:2}    
+FRSDongleReadResponse.Fields[1] = [
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:20, cType:'uint32_t'},
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
+                                         {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
 ]
 
 messages.append(FRSDongleReadResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write Dongle Response Message
+# FRS Dongle Write Response Message
 FRSDongleWriteResponse = Message("FRSDongleWriteResponse", decode=True)
-FRSDongleWriteResponse.ID = {
+FRSDongleWriteResponse.Documentation = "This is sent from the dongle to the host to indicate status of the write operation."
+FRSDongleWriteResponse.addedVersion = "1.0.0"
+FRSDongleWriteResponse.deprecatedVersion = ""
+FRSDongleWriteResponse.removedVersion = ""
+FRSDongleWriteResponse.appliesTo = [10001602, 10001853]
+FRSDongleWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:62}
 }
-FRSDongleWriteResponse.Fields = [
+FRSDongleWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
-    {name:"status",     size:1,  cType:'uint8_t'},
+    {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
+0: word received\n\t\
+1: unrecognized FRS type\n\t\
+2: busy\n\t\
+3: write completed\n\t\
+4: write mode entered already\n\t\
+5: write failed\n\t\
+6: data received while not in write mode\n\t\
+7: invalid length\n\t\
+8: record valid (the complete record passed internal validation checks)\n\t\
+9:record invalid (the complete record failed internal validation checks)"},
     {name:RESERVED,     size:22}
 ]
 
 messages.append(FRSDongleWriteResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Read EFlash Response Message
+# FRS EFlash Read Response Message
 FRSEFlashReadResponse = Message("FRSEFlashReadResponse", decode=True)
-FRSEFlashReadResponse.ID = {
+FRSEFlashReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
+FRSEFlashReadResponse.addedVersion = "1.0.0"
+FRSEFlashReadResponse.deprecatedVersion = ""
+FRSEFlashReadResponse.removedVersion = ""
+FRSEFlashReadResponse.appliesTo = [10001602, 10001853]
+FRSEFlashReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:65}
 }
-FRSEFlashReadResponse.Fields = [
-    {name:"wordOffset", size:2,  cType:'uint16_t'},
-    {name:"data",       size:20},
-    {name:"status",     size:1, nibbles:[{name:'status'},{name:'dataLength'}]},
-    {name:RESERVED,     size:2}    
+FRSEFlashReadResponse.Fields[1] = [
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:20, cType:'uint32_t'},
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
+                                         {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
 ]
 
 messages.append(FRSEFlashReadResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Write EFlash Response Message
+# FRS EFlash Write Response Message
 FRSEFlashWriteResponse = Message("FRSEFlashWriteResponse", decode=True)
-FRSEFlashWriteResponse.ID = {
+FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
+FRSLoopWriteResponse.addedVersion = "1.0.0"
+FRSLoopWriteResponse.deprecatedVersion = ""
+FRSLoopWriteResponse.removedVersion = ""
+FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
+FRSEFlashWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:66}
 }
-FRSEFlashWriteResponse.Fields = [
+FRSEFlashWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
-    {name:"status",     size:1,  cType:'uint8_t'},
+    {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
+0: word received\n\t\
+1: unrecognized FRS type\n\t\
+2: busy\n\t\
+3: write completed\n\t\
+4: write mode entered already\n\t\
+5: write failed\n\t\
+6: data received while not in write mode\n\t\
+7: invalid length\n\t\
+8: record valid (the complete record passed internal validation checks)\n\t\
+9:record invalid (the complete record failed internal validation checks)"},
     {name:RESERVED,     size:22}
 ]
 
 messages.append(FRSEFlashWriteResponse)
 
 # ---------------------------------------------------------------------------------------
-# FSP2Coprocessor Message
-FSP2CoprocessorMessage = Message("FSP2CoprocessorMessage", decode=True)
-FSP2CoprocessorMessage.Documentation = "This message is sent from the COP2USB adapter test module to the host.\n\t \
-It carries the entire message receieved over the coprocessor interface.\n\t \
-This message is used to test the FSP to coprocessor data flow."
-FSP2CoprocessorMessage.ID = {
+# Data Mode Response Message
+DataModeResponse = Message("DataModeResponse", decode=True)
+DataModeResponse.Documentation = "This report acknowledges the last DataModeRequest received by the dongle."
+DataModeResponse.addedVersion = "1.0.5"
+DataModeResponse.deprecatedVersion = ""
+DataModeResponse.removedVersion = ""
+DataModeResponse.appliesTo = [10001602, 10001853]
+DataModeResponse.ID[1] = {
     ConstantID:8,
-    SubMessageID:{size:1, id:60}
+    SubMessageID:{size:1, id:73}
 }
-FSP2CoprocessorMessage.Fields = [
-    {name:'length',  size:1, cType:'uint8_t', Documentation:"Length is the length of the payload in bytes"},
-    {name:'payload', size:16},
-    {name:RESERVED,  size:8}    
+DataModeResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:4}
+}
+DataModeResponse.Fields[1] = [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 Body Frame Motion reports are enabled."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 User Frame Position reports are enabled"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
+                                 {name:RESERVED},
+                                 {name:RESERVED}]}
 ]
-
-messages.append(FSP2CoprocessorMessage)
-
-# ---------------------------------------------------------------------------------------
-# Loop Bootloader Status
-LoopBootloaderStatus = Message("LoopBootloaderStatus", decode=True)
-LoopBootloaderStatus.Documentation = "This report conveys status and error information from the device bootloader."
-LoopBootloaderStatus.ID = {
-    ConstantID:8,
-    SubMessageID:{size:1, id:67}
-}
-LoopBootloaderStatus.Fields = [
-    {name:RESERVED,    size:2},
-    {name:'flags',     size:1, bits:[{name:'normalLaunch'},
-                                     {name:'internalAppValid'},
-                                     {name:'internalAppNotValid'},
-                                     {name:'flashProtectionChanged'},
-                                     {name:'upgradeStarted'},
-                                     {name:'validateStarted'},
-                                     {name:'errorOccured'},
-                                     {name:RESERVED}]},
-    {name:RESERVED,    size:3},
-    {name:'errorCode', size:1, cType:'uint8_t', Documentation:"\
-Bootloader Error Codes:\n\
-    0: no error\n\
-    1: bad flash\n\
-    2: unsupported version\n\
-    3: incompatible hardware\n\
-    4: invalid image\n\
-    5: flash erase error\n\
-    6: flash write error\n\
-    7: bad encryption key\n\
-    8: CRC error\n\
-    9: bad write\n\
-    10: overflow error"},
-    {name:RESERVED,    size:18}
+DataModeResponse.Fields[2] = [
+    {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 Body Frame Motion reports are enabled."},
+                                 {name:'enableUserPosition',  Documentation:"Enable User Position: when set to 1 User Frame Position reports are enabled"},
+                                 {name:'inhibitPowerManager', Documentation:"Inhibit Power Manager: when set to 1 the power management feature isinhibited."},
+                                 {name:'enableMouseMovement', Documentation:"Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled."},
+                                 {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 the Freespace motion sensing system disabled."},
+                                 {name:'SDA',                 Documentation:"Reserved for testing,"},
+                                 {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
+                                 {name:RESERVED}]}
 ]
-
-messages.append(LoopBootloaderStatus)
-
-# ---------------------------------------------------------------------------------------
-# ------------------------- Extended Out Report (ID 15) ---------------------------------
-# ---------------------------------------------------------------------------------------
+messages.append(DataModeResponse)
 
 # ---------------------------------------------------------------------------------------
-# SPI Operation Request
-SPIOperationRequest = Message("SPIOperationRequest", encode=True, shouldGenerate=False)
-SPIOperationRequest.Documentation = "The SPI operation request is sent from the host to the FSRK to perform the specified SPI transaction.\n\t\
-This format carries up to 24 bytes of 12 16-bit words. The FSRK sends a Generic In SPI operation response with the data returned from the SPI transaction."
-SPIOperationRequest.ID = {
-    ConstantID:15,
-    SubMessageID:{size:1, id:2}
+# PER Response Message
+PerResponse = Message("PerResponse", decode=True)
+PerResponse.Documentation = "This report provides the results of a packet error rate test.  WiCE(tm) only."
+PerResponse.addedVersion = "0.1.0"
+PerResponse.deprecatedVersion = ""
+PerResponse.removedVersion = ""
+PerResponse.appliesTo = [10002292]
+
+PerResponse.ID[2] = {
+    ConstantID:6,
+    SubMessageID:{size:1, id:16}
 }
-SPIOperationRequest.Fields = [
-    {name:'length', size:1, cType:'uint8_t'},
-    {name:RESERVED, size:1},
-    {name:'byte0',  size:1, cType:'uint8_t'},
-    {name:'byte1',  size:1, cType:'uint8_t'},
-    {name:'byte2',  size:1, cType:'uint8_t'},
-    {name:'byte3',  size:1, cType:'uint8_t'},
-    {name:'byte4',  size:1, cType:'uint8_t'},
-    {name:'byte5',  size:1, cType:'uint8_t'},
-    {name:'byte6',  size:1, cType:'uint8_t'},
-    {name:'byte7',  size:1, cType:'uint8_t'},
-    {name:'byte8',  size:1, cType:'uint8_t'},
-    {name:'byte9',  size:1, cType:'uint8_t'},
-    {name:'byte10', size:1, cType:'uint8_t'},
-    {name:'byte11', size:1, cType:'uint8_t'},
-    {name:'byte12', size:1, cType:'uint8_t'},
-    {name:'byte13', size:1, cType:'uint8_t'},
-    {name:'byte14', size:1, cType:'uint8_t'},
-    {name:'byte15', size:1, cType:'uint8_t'},
-    {name:'byte16', size:1, cType:'uint8_t'},
-    {name:'byte17', size:1, cType:'uint8_t'},
-    {name:'byte18', size:1, cType:'uint8_t'},
-    {name:'byte19', size:1, cType:'uint8_t'},
-    {name:'byte20', size:1, cType:'uint8_t'},
-    {name:'byte21', size:1, cType:'uint8_t'},
-    {name:'byte22', size:1, cType:'uint8_t'},
-    {name:'byte23', size:1, cType:'uint8_t'},
-    {name:RESERVED, size:3}
+PerResponse.Fields[2] = [
+    {name:RESERVED,  size:1},
+    {name:"count",   size:4, cType:'uint32_t', Documentation:"Frame count of the PER test.  The duration."},
+    {name:"msError", size:4, cType:'uint32_t', Documentation:"Number of master-to-slave errors detected during the test.  Maximum 1 per frame."},
+    {name:"smError", size:4, cType:'uint32_t', Documentation:"Number of slave-to-master errors detected during the test.  Maximum 2 per frame."},
+    {name:"frError", size:4, cType:'uint32_t', Documentation:"Number of frame errors detected during the test.  A frame error occurred if both slave-to-master messages in a frame were errors.  Maximum 1 per frame."}
 ]
+messages.append(PerResponse)
 
-messages.append(SPIOperationRequest)
-
-# ---------------------------------------------------------------------------------------
-# Coprocessor2FSP Message
-Coprocessor2FSPMessage = Message("Coprocessor2FSPMessage", encode=True, shouldGenerate=False)
-Coprocessor2FSPMessage.Documentation = "\
-The Coprocessor2FSP message is sent from the host to the COP2USB adapter. The length\n\t\
-field is the size of the coprocessor message in bytes. The payload of this message is a\n\t\
-complete coprocessor message, including coprocessor message length, coprocessor\n\t\
-message ID and coprocessor message payload. The coprocessor message is sent out in its\n\t\
-entirety over the coprocessor SPI interface. If the length of the payload is less than 16\n\t\
-bytes then only length bytes are sent. Bytes in the payload field after length bytes are ignored."
-Coprocessor2FSPMessage.ID = {
-    ConstantID:15,
-    SubMessageID:{size:1, id:3}
-}
-Coprocessor2FSPMessage.Fields = [
-    {name:'length', size:1, cType:'uint8_t'},
-    {name:'payload', size:16},
-    {name:RESERVED, size:12}
-]
-
-messages.append(Coprocessor2FSPMessage)
-
-# ---------------------------------------------------------------------------------------
-# ---------------------------- CRS Message Reports --------------------------------------
-# ---------------------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------------------
-# CRS Keepalive
-CRSKeepalive = Message("CRSKeepalive", decode=True)
-CRSKeepalive.Documentation = "The CRS Keepalive report is used to ensure that there is always traffic on the\n\t handheld/base station CRS link. This report is never sent over the USB interface."
-CRSKeepalive.ID = {
-    ConstantID:11
-}
-CRSKeepalive.Fields = []
-
-messages.append(CRSKeepalive)
-
-# ---------------------------------------------------------------------------------------
-# Button State
-ButtonState = Message("ButtonState", decode=True)
-ButtonState.Documentation = "The button state report is sent from the handheld to the base station over the CRS link to indicate a change in the state of the buttons on the handheld."
-ButtonState.ID = {
-    ConstantID:128
-}
-ButtonState.Fields = [
-    {name:'buttons', size:1, bits:[{name:'leftButton'}, {name:'rightButton'}, {name:'scrollButton'}, {name:'park'},
-                                   {name:RESERVED}, {name:RESERVED}, {name:RESERVED}, {name:RESERVED}]}
-]
-
-messages.append(ButtonState)
-
-# ---------------------------------------------------------------------------------------
-# Scroll Motion
-ScrollMotion = Message("ScrollMotion", decode=True)
-ScrollMotion.Documentation = "The button state report is sent from the handheld to the base station over the CRS link to indicate a change in the state of the buttons on the handheld."
-ScrollMotion.ID = {
-    ConstantID:129
-}
-ScrollMotion.Fields = [
-    {name:'deltaWheel', size:1, cType:'int8_t'}
-]
-
-messages.append(ScrollMotion)
-
-# ---------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------
