@@ -40,6 +40,7 @@ struct FreespaceDeviceAPI {
     uint16_t idVendor_;
     uint16_t idProduct_;
     int      usageCount_;
+	int      hVer_; // HID messaging protocol used for a particular product ID
     struct FreespaceDeviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
     const char* name_;
 };
@@ -57,26 +58,39 @@ struct FreespaceDeviceAPI {
  *      A = Separate multi-axis and vendor-specific (deprecated)
  */
 static const struct FreespaceDeviceAPI deviceAPITable[] = {
-    { 0x1d5a, 0xc001, 2, {{4, 0xff01}, {8, 1}}, "Piranha"},
-    { 0x1d5a, 0xc002, 1, {{0, 0},      {0, 0}}, "Piranha bootloader"},
-    { 0x1d5a, 0xc003, 2, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
-    { 0x1d5a, 0xc004, 1, {{0, 0},      {0, 0}}, "Piranha sniffer dongle"},
-    { 0x1d5a, 0xc005, 2, {{4, 0xff01}, {8, 1}}, "FSRK STM32F10x eval board (E)"},
-    { 0x1d5a, 0xc006, 1, {{0, 0},      {0, 0}}, "Cortex Bootloader"},
-    { 0x1d5a, 0xc007, 2, {{4, 0xff01}, {8, 1}}, "FSRK Gen4 Dongle"},
-    { 0x1d5a, 0xc008, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter board v0"},
-    { 0x1d5a, 0xc009, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v0"},
-    { 0x1d5a, 0xc00a, 2, {{4, 0xff01}, {8, 1}}, "Coprocessor to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc00b, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v1 (MKCA)"},
-    { 0x1d5a, 0xc00c, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc010, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MV)"},
-    { 0x1d5a, 0xc011, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MCV)"},
-    { 0x1d5a, 0xc012, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKV)"},
-    { 0x1d5a, 0xc013, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKCV)"},
-    { 0x1d5a, 0xc020, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc021, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (V)"},
-    { 0x1d5a, 0xc030, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc031, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc001, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha"},
+    { 0x1d5a, 0xc002, 1, 0, {{0, 0},      {0, 0}}, "Piranha bootloader"},
+    { 0x1d5a, 0xc003, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
+    { 0x1d5a, 0xc004, 1, 1, {{0, 0},      {0, 0}}, "Piranha sniffer dongle"},
+    { 0x1d5a, 0xc005, 2, 1, {{4, 0xff01}, {8, 1}}, "FSRK STM32F10x eval board (E)"},
+    { 0x1d5a, 0xc006, 1, 0, {{0, 0},      {0, 0}}, "Cortex Bootloader"},
+    { 0x1d5a, 0xc007, 2, 1, {{4, 0xff01}, {8, 1}}, "FSRK Gen4 Dongle"},
+    { 0x1d5a, 0xc008, 2, 1, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter board v0"},
+    { 0x1d5a, 0xc009, 2, 1, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v0"},
+    { 0x1d5a, 0xc00a, 2, 1, {{4, 0xff01}, {8, 1}}, "Coprocessor to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc00b, 2, 1, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v1 (MKCA)"},
+    { 0x1d5a, 0xc00c, 2, 1, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc010, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MV)"},
+    { 0x1d5a, 0xc011, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MCV)"},
+    { 0x1d5a, 0xc012, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKV)"},
+    { 0x1d5a, 0xc013, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKCV)"},
+    { 0x1d5a, 0xc020, 1, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc021, 1, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc030, 1, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc031, 1, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc040, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MV)"},
+    { 0x1d5a, 0xc041, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MCV)"},
+    { 0x1d5a, 0xc042, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKV)"},
+    { 0x1d5a, 0xc043, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKCV)"},
+    { 0x1d5a, 0xc050, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MV)"},
+    { 0x1d5a, 0xc051, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (V)"},
+    { 0x1d5a, 0xc052, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MKCV)"},
+    { 0x1d5a, 0xc060, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (MV)"},
+    { 0x1d5a, 0xc061, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (V)"},
+    { 0x1d5a, 0xc070, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MV)"},
+    { 0x1d5a, 0xc071, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MCV)"},
+    { 0x1d5a, 0xc022, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKV)"},
+    { 0x1d5a, 0xc073, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKCV)"},
 };
 
 
@@ -244,7 +258,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
     device = freespace_private_getDeviceByRef(ref);
     if (device == NULL) {
         // Create the device
-        device = freespace_private_createDevice(api->name_);
+		device = freespace_private_createDevice(api->name_, api->hVer_);
         if (device == NULL) {
             return FREESPACE_ERROR_OUT_OF_MEMORY;
         }

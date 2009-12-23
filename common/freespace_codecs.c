@@ -126,14 +126,14 @@ LIBFREESPACE_API int freespace_encodeCoprocessorOutReport(const struct freespace
 		printf("freespace_CoprocessorOutReport encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 5;
-	message[1] = (uint8_t) s->payloadLength;
+	message[0] = (int8_t) 5;
+	message[1] = (int8_t) s->payloadLength;
 	memcpy(message + 2, s->payload, 14);
 	return 16;
 }
 
 
-LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message, int length, struct freespace_CoprocessorInReport* s) {
+LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const int8_t* message, int length, struct freespace_CoprocessorInReport* s) {
     if ((STRICT_DECODE_LENGTH && length != 16) || (!STRICT_DECODE_LENGTH && length < 16)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -145,379 +145,258 @@ LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message,
 	return FREESPACE_SUCCESS;
 }
 
-LIBFREESPACE_API int freespace_encodeConfigurationMessage(const struct freespace_ConfigurationMessage* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_ConfigurationMessage encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 1;
-	message[2] = (uint8_t) s->SDA;
-	return 8;
-}
 
-
-LIBFREESPACE_API int freespace_encodePairingMessage(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodePairingMessage(int8_t* message, int maxlength) {
     if (maxlength < 8) {
         printf("freespace_PairingMessage encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 13;
+    message[0] = (int8_t) 7;
+    message[1] = (int8_t) 13;
     return 8;
 }
 
 
-LIBFREESPACE_API int freespace_encodeDebugMessage(uint8_t* message, int maxlength) {
-    if (maxlength < 8) {
-        printf("freespace_DebugMessage encode(<INVALID LENGTH>)\n");
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 15;
-    return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeFactoryCalibrationReadRequest(const struct freespace_FactoryCalibrationReadRequest* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_FactoryCalibrationReadRequest encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 16;
-	message[2] = (uint8_t) s->wordOffsetRequested;
-	return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeDongleReset(const struct freespace_DongleReset* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_DongleReset encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 20;
-	message[2] = (uint8_t) (s->loaderKey >> 0);
-	message[3] = (uint8_t) (s->loaderKey >> 8);
-	message[4] = (uint8_t) (s->loaderKey >> 16);
-	message[5] = (uint8_t) (s->loaderKey >> 24);
-	return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeFTDongleStatusRequest(const struct freespace_FTDongleStatusRequest* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_FTDongleStatusRequest encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 21;
-	message[2] = byteFromBits(s->power, s->reset, s->presence, 0, 0, 0, 0, s->operation);
-	return 8;
-}
-
-
-LIBFREESPACE_API int freespace_encodeStatisticsRequest(uint8_t* message, int maxlength) {
-    if (maxlength < 8) {
-        printf("freespace_StatisticsRequest encode(<INVALID LENGTH>)\n");
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 22;
-    return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeZebraSystemTest(const struct freespace_ZebraSystemTest* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_ZebraSystemTest encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 31;
-	message[2] = byteFromBits(s->reset, s->mode, s->mode >> 1, 0, 0, 0, 0, 0);
-	message[4] = (uint8_t) (s->pcSequence >> 0);
-	message[5] = (uint8_t) (s->pcSequence >> 8);
-	return 8;
-}
-
-
-LIBFREESPACE_API int freespace_encodeProductIDRequest(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeProductIDRequest(int8_t* message, int maxlength) {
     if (maxlength < 8) {
         printf("freespace_ProductIDRequest encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 32;
+    message[0] = (int8_t) 7;
+    message[1] = (int8_t) 32;
     return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeLoopLEDSetRequest(const struct freespace_LoopLEDSetRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeLEDSetRequest(const struct freespace_LEDSetRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
-		printf("freespace_LoopLEDSetRequest encode(<INVALID LENGTH>)\n");
+		printf("freespace_LEDSetRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 34;
-	message[2] = (uint8_t) s->onOff;
-	message[3] = (uint8_t) s->selectLED;
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 34;
+	message[2] = (int8_t) s->onOff;
+	message[3] = (int8_t) s->selectLED;
+	return 8;
+}
+
+LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_LinkQualityRequest* s, int8_t* message, int maxlength) {
+	if (maxlength < 8) {
+		printf("freespace_LinkQualityRequest encode(<INVALID LENGTH>)\n");
+		return -1;
+	}
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 48;
+	message[2] = (int8_t) s->enable;
 	return 8;
 }
 
 
-LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(int8_t* message, int maxlength) {
     if (maxlength < 8) {
         printf("freespace_AlwaysOnRequest encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 49;
+    message[0] = (int8_t) 7;
+    message[1] = (int8_t) 49;
     return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_FrequencyFixRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_FrequencyFixRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FrequencyFixRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 50;
-	message[2] = (uint8_t) s->channel0;
-	message[3] = (uint8_t) s->channel1;
-	message[4] = (uint8_t) s->channel2;
-	message[5] = (uint8_t) s->channel3;
-	message[6] = (uint8_t) s->channel4;
-	message[7] = (uint8_t) s->device;
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 50;
+	message[2] = (int8_t) s->channel0;
+	message[3] = (int8_t) s->channel1;
+	message[4] = (int8_t) s->channel2;
+	message[5] = (int8_t) s->channel3;
+	message[6] = (int8_t) s->channel4;
+	message[7] = (int8_t) s->device;
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace_SoftwareResetMessage* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace_SoftwareResetMessage* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_SoftwareResetMessage encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 51;
-	message[2] = (uint8_t) s->device;
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 51;
+	message[2] = (int8_t) s->device;
 	return 8;
 }
 
 
-LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(int8_t* message, int maxlength) {
     if (maxlength < 8) {
         printf("freespace_DongleRFDisableMessage encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 52;
+    message[0] = (int8_t) 7;
+    message[1] = (int8_t) 52;
     return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const struct freespace_DongleRFSupressHomeFrequencyMessage* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const struct freespace_DongleRFSupressHomeFrequencyMessage* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_DongleRFSupressHomeFrequencyMessage encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 53;
-	message[2] = (uint8_t) s->low;
-	message[3] = (uint8_t) s->high;
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 53;
+	message[2] = (int8_t) s->low;
+	message[3] = (int8_t) s->high;
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeSPIOperationMessage(const struct freespace_SPIOperationMessage* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_SPIOperationMessage encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 54;
-	message[2] = (uint8_t) s->byte0;
-	message[3] = (uint8_t) s->byte1;
-	message[4] = (uint8_t) s->byte2;
-	message[5] = (uint8_t) s->byte3;
-	message[6] = (uint8_t) s->byte4;
-	message[7] = (uint8_t) s->byte5;
-	return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeEventReportConfigSetRequest(const struct freespace_EventReportConfigSetRequest* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_EventReportConfigSetRequest encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 55;
-	message[2] = byteFromBits(s->intc, s->xyMov, s->acSt, s->reset, s->motDr, s->wom, s->motOv, s->acEv);
-	message[3] = byteFromBits(s->sdaDr, s->sdaOv, s->cfgSt, 0, 0, 0, 0, 0);
-	return 8;
-}
-
-
-LIBFREESPACE_API int freespace_encodeEventReportConfigGetRequest(uint8_t* message, int maxlength) {
-    if (maxlength < 8) {
-        printf("freespace_EventReportConfigGetRequest encode(<INVALID LENGTH>)\n");
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 56;
-    return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeUnknownCRSNotification(const struct freespace_UnknownCRSNotification* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_UnknownCRSNotification encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 57;
-	message[2] = (uint8_t) s->unknownReportID;
-	message[3] = (uint8_t) s->unknownSubMessageID;
-	return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeFRSLoopReadRequest(const struct freespace_FRSLoopReadRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSLoopReadRequest(const struct freespace_FRSLoopReadRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSLoopReadRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 58;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 58;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
+	message[6] = (int8_t) (s->BlockSize >> 0);
+	message[7] = (int8_t) (s->BlockSize >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSLoopWriteRequest(const struct freespace_FRSLoopWriteRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSLoopWriteRequest(const struct freespace_FRSLoopWriteRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSLoopWriteRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 61;
-	message[2] = (uint8_t) (s->length >> 0);
-	message[3] = (uint8_t) (s->length >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 61;
+	message[2] = (int8_t) (s->length >> 0);
+	message[3] = (int8_t) (s->length >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSLoopWriteData(const struct freespace_FRSLoopWriteData* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSLoopWriteData(const struct freespace_FRSLoopWriteData* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSLoopWriteData encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 63;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	memcpy(message + 4, s->data, 4);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 63;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->data >> 0);
+	message[5] = (int8_t) (s->data >> 8);
+	message[6] = (int8_t) (s->data >> 16);
+	message[7] = (int8_t) (s->data >> 24);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSDongleReadRequest(const struct freespace_FRSDongleReadRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSDongleReadRequest(const struct freespace_FRSDongleReadRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSDongleReadRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 59;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 59;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
+	message[6] = (int8_t) (s->BlockSize >> 0);
+	message[7] = (int8_t) (s->BlockSize >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSDongleWriteRequest(const struct freespace_FRSDongleWriteRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSDongleWriteRequest(const struct freespace_FRSDongleWriteRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSDongleWriteRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 62;
-	message[2] = (uint8_t) (s->length >> 0);
-	message[3] = (uint8_t) (s->length >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 62;
+	message[2] = (int8_t) (s->length >> 0);
+	message[3] = (int8_t) (s->length >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSDongleWriteData(const struct freespace_FRSDongleWriteData* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSDongleWriteData(const struct freespace_FRSDongleWriteData* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSDongleWriteData encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 64;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	memcpy(message + 4, s->data, 4);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 64;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->data >> 0);
+	message[5] = (int8_t) (s->data >> 8);
+	message[6] = (int8_t) (s->data >> 16);
+	message[7] = (int8_t) (s->data >> 24);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSEFlashReadRequest(const struct freespace_FRSEFlashReadRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSEFlashReadRequest(const struct freespace_FRSEFlashReadRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSEFlashReadRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 65;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 65;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
+	message[6] = (int8_t) (s->BlockSize >> 0);
+	message[7] = (int8_t) (s->BlockSize >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSEFlashWriteRequest(const struct freespace_FRSEFlashWriteRequest* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSEFlashWriteRequest(const struct freespace_FRSEFlashWriteRequest* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSEFlashWriteRequest encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 66;
-	message[2] = (uint8_t) (s->length >> 0);
-	message[3] = (uint8_t) (s->length >> 8);
-	message[4] = (uint8_t) (s->FRStype >> 0);
-	message[5] = (uint8_t) (s->FRStype >> 8);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 66;
+	message[2] = (int8_t) (s->length >> 0);
+	message[3] = (int8_t) (s->length >> 8);
+	message[4] = (int8_t) (s->FRStype >> 0);
+	message[5] = (int8_t) (s->FRStype >> 8);
 	return 8;
 }
 
-LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_FRSEFlashWriteData* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_FRSEFlashWriteData* s, int8_t* message, int maxlength) {
 	if (maxlength < 8) {
 		printf("freespace_FRSEFlashWriteData encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 67;
-	message[2] = (uint8_t) (s->wordOffset >> 0);
-	message[3] = (uint8_t) (s->wordOffset >> 8);
-	memcpy(message + 4, s->data, 4);
-	return 8;
-}
-
-LIBFREESPACE_API int freespace_encodeLoopBootloaderCommand(const struct freespace_LoopBootloaderCommand* s, uint8_t* message, int maxlength) {
-	if (maxlength < 8) {
-		printf("freespace_LoopBootloaderCommand encode(<INVALID LENGTH>)\n");
-		return -1;
-	}
-	message[0] = (uint8_t) 7;
-	message[1] = (uint8_t) 68;
-	message[2] = (uint8_t) (s->loaderKeyCommand >> 0);
-	message[3] = (uint8_t) (s->loaderKeyCommand >> 8);
-	message[4] = (uint8_t) (s->loaderKeyCommand >> 16);
-	message[5] = (uint8_t) (s->loaderKeyCommand >> 24);
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 67;
+	message[2] = (int8_t) (s->wordOffset >> 0);
+	message[3] = (int8_t) (s->wordOffset >> 8);
+	message[4] = (int8_t) (s->data >> 0);
+	message[5] = (int8_t) (s->data >> 8);
+	message[6] = (int8_t) (s->data >> 16);
+	message[7] = (int8_t) (s->data >> 24);
 	return 8;
 }
 
 
-LIBFREESPACE_API int freespace_encodeLoopBootloaderStatusRequest(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(int8_t* message, int maxlength) {
     if (maxlength < 8) {
-        printf("freespace_LoopBootloaderStatusRequest encode(<INVALID LENGTH>)\n");
+        printf("freespace_DongleRFEnableMessage encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 7;
-    message[1] = (uint8_t) 69;
+    message[0] = (int8_t) 7;
+    message[1] = (int8_t) 71;
     return 8;
 }
 
@@ -629,7 +508,37 @@ LIBFREESPACE_API int freespace_decodeZebraSystemTestResponse(const uint8_t* mess
 }
 
 
-LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, int length, struct freespace_ProductIDResponse* s) {
+LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_DataModeRequest* s, int8_t* message, int maxlength) {
+	if (maxlength < 3) {
+		printf("freespace_DataModeRequest encode(<INVALID LENGTH>)\n");
+		return -1;
+	}
+	message[0] = (int8_t) 7;
+	message[1] = (int8_t) 73;
+	message[2] = byteFromBits(s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, 0, 0, 0);
+	return 3;
+}
+
+
+LIBFREESPACE_API int freespace_decodePairingResponse(const int8_t* message, int length, struct freespace_PairingResponse* s) {
+    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    if ((uint8_t) message[0] != 8) {
+        return FREESPACE_ERROR_MALFORMED_MESSAGE;
+    }
+
+    if ((uint8_t) message[1] != 13) {
+        return FREESPACE_ERROR_MALFORMED_MESSAGE;
+    }
+    s->pairing = (uint8_t) ((message[2] >> 0) & 0x01);
+    s->autoPairing = (uint8_t) ((message[2] >> 1) & 0x01);
+    s->success = (uint8_t) ((message[2] >> 2) & 0x01);
+	return FREESPACE_SUCCESS;
+}
+
+
+LIBFREESPACE_API int freespace_decodeProductIDResponse(const int8_t* message, int length, struct freespace_ProductIDResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -646,8 +555,6 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
 	s->swVersionPatch = toInt(message[14], message[15]);
     s->swVersionMinor = (uint8_t) message[16];
     s->swVersionMajor = (uint8_t) message[17];
-    s->hwPlatformID = (uint8_t) message[18];
-    s->hwRevision = (uint8_t) message[19];
 	s->serialNumber = toUInt32(message[20], message[21], message[22], message[23]);
     s->deviceClass = (uint8_t) ((message[24] >> 0) & 0x7F);
     s->invalidNS = getBit(message[24], 7);
@@ -655,7 +562,7 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
 }
 
 
-LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int length, struct freespace_LinkStatus* s) {
+LIBFREESPACE_API int freespace_decodeLinkStatus(const int8_t* message, int length, struct freespace_LinkStatus* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -794,11 +701,12 @@ LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const uint8_t* message,
 	memcpy(s->data, &message[4], 20);
     s->status = getNibble(message[24], 0);
     s->dataLength = getNibble(message[24], 1);
+	s->FRStype = toInt(message[25], message[26]);
 	return FREESPACE_SUCCESS;
 }
 
 
-LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message, int length, struct freespace_FRSLoopWriteResponse* s) {
+LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const int8_t* message, int length, struct freespace_FRSLoopWriteResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -815,7 +723,7 @@ LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message
 }
 
 
-LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* message, int length, struct freespace_FRSDongleReadResponse* s) {
+LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const int8_t* message, int length, struct freespace_FRSDongleReadResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -830,11 +738,12 @@ LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* messag
 	memcpy(s->data, &message[4], 20);
     s->status = getNibble(message[24], 0);
     s->dataLength = getNibble(message[24], 1);
+	s->FRStype = toInt(message[25], message[26]);
 	return FREESPACE_SUCCESS;
 }
 
 
-LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* message, int length, struct freespace_FRSDongleWriteResponse* s) {
+LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const int8_t* message, int length, struct freespace_FRSDongleWriteResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -851,7 +760,7 @@ LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* messa
 }
 
 
-LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* message, int length, struct freespace_FRSEFlashReadResponse* s) {
+LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const int8_t* message, int length, struct freespace_FRSEFlashReadResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -866,11 +775,12 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* messag
 	memcpy(s->data, &message[4], 20);
     s->status = getNibble(message[24], 0);
     s->dataLength = getNibble(message[24], 1);
+	s->FRStype = toInt(message[25], message[26]);
 	return FREESPACE_SUCCESS;
 }
 
 
-LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* message, int length, struct freespace_FRSEFlashWriteResponse* s) {
+LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const int8_t* message, int length, struct freespace_FRSEFlashWriteResponse* s) {
     if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -886,58 +796,29 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* messa
 	return FREESPACE_SUCCESS;
 }
 
-
-LIBFREESPACE_API int freespace_decodeFSP2CoprocessorMessage(const uint8_t* message, int length, struct freespace_FSP2CoprocessorMessage* s) {
-    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    if ((uint8_t) message[0] != 8) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-
-    if ((uint8_t) message[1] != 60) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-    s->length = (uint8_t) message[2];
-	memcpy(s->payload, &message[3], 16);
-	return FREESPACE_SUCCESS;
+LIBFREESPACE_API int freespace_encodeDataModeResponse(const struct freespace_DataModeResponse* s, int8_t* message, int maxlength) {
+	if (maxlength < 3) {
+		printf("freespace_DataModeResponse encode(<INVALID LENGTH>)\n");
+		return -1;
+	}
+	message[0] = (int8_t) 8;
+	message[1] = (int8_t) 73;
+	message[2] = byteFromBits(s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, 0, 0, 0);
+	return 3;
 }
 
 
-LIBFREESPACE_API int freespace_decodeLoopBootloaderStatus(const uint8_t* message, int length, struct freespace_LoopBootloaderStatus* s) {
-    if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    if ((uint8_t) message[0] != 8) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-
-    if ((uint8_t) message[1] != 67) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-    s->normalLaunch = getBit(message[4], 0);
-    s->internalAppValid = getBit(message[4], 1);
-    s->internalAppNotValid = getBit(message[4], 2);
-    s->flashProtectionChanged = getBit(message[4], 3);
-    s->upgradeStarted = getBit(message[4], 4);
-    s->validateStarted = getBit(message[4], 5);
-    s->errorOccured = getBit(message[4], 6);
-    s->errorCode = (uint8_t) message[8];
-	return FREESPACE_SUCCESS;
-}
-
-
-LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(int8_t* message, int maxlength) {
     if (maxlength < 2) {
         printf("freespace_BatteryLevelRequest encode(<INVALID LENGTH>)\n");
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
-    message[0] = (uint8_t) 9;
+    message[0] = (int8_t) 9;
     return 2;
 }
 
 
-LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int length, struct freespace_BatteryLevel* s) {
+LIBFREESPACE_API int freespace_decodeBatteryLevel(const int8_t* message, int length, struct freespace_BatteryLevel* s) {
     if ((STRICT_DECODE_LENGTH && length != 4) || (!STRICT_DECODE_LENGTH && length < 4)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -949,7 +830,7 @@ LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int le
 }
 
 
-LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int length, struct freespace_BodyFrame* s) {
+LIBFREESPACE_API int freespace_decodeBodyFrame(const int8_t* message, int length, struct freespace_BodyFrame* s) {
     if ((STRICT_DECODE_LENGTH && length != 21) || (!STRICT_DECODE_LENGTH && length < 21)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -961,6 +842,9 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
     s->button3 = getBit(message[1], 2);
     s->button4 = getBit(message[1], 3);
     s->button5 = getBit(message[1], 4);
+    s->button6 = getBit(message[1], 5);
+    s->button7 = getBit(message[1], 6);
+    s->button8 = getBit(message[1], 7);
     s->deltaX = (int8_t) message[2];
     s->deltaY = (int8_t) message[3];
     s->deltaWheel = (int8_t) message[4];
@@ -975,7 +859,7 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
 }
 
 
-LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int length, struct freespace_UserFrame* s) {
+LIBFREESPACE_API int freespace_decodeUserFrame(const int8_t* message, int length, struct freespace_UserFrame* s) {
     if ((STRICT_DECODE_LENGTH && length != 23) || (!STRICT_DECODE_LENGTH && length < 23)) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
     }
@@ -987,6 +871,9 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
     s->button3 = getBit(message[1], 2);
     s->button4 = getBit(message[1], 3);
     s->button5 = getBit(message[1], 4);
+    s->button6 = getBit(message[1], 5);
+    s->button7 = getBit(message[1], 6);
+    s->button8 = getBit(message[1], 7);
     s->deltaX = (int8_t) message[2];
     s->deltaY = (int8_t) message[3];
     s->deltaWheel = (int8_t) message[4];
@@ -1001,12 +888,12 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 	return FREESPACE_SUCCESS;
 }
 
-LIBFREESPACE_API int freespace_encodeDataMotionControl(const struct freespace_DataMotionControl* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encodeDataMotionControl(const struct freespace_DataMotionControl* s, int8_t* message, int maxlength) {
 	if (maxlength < 2) {
 		printf("freespace_DataMotionControl encode(<INVALID LENGTH>)\n");
 		return -1;
 	}
-	message[0] = (uint8_t) 34;
+	message[0] = (int8_t) 34;
 	message[1] = byteFromBits(s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, 0, 0, 0);
 	return 2;
 }
@@ -1045,27 +932,6 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
     }
 
     switch ((uint8_t) message[0]) {
-	case 2:
-        {
-            s->messageType = FREESPACE_MESSAGE_MOUSEMOVEMENT;
-            return freespace_decodeMouseMovement(message, length, &(s->mouseMovement));
-            
-        }
-        break;
-	case 3:
-        {
-            s->messageType = FREESPACE_MESSAGE_CONSUMERCONTROL;
-            return freespace_decodeConsumerControl(message, length, &(s->consumerControl));
-            
-        }
-        break;
-	case 4:
-        {
-            s->messageType = FREESPACE_MESSAGE_KEYBOARDREPORT;
-            return freespace_decodeKeyboardReport(message, length, &(s->keyboardReport));
-            
-        }
-        break;
 	case 6:
         {
             s->messageType = FREESPACE_MESSAGE_COPROCESSORINREPORT;
@@ -1075,34 +941,10 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
         break;
 	case 8:
         switch ((uint8_t) message[1]) {
-        case 1:
+        case 13:
             {
-                s->messageType = FREESPACE_MESSAGE_GEN4SDAFORMAT;
-                return freespace_decodeGen4SDAFormat(message, length, &(s->gen4SDAFormat));
-            }
-            break;
-        case 16:
-            {
-                s->messageType = FREESPACE_MESSAGE_FACTORYCALIBRATIONREADDATA;
-                return freespace_decodeFactoryCalibrationReadData(message, length, &(s->factoryCalibrationReadData));
-            }
-            break;
-        case 21:
-            {
-                s->messageType = FREESPACE_MESSAGE_FTDONGLESTATUSRESPONSE;
-                return freespace_decodeFTDongleStatusResponse(message, length, &(s->fTDongleStatusResponse));
-            }
-            break;
-        case 22:
-            {
-                s->messageType = FREESPACE_MESSAGE_STATISTICSRESPONSE;
-                return freespace_decodeStatisticsResponse(message, length, &(s->statisticsResponse));
-            }
-            break;
-        case 31:
-            {
-                s->messageType = FREESPACE_MESSAGE_ZEBRASYSTEMTESTRESPONSE;
-                return freespace_decodeZebraSystemTestResponse(message, length, &(s->zebraSystemTestResponse));
+                s->messageType = FREESPACE_MESSAGE_PAIRINGRESPONSE;
+                return freespace_decodePairingResponse(message, length, &(s->pairingResponse));
             }
             break;
         case 32:
@@ -1115,30 +957,6 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
             {
                 s->messageType = FREESPACE_MESSAGE_LINKSTATUS;
                 return freespace_decodeLinkStatus(message, length, &(s->linkStatus));
-            }
-            break;
-        case 54:
-            {
-                s->messageType = FREESPACE_MESSAGE_SPIOPERATIONRESPONSE;
-                return freespace_decodeSPIOperationResponse(message, length, &(s->sPIOperationResponse));
-            }
-            break;
-        case 55:
-            {
-                s->messageType = FREESPACE_MESSAGE_EVENTREPORTCONFIGURATIONRESPONSE;
-                return freespace_decodeEventReportConfigurationResponse(message, length, &(s->eventReportConfigurationResponse));
-            }
-            break;
-        case 56:
-            {
-                s->messageType = FREESPACE_MESSAGE_EVENTREPORT;
-                return freespace_decodeEventReport(message, length, &(s->eventReport));
-            }
-            break;
-        case 57:
-            {
-                s->messageType = FREESPACE_MESSAGE_UNKNOWNCRSNOTIFICATIONRESPONSE;
-                return freespace_decodeUnknownCRSNotificationResponse(message, length, &(s->unknownCRSNotificationResponse));
             }
             break;
         case 58:
@@ -1177,16 +995,10 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                 return freespace_decodeFRSEFlashWriteResponse(message, length, &(s->fRSEFlashWriteResponse));
             }
             break;
-        case 60:
+        case 73:
             {
-                s->messageType = FREESPACE_MESSAGE_FSP2COPROCESSORMESSAGE;
-                return freespace_decodeFSP2CoprocessorMessage(message, length, &(s->fSP2CoprocessorMessage));
-            }
-            break;
-        case 67:
-            {
-                s->messageType = FREESPACE_MESSAGE_LOOPBOOTLOADERSTATUS;
-                return freespace_decodeLoopBootloaderStatus(message, length, &(s->loopBootloaderStatus));
+                s->messageType = FREESPACE_MESSAGE_DATAMODERESPONSE;
+                return freespace_decodeDataModeResponse(message, length, &(s->dataModeResponse));
             }
             break;
         default:
@@ -1215,54 +1027,26 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
             
         }
         break;
-	case 128:
-        {
-            s->messageType = FREESPACE_MESSAGE_BUTTONSTATE;
-            return freespace_decodeButtonState(message, length, &(s->buttonState));
-            
-        }
-        break;
-	case 129:
-        {
-            s->messageType = FREESPACE_MESSAGE_SCROLLMOTION;
-            return freespace_decodeScrollMotion(message, length, &(s->scrollMotion));
-            
-        }
-        break;
 
     default:
         return -1;
     }
 }
 
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength) {
+LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, int8_t* message, int maxlength) {
     switch (s->messageType) {
     case FREESPACE_MESSAGE_COPROCESSOROUTREPORT:
         return freespace_encodeCoprocessorOutReport(&(s->coprocessorOutReport), message, maxlength);
-    case FREESPACE_MESSAGE_CONFIGURATIONMESSAGE:
-        return freespace_encodeConfigurationMessage(&(s->configurationMessage), message, maxlength);
-    case FREESPACE_MESSAGE_FACTORYCALIBRATIONREADREQUEST:
-        return freespace_encodeFactoryCalibrationReadRequest(&(s->factoryCalibrationReadRequest), message, maxlength);
-    case FREESPACE_MESSAGE_DONGLERESET:
-        return freespace_encodeDongleReset(&(s->dongleReset), message, maxlength);
-    case FREESPACE_MESSAGE_FTDONGLESTATUSREQUEST:
-        return freespace_encodeFTDongleStatusRequest(&(s->fTDongleStatusRequest), message, maxlength);
-    case FREESPACE_MESSAGE_ZEBRASYSTEMTEST:
-        return freespace_encodeZebraSystemTest(&(s->zebraSystemTest), message, maxlength);
-    case FREESPACE_MESSAGE_LOOPLEDSETREQUEST:
-        return freespace_encodeLoopLEDSetRequest(&(s->loopLEDSetRequest), message, maxlength);
+    case FREESPACE_MESSAGE_LEDSETREQUEST:
+        return freespace_encodeLEDSetRequest(&(s->lEDSetRequest), message, maxlength);
+    case FREESPACE_MESSAGE_LINKQUALITYREQUEST:
+        return freespace_encodeLinkQualityRequest(&(s->linkQualityRequest), message, maxlength);
     case FREESPACE_MESSAGE_FREQUENCYFIXREQUEST:
         return freespace_encodeFrequencyFixRequest(&(s->frequencyFixRequest), message, maxlength);
     case FREESPACE_MESSAGE_SOFTWARERESETMESSAGE:
         return freespace_encodeSoftwareResetMessage(&(s->softwareResetMessage), message, maxlength);
     case FREESPACE_MESSAGE_DONGLERFSUPRESSHOMEFREQUENCYMESSAGE:
         return freespace_encodeDongleRFSupressHomeFrequencyMessage(&(s->dongleRFSupressHomeFrequencyMessage), message, maxlength);
-    case FREESPACE_MESSAGE_SPIOPERATIONMESSAGE:
-        return freespace_encodeSPIOperationMessage(&(s->sPIOperationMessage), message, maxlength);
-    case FREESPACE_MESSAGE_EVENTREPORTCONFIGSETREQUEST:
-        return freespace_encodeEventReportConfigSetRequest(&(s->eventReportConfigSetRequest), message, maxlength);
-    case FREESPACE_MESSAGE_UNKNOWNCRSNOTIFICATION:
-        return freespace_encodeUnknownCRSNotification(&(s->unknownCRSNotification), message, maxlength);
     case FREESPACE_MESSAGE_FRSLOOPREADREQUEST:
         return freespace_encodeFRSLoopReadRequest(&(s->fRSLoopReadRequest), message, maxlength);
     case FREESPACE_MESSAGE_FRSLOOPWRITEREQUEST:
@@ -1281,8 +1065,10 @@ LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s,
         return freespace_encodeFRSEFlashWriteRequest(&(s->fRSEFlashWriteRequest), message, maxlength);
     case FREESPACE_MESSAGE_FRSEFLASHWRITEDATA:
         return freespace_encodeFRSEFlashWriteData(&(s->fRSEFlashWriteData), message, maxlength);
-    case FREESPACE_MESSAGE_LOOPBOOTLOADERCOMMAND:
-        return freespace_encodeLoopBootloaderCommand(&(s->loopBootloaderCommand), message, maxlength);
+    case FREESPACE_MESSAGE_DATAMODEREQUEST:
+        return freespace_encodeDataModeRequest(&(s->dataModeRequest), message, maxlength);
+    case FREESPACE_MESSAGE_DATAMODERESPONSE:
+        return freespace_encodeDataModeResponse(&(s->dataModeResponse), message, maxlength);
     case FREESPACE_MESSAGE_DATAMOTIONCONTROL:
         return freespace_encodeDataMotionControl(&(s->dataMotionControl), message, maxlength);
     default:

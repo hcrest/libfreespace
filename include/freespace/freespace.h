@@ -103,6 +103,9 @@ struct FreespaceDeviceInfo {
 
     /** Product ID */
     uint16_t product;
+
+	/** HID message protocol verson */
+	int hVer;
 };
 
 /** \ingroup initialization
