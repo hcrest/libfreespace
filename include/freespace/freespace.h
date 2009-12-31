@@ -163,6 +163,8 @@ enum freespace_error {
     /** No data was received */
     FREESPACE_ERROR_MALFORMED_MESSAGE = -26,
 
+	/** Invalid HID protocol version */
+	FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION = -27,
 
     /** Any uncategorized or unplanned error */
     FREESPACE_ERROR_UNEXPECTED = -98
