@@ -35,7 +35,7 @@ Documentation = 'comment'
 # ---------------------------------------------------------------------------------------
 
 class Message:
-    def __init__(self, name="", encode=False, decode=False, shouldGenerate=True):
+    def __init__(self, name="", encode=False, decode=False):
         self.name=name
         self.encode = encode
         self.decode = decode
@@ -48,24 +48,26 @@ class Message:
         else:
             self.className = "FreespaceMsgOut" + self.name
         self.structName = self.name[0].lower() + self.name[1:]
-        self.shouldGenerate = shouldGenerate
         # Information about firmware versions
         self.addedVersion = ""      # what is the first firmware version you can use this message on
         self.deprecatedVersion = "" # when you should stop using this message
         self.removedVersion = ""    # when the message is no longer in the firmware
         self.appliesTo = []         # what firmware (i.e. software part numbers) does this message apply to
     
-    def getMessageSize(self):
-        toRet = 1 # Add one for the opening message type byte
-        if self.ID[1].has_key('subId'):
-            toRet += self.ID[1]['subId']['size']
-        for element in self.Fields:
-            toRet += element['size']
-        return toRet
+    def getMessageSize(self, version):
+        size = 1 # Add one for the opening message type byte
+        if version == 2:
+            size += 3 # Account for len, dest, src bytes
+        if self.ID[version].has_key('subId'):
+            size += self.ID[version]['subId']['size']
+        if len(self.Fields[version]):
+            for element in self.Fields[version]:
+                size += element['size']
+        return size
     
     def hasUnReservedFields(self):
-        if len(self.Fields) > 0:
-            for field in self.Fields:
+        for version in self.Fields:
+            for field in version:
                 if field['name'] != 'RESERVED':
                     return True
         return False
