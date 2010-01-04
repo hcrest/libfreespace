@@ -37,8 +37,9 @@ extern "C" {
  * @param fp the file pointer to print into
  * @param message the HID message
  * @param length the length of the message
+ * @param ver the HID protocol version
  */
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver);
 
 LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_message* s);
 
@@ -84,6 +85,40 @@ LIBFREESPACE_API int freespace_printCoprocessorInReport(FILE* fp, const struct f
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
+LIBFREESPACE_API int freespace_printPairingMessageStr(char* dest, int maxlen, const struct freespace_PairingMessage* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printPairingMessage(FILE* fp, const struct freespace_PairingMessage* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printProductIDRequestStr(char* dest, int maxlen, const struct freespace_ProductIDRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printProductIDRequest(FILE* fp, const struct freespace_ProductIDRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
 LIBFREESPACE_API int freespace_printLEDSetRequestStr(char* dest, int maxlen, const struct freespace_LEDSetRequest* s);
 /**
  * Print message to a file pointer.
@@ -118,6 +153,23 @@ LIBFREESPACE_API int freespace_printLinkQualityRequest(FILE* fp, const struct fr
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
+LIBFREESPACE_API int freespace_printAlwaysOnRequestStr(char* dest, int maxlen, const struct freespace_AlwaysOnRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printAlwaysOnRequest(FILE* fp, const struct freespace_AlwaysOnRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
 LIBFREESPACE_API int freespace_printFrequencyFixRequestStr(char* dest, int maxlen, const struct freespace_FrequencyFixRequest* s);
 /**
  * Print message to a file pointer.
@@ -143,6 +195,40 @@ LIBFREESPACE_API int freespace_printSoftwareResetMessageStr(char* dest, int maxl
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
 LIBFREESPACE_API int freespace_printSoftwareResetMessage(FILE* fp, const struct freespace_SoftwareResetMessage* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printDongleRFDisableMessageStr(char* dest, int maxlen, const struct freespace_DongleRFDisableMessage* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printDongleRFDisableMessage(FILE* fp, const struct freespace_DongleRFDisableMessage* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printTxDisableMessageStr(char* dest, int maxlen, const struct freespace_TxDisableMessage* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printTxDisableMessage(FILE* fp, const struct freespace_TxDisableMessage* s);
 
 
 /**
@@ -322,6 +408,23 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteData(FILE* fp, const struct fr
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
+LIBFREESPACE_API int freespace_printDongleRFEnableMessageStr(char* dest, int maxlen, const struct freespace_DongleRFEnableMessage* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printDongleRFEnableMessage(FILE* fp, const struct freespace_DongleRFEnableMessage* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
 LIBFREESPACE_API int freespace_printDataModeRequestStr(char* dest, int maxlen, const struct freespace_DataModeRequest* s);
 /**
  * Print message to a file pointer.
@@ -381,6 +484,23 @@ LIBFREESPACE_API int freespace_printLinkStatusStr(char* dest, int maxlen, const 
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
 LIBFREESPACE_API int freespace_printLinkStatus(FILE* fp, const struct freespace_LinkStatus* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printAlwaysOnResponseStr(char* dest, int maxlen, const struct freespace_AlwaysOnResponse* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printAlwaysOnResponse(FILE* fp, const struct freespace_AlwaysOnResponse* s);
 
 
 /**
@@ -509,6 +629,23 @@ LIBFREESPACE_API int freespace_printDataModeResponse(FILE* fp, const struct free
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
+LIBFREESPACE_API int freespace_printBatteryLevelRequestStr(char* dest, int maxlen, const struct freespace_BatteryLevelRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBatteryLevelRequest(FILE* fp, const struct freespace_BatteryLevelRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
 LIBFREESPACE_API int freespace_printBatteryLevelStr(char* dest, int maxlen, const struct freespace_BatteryLevel* s);
 /**
  * Print message to a file pointer.
@@ -568,6 +705,193 @@ LIBFREESPACE_API int freespace_printDataMotionControlStr(char* dest, int maxlen,
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
 LIBFREESPACE_API int freespace_printDataMotionControl(FILE* fp, const struct freespace_DataMotionControl* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteResponseStr(char* dest, int maxlen, const struct freespace_FRSWriteResponse* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteResponse(FILE* fp, const struct freespace_FRSWriteResponse* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSReadResponseStr(char* dest, int maxlen, const struct freespace_FRSReadResponse* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSReadResponse(FILE* fp, const struct freespace_FRSReadResponse* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printPerResponseStr(char* dest, int maxlen, const struct freespace_PerResponse* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printPerResponse(FILE* fp, const struct freespace_PerResponse* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBatteryLevelRequestV2Str(char* dest, int maxlen, const struct freespace_BatteryLevelRequestV2* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBatteryLevelRequestV2(FILE* fp, const struct freespace_BatteryLevelRequestV2* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteRequestStr(char* dest, int maxlen, const struct freespace_FRSWriteRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteRequest(FILE* fp, const struct freespace_FRSWriteRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteDataStr(char* dest, int maxlen, const struct freespace_FRSWriteData* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSWriteData(FILE* fp, const struct freespace_FRSWriteData* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSReadRequestStr(char* dest, int maxlen, const struct freespace_FRSReadRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printFRSReadRequest(FILE* fp, const struct freespace_FRSReadRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printPerRequestStr(char* dest, int maxlen, const struct freespace_PerRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printPerRequest(FILE* fp, const struct freespace_PerRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBodyFrameV2Str(char* dest, int maxlen, const struct freespace_BodyFrameV2* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBodyFrameV2(FILE* fp, const struct freespace_BodyFrameV2* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printUserFrameV2Str(char* dest, int maxlen, const struct freespace_UserFrameV2* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printUserFrameV2(FILE* fp, const struct freespace_UserFrameV2* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBodyUserFrameStr(char* dest, int maxlen, const struct freespace_BodyUserFrame* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printBodyUserFrame(FILE* fp, const struct freespace_BodyUserFrame* s);
 
 #ifdef __cplusplus
 }

@@ -30,9 +30,9 @@ static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     printf(")\n");
 }
 
-void freespace_printMessage(FILE* fp, const uint8_t* message, int length) {
+void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver) {
     struct freespace_message s;
-    int rc = freespace_decode_message(message, length, &s);
+    int rc = freespace_decode_message(message, length, &s, ver);
     if (rc != 0) {
         printUnknown("unknown", message, length);
     }
@@ -53,6 +53,9 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     case FREESPACE_MESSAGE_LINKSTATUS:
         freespace_printLinkStatus(fp, &(s->linkStatus));
         break;
+    case FREESPACE_MESSAGE_ALWAYSONRESPONSE:
+        freespace_printAlwaysOnResponse(fp, &(s->alwaysOnResponse));
+        break;
     case FREESPACE_MESSAGE_FRSLOOPREADRESPONSE:
         freespace_printFRSLoopReadResponse(fp, &(s->fRSLoopReadResponse));
         break;
@@ -71,6 +74,9 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     case FREESPACE_MESSAGE_FRSEFLASHWRITERESPONSE:
         freespace_printFRSEFlashWriteResponse(fp, &(s->fRSEFlashWriteResponse));
         break;
+    case FREESPACE_MESSAGE_DATAMODERESPONSE:
+        freespace_printDataModeResponse(fp, &(s->dataModeResponse));
+        break;
     case FREESPACE_MESSAGE_BATTERYLEVEL:
         freespace_printBatteryLevel(fp, &(s->batteryLevel));
         break;
@@ -79,6 +85,24 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
         break;
     case FREESPACE_MESSAGE_USERFRAME:
         freespace_printUserFrame(fp, &(s->userFrame));
+        break;
+    case FREESPACE_MESSAGE_FRSWRITERESPONSE:
+        freespace_printFRSWriteResponse(fp, &(s->fRSWriteResponse));
+        break;
+    case FREESPACE_MESSAGE_FRSREADRESPONSE:
+        freespace_printFRSReadResponse(fp, &(s->fRSReadResponse));
+        break;
+    case FREESPACE_MESSAGE_PERRESPONSE:
+        freespace_printPerResponse(fp, &(s->perResponse));
+        break;
+    case FREESPACE_MESSAGE_BODYFRAMEV2:
+        freespace_printBodyFrameV2(fp, &(s->bodyFrameV2));
+        break;
+    case FREESPACE_MESSAGE_USERFRAMEV2:
+        freespace_printUserFrameV2(fp, &(s->userFrameV2));
+        break;
+    case FREESPACE_MESSAGE_BODYUSERFRAME:
+        freespace_printBodyUserFrame(fp, &(s->bodyUserFrame));
         break;
     default:
         return;
@@ -90,9 +114,9 @@ LIBFREESPACE_API int freespace_printCoprocessorOutReportStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "CoprocessorOutReport(payloadLength=%d)", s->payloadLength);
+    n = sprintf_s(dest, maxlen, "CoprocessorOutReport(payloadLength=%d )", s->payloadLength);
 #else
-    n = sprintf(dest, "CoprocessorOutReport(payloadLength=%d)", s->payloadLength);
+    n = sprintf(dest, "CoprocessorOutReport(payloadLength=%d )", s->payloadLength);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -120,9 +144,9 @@ LIBFREESPACE_API int freespace_printCoprocessorInReportStr(char* dest, int maxle
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "CoprocessorInReport(payloadLength=%d)", s->payloadLength);
+    n = sprintf_s(dest, maxlen, "CoprocessorInReport(payloadLength=%d )", s->payloadLength);
 #else
-    n = sprintf(dest, "CoprocessorInReport(payloadLength=%d)", s->payloadLength);
+    n = sprintf(dest, "CoprocessorInReport(payloadLength=%d )", s->payloadLength);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -144,15 +168,75 @@ LIBFREESPACE_API int freespace_printCoprocessorInReport(FILE* fp, const struct f
 }
 
 
+LIBFREESPACE_API int freespace_printPairingMessageStr(char* dest, int maxlen, const struct freespace_PairingMessage* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "PairingMessage()");
+#else
+    n = sprintf(dest, "PairingMessage()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printPairingMessage(FILE* fp, const struct freespace_PairingMessage* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printPairingMessageStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printProductIDRequestStr(char* dest, int maxlen, const struct freespace_ProductIDRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "ProductIDRequest()");
+#else
+    n = sprintf(dest, "ProductIDRequest()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printProductIDRequest(FILE* fp, const struct freespace_ProductIDRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printProductIDRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printLEDSetRequestStr(char* dest, int maxlen, const struct freespace_LEDSetRequest* s) {
     int n;
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "LEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
+    n = sprintf_s(dest, maxlen, "LEDSetRequest(selectLED=%d onOff=%d)", s->selectLED, s->onOff);
 #else
-    n = sprintf(dest, "LEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
+    n = sprintf(dest, "LEDSetRequest(selectLED=%d onOff=%d)", s->selectLED, s->onOff);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -204,15 +288,45 @@ LIBFREESPACE_API int freespace_printLinkQualityRequest(FILE* fp, const struct fr
 }
 
 
+LIBFREESPACE_API int freespace_printAlwaysOnRequestStr(char* dest, int maxlen, const struct freespace_AlwaysOnRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "AlwaysOnRequest()");
+#else
+    n = sprintf(dest, "AlwaysOnRequest()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printAlwaysOnRequest(FILE* fp, const struct freespace_AlwaysOnRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printAlwaysOnRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printFrequencyFixRequestStr(char* dest, int maxlen, const struct freespace_FrequencyFixRequest* s) {
     int n;
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
+    n = sprintf_s(dest, maxlen, "FrequencyFixRequest(channel3=%d channel2=%d channel1=%d channel0=%d channel4=%d device=%d)", s->channel3, s->channel2, s->channel1, s->channel0, s->channel4, s->device);
 #else
-    n = sprintf(dest, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
+    n = sprintf(dest, "FrequencyFixRequest(channel3=%d channel2=%d channel1=%d channel0=%d channel4=%d device=%d)", s->channel3, s->channel2, s->channel1, s->channel0, s->channel4, s->device);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -264,15 +378,75 @@ LIBFREESPACE_API int freespace_printSoftwareResetMessage(FILE* fp, const struct 
 }
 
 
+LIBFREESPACE_API int freespace_printDongleRFDisableMessageStr(char* dest, int maxlen, const struct freespace_DongleRFDisableMessage* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "DongleRFDisableMessage()");
+#else
+    n = sprintf(dest, "DongleRFDisableMessage()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printDongleRFDisableMessage(FILE* fp, const struct freespace_DongleRFDisableMessage* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printDongleRFDisableMessageStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printTxDisableMessageStr(char* dest, int maxlen, const struct freespace_TxDisableMessage* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "TxDisableMessage()");
+#else
+    n = sprintf(dest, "TxDisableMessage()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printTxDisableMessage(FILE* fp, const struct freespace_TxDisableMessage* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printTxDisableMessageStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printDongleRFSupressHomeFrequencyMessageStr(char* dest, int maxlen, const struct freespace_DongleRFSupressHomeFrequencyMessage* s) {
     int n;
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
+    n = sprintf_s(dest, maxlen, "DongleRFSupressHomeFrequencyMessage(high=%d low=%d)", s->high, s->low);
 #else
-    n = sprintf(dest, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
+    n = sprintf(dest, "DongleRFSupressHomeFrequencyMessage(high=%d low=%d)", s->high, s->low);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -300,9 +474,9 @@ LIBFREESPACE_API int freespace_printFRSLoopReadRequestStr(char* dest, int maxlen
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf_s(dest, maxlen, "FRSLoopReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #else
-    n = sprintf(dest, "FRSLoopReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf(dest, "FRSLoopReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -390,9 +564,9 @@ LIBFREESPACE_API int freespace_printFRSDongleReadRequestStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf_s(dest, maxlen, "FRSDongleReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #else
-    n = sprintf(dest, "FRSDongleReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf(dest, "FRSDongleReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -480,9 +654,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadRequestStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf_s(dest, maxlen, "FRSEFlashReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #else
-    n = sprintf(dest, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
+    n = sprintf(dest, "FRSEFlashReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -564,15 +738,45 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteData(FILE* fp, const struct fr
 }
 
 
+LIBFREESPACE_API int freespace_printDongleRFEnableMessageStr(char* dest, int maxlen, const struct freespace_DongleRFEnableMessage* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "DongleRFEnableMessage()");
+#else
+    n = sprintf(dest, "DongleRFEnableMessage()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printDongleRFEnableMessage(FILE* fp, const struct freespace_DongleRFEnableMessage* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printDongleRFEnableMessageStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printDataModeRequestStr(char* dest, int maxlen, const struct freespace_DataModeRequest* s) {
     int n;
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataModeRequest(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf_s(dest, maxlen, "DataModeRequest(status=%d disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->status, s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
 #else
-    n = sprintf(dest, "DataModeRequest(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf(dest, "DataModeRequest(status=%d disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->status, s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -600,9 +804,9 @@ LIBFREESPACE_API int freespace_printPairingResponseStr(char* dest, int maxlen, c
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "PairingResponse(pairing=%d autoPairing=%d success=%d)", s->pairing, s->autoPairing, s->success);
+    n = sprintf_s(dest, maxlen, "PairingResponse(autoPairing=%d pairing=%d success=%d)", s->autoPairing, s->pairing, s->success);
 #else
-    n = sprintf(dest, "PairingResponse(pairing=%d autoPairing=%d success=%d)", s->pairing, s->autoPairing, s->success);
+    n = sprintf(dest, "PairingResponse(autoPairing=%d pairing=%d success=%d)", s->autoPairing, s->pairing, s->success);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -630,9 +834,9 @@ LIBFREESPACE_API int freespace_printProductIDResponseStr(char* dest, int maxlen,
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d serialNumber=%d deviceClass=%d invalidNS=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->serialNumber, s->deviceClass, s->invalidNS);
+    n = sprintf_s(dest, maxlen, "ProductIDResponse(swPartNumber=%d invalidNS=%d serialNumber=%d startup=%d swVersionMajor=%d swicn=%d swBuildNumber=%d swVersionPatch=%d swVersionMinor=%d deviceClass=%d)", s->swPartNumber, s->invalidNS, s->serialNumber, s->startup, s->swVersionMajor, s->swicn, s->swBuildNumber, s->swVersionPatch, s->swVersionMinor, s->deviceClass);
 #else
-    n = sprintf(dest, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d serialNumber=%d deviceClass=%d invalidNS=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->serialNumber, s->deviceClass, s->invalidNS);
+    n = sprintf(dest, "ProductIDResponse(swPartNumber=%d invalidNS=%d serialNumber=%d startup=%d swVersionMajor=%d swicn=%d swBuildNumber=%d swVersionPatch=%d swVersionMinor=%d deviceClass=%d)", s->swPartNumber, s->invalidNS, s->serialNumber, s->startup, s->swVersionMajor, s->swicn, s->swBuildNumber, s->swVersionPatch, s->swVersionMinor, s->deviceClass);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -660,9 +864,9 @@ LIBFREESPACE_API int freespace_printLinkStatusStr(char* dest, int maxlen, const 
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "LinkStatus(status=%d mode=%d resetStatus=%d)", s->status, s->mode, s->resetStatus);
+    n = sprintf_s(dest, maxlen, "LinkStatus(status=%d resetStatus=%d mode=%d txDisabled=%d)", s->status, s->resetStatus, s->mode, s->txDisabled);
 #else
-    n = sprintf(dest, "LinkStatus(status=%d mode=%d resetStatus=%d)", s->status, s->mode, s->resetStatus);
+    n = sprintf(dest, "LinkStatus(status=%d resetStatus=%d mode=%d txDisabled=%d)", s->status, s->resetStatus, s->mode, s->txDisabled);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -684,15 +888,45 @@ LIBFREESPACE_API int freespace_printLinkStatus(FILE* fp, const struct freespace_
 }
 
 
+LIBFREESPACE_API int freespace_printAlwaysOnResponseStr(char* dest, int maxlen, const struct freespace_AlwaysOnResponse* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "AlwaysOnResponse()");
+#else
+    n = sprintf(dest, "AlwaysOnResponse()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printAlwaysOnResponse(FILE* fp, const struct freespace_AlwaysOnResponse* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printAlwaysOnResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printFRSLoopReadResponseStr(char* dest, int maxlen, const struct freespace_FRSLoopReadResponse* s) {
     int n;
     if (s == NULL) {
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSLoopReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #else
-    n = sprintf(dest, "FRSLoopReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf(dest, "FRSLoopReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -720,9 +954,9 @@ LIBFREESPACE_API int freespace_printFRSLoopWriteResponseStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf_s(dest, maxlen, "FRSLoopWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #else
-    n = sprintf(dest, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf(dest, "FRSLoopWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -750,9 +984,9 @@ LIBFREESPACE_API int freespace_printFRSDongleReadResponseStr(char* dest, int max
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSDongleReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #else
-    n = sprintf(dest, "FRSDongleReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf(dest, "FRSDongleReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -780,9 +1014,9 @@ LIBFREESPACE_API int freespace_printFRSDongleWriteResponseStr(char* dest, int ma
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf_s(dest, maxlen, "FRSDongleWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #else
-    n = sprintf(dest, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf(dest, "FRSDongleWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -810,9 +1044,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadResponseStr(char* dest, int max
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSEFlashReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #else
-    n = sprintf(dest, "FRSEFlashReadResponse(wordOffset=%d status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
+    n = sprintf(dest, "FRSEFlashReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -840,9 +1074,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteResponseStr(char* dest, int ma
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf_s(dest, maxlen, "FRSEFlashWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #else
-    n = sprintf(dest, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
+    n = sprintf(dest, "FRSEFlashWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -870,9 +1104,9 @@ LIBFREESPACE_API int freespace_printDataModeResponseStr(char* dest, int maxlen, 
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataModeResponse(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf_s(dest, maxlen, "DataModeResponse(disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
 #else
-    n = sprintf(dest, "DataModeResponse(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf(dest, "DataModeResponse(disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -887,6 +1121,36 @@ LIBFREESPACE_API int freespace_printDataModeResponse(FILE* fp, const struct free
         return FREESPACE_ERROR_UNEXPECTED;
     }
     rc = freespace_printDataModeResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printBatteryLevelRequestStr(char* dest, int maxlen, const struct freespace_BatteryLevelRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "BatteryLevelRequest()");
+#else
+    n = sprintf(dest, "BatteryLevelRequest()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printBatteryLevelRequest(FILE* fp, const struct freespace_BatteryLevelRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printBatteryLevelRequestStr(str, sizeof(str), s);
     if (rc < 0) {
         return rc;
     }
@@ -930,9 +1194,9 @@ LIBFREESPACE_API int freespace_printBodyFrameStr(char* dest, int maxlen, const s
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
+    n = sprintf_s(dest, maxlen, "BodyFrame(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
 #else
-    n = sprintf(dest, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
+    n = sprintf(dest, "BodyFrame(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -960,9 +1224,9 @@ LIBFREESPACE_API int freespace_printUserFrameStr(char* dest, int maxlen, const s
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
+    n = sprintf_s(dest, maxlen, "UserFrame(angularPosC=%d sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosA=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularPosC, s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosA, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
 #else
-    n = sprintf(dest, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
+    n = sprintf(dest, "UserFrame(angularPosC=%d sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosA=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularPosC, s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosA, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -990,9 +1254,9 @@ LIBFREESPACE_API int freespace_printDataMotionControlStr(char* dest, int maxlen,
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf_s(dest, maxlen, "DataMotionControl(enableMouseMovement=%d enableUserPosition=%d disableFreespace=%d inhibitPowerManager=%d enableBodyMotion=%d)", s->enableMouseMovement, s->enableUserPosition, s->disableFreespace, s->inhibitPowerManager, s->enableBodyMotion);
 #else
-    n = sprintf(dest, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
+    n = sprintf(dest, "DataMotionControl(enableMouseMovement=%d enableUserPosition=%d disableFreespace=%d inhibitPowerManager=%d enableBodyMotion=%d)", s->enableMouseMovement, s->enableUserPosition, s->disableFreespace, s->inhibitPowerManager, s->enableBodyMotion);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1007,6 +1271,336 @@ LIBFREESPACE_API int freespace_printDataMotionControl(FILE* fp, const struct fre
         return FREESPACE_ERROR_UNEXPECTED;
     }
     rc = freespace_printDataMotionControlStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printFRSWriteResponseStr(char* dest, int maxlen, const struct freespace_FRSWriteResponse* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "FRSWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+#else
+    n = sprintf(dest, "FRSWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printFRSWriteResponse(FILE* fp, const struct freespace_FRSWriteResponse* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printFRSWriteResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printFRSReadResponseStr(char* dest, int maxlen, const struct freespace_FRSReadResponse* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "FRSReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+#else
+    n = sprintf(dest, "FRSReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printFRSReadResponse(FILE* fp, const struct freespace_FRSReadResponse* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printFRSReadResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printPerResponseStr(char* dest, int maxlen, const struct freespace_PerResponse* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "PerResponse(count=%d msError=%d frError=%d smError=%d)", s->count, s->msError, s->frError, s->smError);
+#else
+    n = sprintf(dest, "PerResponse(count=%d msError=%d frError=%d smError=%d)", s->count, s->msError, s->frError, s->smError);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printPerResponse(FILE* fp, const struct freespace_PerResponse* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printPerResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printBatteryLevelRequestV2Str(char* dest, int maxlen, const struct freespace_BatteryLevelRequestV2* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "BatteryLevelRequestV2()");
+#else
+    n = sprintf(dest, "BatteryLevelRequestV2()");
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printBatteryLevelRequestV2(FILE* fp, const struct freespace_BatteryLevelRequestV2* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printBatteryLevelRequestV2Str(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printFRSWriteRequestStr(char* dest, int maxlen, const struct freespace_FRSWriteRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "FRSWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
+#else
+    n = sprintf(dest, "FRSWriteRequest(length=%d FRStype=%d)", s->length, s->FRStype);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printFRSWriteRequest(FILE* fp, const struct freespace_FRSWriteRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printFRSWriteRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printFRSWriteDataStr(char* dest, int maxlen, const struct freespace_FRSWriteData* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "FRSWriteData(wordOffset=%d data=%d)", s->wordOffset, s->data);
+#else
+    n = sprintf(dest, "FRSWriteData(wordOffset=%d data=%d)", s->wordOffset, s->data);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printFRSWriteData(FILE* fp, const struct freespace_FRSWriteData* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printFRSWriteDataStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printFRSReadRequestStr(char* dest, int maxlen, const struct freespace_FRSReadRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "FRSReadRequest(BlockSize=%d FRStype=%d readOffset=%d)", s->BlockSize, s->FRStype, s->readOffset);
+#else
+    n = sprintf(dest, "FRSReadRequest(BlockSize=%d FRStype=%d readOffset=%d)", s->BlockSize, s->FRStype, s->readOffset);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printFRSReadRequest(FILE* fp, const struct freespace_FRSReadRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printFRSReadRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printPerRequestStr(char* dest, int maxlen, const struct freespace_PerRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "PerRequest( op=%d)", s->op);
+#else
+    n = sprintf(dest, "PerRequest( op=%d)", s->op);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printPerRequest(FILE* fp, const struct freespace_PerRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printPerRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printBodyFrameV2Str(char* dest, int maxlen, const struct freespace_BodyFrameV2* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "BodyFrameV2(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+#else
+    n = sprintf(dest, "BodyFrameV2(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printBodyFrameV2(FILE* fp, const struct freespace_BodyFrameV2* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printBodyFrameV2Str(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printUserFrameV2Str(char* dest, int maxlen, const struct freespace_UserFrameV2* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "UserFrameV2(sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+#else
+    n = sprintf(dest, "UserFrameV2(sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printUserFrameV2(FILE* fp, const struct freespace_UserFrameV2* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printUserFrameV2Str(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printBodyUserFrameStr(char* dest, int maxlen, const struct freespace_BodyUserFrame* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "BodyUserFrame(sequenceNumber=%d angularVelZ=%d angularVelX=%d angularVelY=%d linearPosZ=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d angularPosB=%d linearPosY=%d linearPosX=%d angularPosA=%d deltaWheel=%d linearAccelZ=%d linearAccelY=%d linearAccelX=%d button3=%d button2=%d button1=%d button7=%d button6=%d button5=%d button4=%d button8=%d)", s->sequenceNumber, s->angularVelZ, s->angularVelX, s->angularVelY, s->linearPosZ, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->angularPosB, s->linearPosY, s->linearPosX, s->angularPosA, s->deltaWheel, s->linearAccelZ, s->linearAccelY, s->linearAccelX, s->button3, s->button2, s->button1, s->button7, s->button6, s->button5, s->button4, s->button8);
+#else
+    n = sprintf(dest, "BodyUserFrame(sequenceNumber=%d angularVelZ=%d angularVelX=%d angularVelY=%d linearPosZ=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d angularPosB=%d linearPosY=%d linearPosX=%d angularPosA=%d deltaWheel=%d linearAccelZ=%d linearAccelY=%d linearAccelX=%d button3=%d button2=%d button1=%d button7=%d button6=%d button5=%d button4=%d button8=%d)", s->sequenceNumber, s->angularVelZ, s->angularVelX, s->angularVelY, s->linearPosZ, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->angularPosB, s->linearPosY, s->linearPosX, s->angularPosA, s->deltaWheel, s->linearAccelZ, s->linearAccelY, s->linearAccelX, s->button3, s->button2, s->button1, s->button7, s->button6, s->button5, s->button4, s->button8);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printBodyUserFrame(FILE* fp, const struct freespace_BodyUserFrame* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printBodyUserFrameStr(str, sizeof(str), s);
     if (rc < 0) {
         return rc;
     }
