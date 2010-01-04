@@ -705,21 +705,22 @@ def writeDecodeBody(message, fields, outFile):
                     for bit in field['bits']:
                         if bit['name'] != 'RESERVED':
                             if bit.has_key('size'):
-                                outFile.write("\t\t\ts->%s = (uint8_t) ((message[%d] >> %d) & 0x%02X);\n"%(bit['name'], byteCounter, bitCounter, 2**bit['size']-1))
+                                outFile.write("\t\t\ts->%s = (uint8_t) ((message[%d + offset] >> %d) & 0x%02X);\n"%(bit['name'], byteCounter, bitCounter, 2**bit['size']-1))
                                 bitCounter += bit['size']-1
                             else:
-                                outFile.write("\t\t\ts->%s = getBit(message[%d], %d);\n"%(bit['name'], byteCounter, bitCounter))
+                                outFile.write("\t\t\ts->%s = getBit(message[%d + offset], %d);\n"%(bit['name'], byteCounter, bitCounter))
                         bitCounter += 1
                     byteCounter += 1
                 elif field.has_key('nibbles'):
                     nibbleCounter = 0
                     for nibble in field['nibbles']:
                         if nibble['name'] != 'RESERVED':
-                            outFile.write('    s->%s = getNibble(message[%d], %d);\n'%(nibble['name'], byteCounter, nibbleCounter))
+                            outFile.write('    s->%s = getNibble(message[%d + offset], %d);\n'%(nibble['name'], byteCounter, nibbleCounter))
                         nibbleCounter += 1
                     byteCounter += 1
                 else:
                     print ("Unrecognized field type in %s\n" % message.name)
+            outFile.write("\t\t\treturn FREESPACE_SUCCESS;\n")
     # Default case
     outFile.write("\t\tdefault:\n")
     outFile.write("\t\t\treturn  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;\n")
