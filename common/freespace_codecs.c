@@ -719,9 +719,9 @@ LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int
             if ((uint8_t) message[offset] != 13) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->pairing = (uint8_t) ((message[0 + offset] >> 0) & 0x01);
-			s->autoPairing = (uint8_t) ((message[0 + offset] >> 1) & 0x01);
-			s->success = (uint8_t) ((message[0 + offset] >> 2) & 0x01);
+			s->pairing = (uint8_t) ((message[1 + offset] >> 0) & 0x01);
+			s->autoPairing = (uint8_t) ((message[1 + offset] >> 1) & 0x01);
+			s->success = (uint8_t) ((message[1 + offset] >> 2) & 0x01);
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 12) || (!STRICT_DECODE_LENGTH && length < 12)) {
@@ -738,9 +738,9 @@ LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int
             if ((uint8_t) message[offset] != 2) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->pairing = (uint8_t) ((message[0 + offset] >> 0) & 0x01);
-			s->autoPairing = (uint8_t) ((message[0 + offset] >> 1) & 0x01);
-			s->success = (uint8_t) ((message[0 + offset] >> 2) & 0x01);
+			s->pairing = (uint8_t) ((message[1 + offset] >> 0) & 0x01);
+			s->autoPairing = (uint8_t) ((message[1 + offset] >> 1) & 0x01);
+			s->success = (uint8_t) ((message[1 + offset] >> 2) & 0x01);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -764,15 +764,15 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
             if ((uint8_t) message[offset] != 32) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->swPartNumber = toUint32(&message[0 + offset]);
-			s->swBuildNumber = toUint32(&message[4 + offset]);
-			s->swicn = toUint32(&message[8 + offset]);
-			s->swVersionPatch = toUint16(&message[12 + offset]);
-			s->swVersionMinor = toUint8(&message[14 + offset]);
-			s->swVersionMajor = toUint8(&message[15 + offset]);
-			s->serialNumber = toUint32(&message[18 + offset]);
-			s->deviceClass = (uint8_t) ((message[22 + offset] >> 0) & 0x7F);
-			s->invalidNS = getBit(message[22 + offset], 7);
+			s->swPartNumber = toUint32(&message[1 + offset]);
+			s->swBuildNumber = toUint32(&message[5 + offset]);
+			s->swicn = toUint32(&message[9 + offset]);
+			s->swVersionPatch = toUint16(&message[13 + offset]);
+			s->swVersionMinor = toUint8(&message[15 + offset]);
+			s->swVersionMajor = toUint8(&message[16 + offset]);
+			s->serialNumber = toUint32(&message[19 + offset]);
+			s->deviceClass = (uint8_t) ((message[23 + offset] >> 0) & 0x7F);
+			s->invalidNS = getBit(message[23 + offset], 7);
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
@@ -789,15 +789,15 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
             if ((uint8_t) message[offset] != 9) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->deviceClass = (uint8_t) ((message[0 + offset] >> 0) & 0x3F);
-			s->startup = getBit(message[0 + offset], 6);
-			s->invalidNS = getBit(message[0 + offset], 7);
-			s->swVersionMajor = toUint8(&message[1 + offset]);
-			s->swVersionMinor = toUint8(&message[2 + offset]);
-			s->swPartNumber = toUint32(&message[3 + offset]);
-			s->swBuildNumber = toUint32(&message[7 + offset]);
-			s->serialNumber = toUint32(&message[11 + offset]);
-			s->swVersionPatch = toUint16(&message[15 + offset]);
+			s->deviceClass = (uint8_t) ((message[1 + offset] >> 0) & 0x3F);
+			s->startup = getBit(message[1 + offset], 6);
+			s->invalidNS = getBit(message[1 + offset], 7);
+			s->swVersionMajor = toUint8(&message[2 + offset]);
+			s->swVersionMinor = toUint8(&message[3 + offset]);
+			s->swPartNumber = toUint32(&message[4 + offset]);
+			s->swBuildNumber = toUint32(&message[8 + offset]);
+			s->serialNumber = toUint32(&message[12 + offset]);
+			s->swVersionPatch = toUint16(&message[16 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -821,9 +821,9 @@ LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int leng
             if ((uint8_t) message[offset] != 48) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->status = toUint8(&message[0 + offset]);
-			s->mode = toUint8(&message[1 + offset]);
-			s->resetStatus = toUint8(&message[2 + offset]);
+			s->status = toUint8(&message[1 + offset]);
+			s->mode = toUint8(&message[2 + offset]);
+			s->resetStatus = toUint8(&message[3 + offset]);
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 31) || (!STRICT_DECODE_LENGTH && length < 31)) {
@@ -840,10 +840,10 @@ LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int leng
             if ((uint8_t) message[offset] != 3) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->status = toUint8(&message[0 + offset]);
-			s->mode = toUint8(&message[1 + offset]);
-			s->resetStatus = toUint8(&message[2 + offset]);
-			s->txDisabled = toUint8(&message[3 + offset]);
+			s->status = toUint8(&message[1 + offset]);
+			s->mode = toUint8(&message[2 + offset]);
+			s->resetStatus = toUint8(&message[3 + offset]);
+			s->txDisabled = toUint8(&message[4 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -890,15 +890,15 @@ LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const uint8_t* message,
             if ((uint8_t) message[offset] != 58) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->data[0] = toUint32(&message[2 + offset]);
-			s->data[1] = toUint32(&message[6 + offset]);
-			s->data[2] = toUint32(&message[10 + offset]);
-			s->data[3] = toUint32(&message[14 + offset]);
-			s->data[4] = toUint32(&message[18 + offset]);
-    s->status = getNibble(message[22 + offset], 0);
-    s->dataLength = getNibble(message[22 + offset], 1);
-			s->FRStype = toUint16(&message[23 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->data[0] = toUint32(&message[3 + offset]);
+			s->data[1] = toUint32(&message[7 + offset]);
+			s->data[2] = toUint32(&message[11 + offset]);
+			s->data[3] = toUint32(&message[15 + offset]);
+			s->data[4] = toUint32(&message[19 + offset]);
+    s->status = getNibble(message[23 + offset], 0);
+    s->dataLength = getNibble(message[23 + offset], 1);
+			s->FRStype = toUint16(&message[24 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -922,8 +922,8 @@ LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message
             if ((uint8_t) message[offset] != 61) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->status = toUint8(&message[2 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->status = toUint8(&message[3 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -947,15 +947,15 @@ LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* messag
             if ((uint8_t) message[offset] != 59) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->data[0] = toUint32(&message[2 + offset]);
-			s->data[1] = toUint32(&message[6 + offset]);
-			s->data[2] = toUint32(&message[10 + offset]);
-			s->data[3] = toUint32(&message[14 + offset]);
-			s->data[4] = toUint32(&message[18 + offset]);
-    s->status = getNibble(message[22 + offset], 0);
-    s->dataLength = getNibble(message[22 + offset], 1);
-			s->FRStype = toUint16(&message[23 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->data[0] = toUint32(&message[3 + offset]);
+			s->data[1] = toUint32(&message[7 + offset]);
+			s->data[2] = toUint32(&message[11 + offset]);
+			s->data[3] = toUint32(&message[15 + offset]);
+			s->data[4] = toUint32(&message[19 + offset]);
+    s->status = getNibble(message[23 + offset], 0);
+    s->dataLength = getNibble(message[23 + offset], 1);
+			s->FRStype = toUint16(&message[24 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -979,8 +979,8 @@ LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* messa
             if ((uint8_t) message[offset] != 62) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->status = toUint8(&message[2 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->status = toUint8(&message[3 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1004,15 +1004,15 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* messag
             if ((uint8_t) message[offset] != 65) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->data[0] = toUint32(&message[2 + offset]);
-			s->data[1] = toUint32(&message[6 + offset]);
-			s->data[2] = toUint32(&message[10 + offset]);
-			s->data[3] = toUint32(&message[14 + offset]);
-			s->data[4] = toUint32(&message[18 + offset]);
-    s->status = getNibble(message[22 + offset], 0);
-    s->dataLength = getNibble(message[22 + offset], 1);
-			s->FRStype = toUint16(&message[23 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->data[0] = toUint32(&message[3 + offset]);
+			s->data[1] = toUint32(&message[7 + offset]);
+			s->data[2] = toUint32(&message[11 + offset]);
+			s->data[3] = toUint32(&message[15 + offset]);
+			s->data[4] = toUint32(&message[19 + offset]);
+    s->status = getNibble(message[23 + offset], 0);
+    s->dataLength = getNibble(message[23 + offset], 1);
+			s->FRStype = toUint16(&message[24 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1036,8 +1036,8 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* messa
             if ((uint8_t) message[offset] != 66) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->wordOffset = toUint16(&message[0 + offset]);
-			s->status = toUint8(&message[2 + offset]);
+			s->wordOffset = toUint16(&message[1 + offset]);
+			s->status = toUint8(&message[3 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1061,12 +1061,12 @@ LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, in
             if ((uint8_t) message[offset] != 73) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->enableBodyMotion = getBit(message[0 + offset], 0);
-			s->enableUserPosition = getBit(message[0 + offset], 1);
-			s->inhibitPowerManager = getBit(message[0 + offset], 2);
-			s->enableMouseMovement = getBit(message[0 + offset], 3);
-			s->disableFreespace = getBit(message[0 + offset], 4);
-			s->SDA = getBit(message[0 + offset], 5);
+			s->enableBodyMotion = getBit(message[1 + offset], 0);
+			s->enableUserPosition = getBit(message[1 + offset], 1);
+			s->inhibitPowerManager = getBit(message[1 + offset], 2);
+			s->enableMouseMovement = getBit(message[1 + offset], 3);
+			s->disableFreespace = getBit(message[1 + offset], 4);
+			s->SDA = getBit(message[1 + offset], 5);
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 6) || (!STRICT_DECODE_LENGTH && length < 6)) {
@@ -1083,13 +1083,13 @@ LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, in
             if ((uint8_t) message[offset] != 4) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->enableBodyMotion = getBit(message[0 + offset], 0);
-			s->enableUserPosition = getBit(message[0 + offset], 1);
-			s->inhibitPowerManager = getBit(message[0 + offset], 2);
-			s->enableMouseMovement = getBit(message[0 + offset], 3);
-			s->disableFreespace = getBit(message[0 + offset], 4);
-			s->SDA = getBit(message[0 + offset], 5);
-			s->aggregate = getBit(message[0 + offset], 6);
+			s->enableBodyMotion = getBit(message[1 + offset], 0);
+			s->enableUserPosition = getBit(message[1 + offset], 1);
+			s->inhibitPowerManager = getBit(message[1 + offset], 2);
+			s->enableMouseMovement = getBit(message[1 + offset], 3);
+			s->disableFreespace = getBit(message[1 + offset], 4);
+			s->SDA = getBit(message[1 + offset], 5);
+			s->aggregate = getBit(message[1 + offset], 6);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1142,7 +1142,7 @@ LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int le
             if ((uint8_t) message[offset] != 5) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->batteryStrength = toUint8(&message[0 + offset]);
+			s->batteryStrength = toUint8(&message[1 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1262,8 +1262,8 @@ LIBFREESPACE_API int freespace_decodeFRSWriteResponse(const uint8_t* message, in
             if ((uint8_t) message[offset] != 6) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->status = toUint8(&message[0 + offset]);
-			s->wordOffset = toUint16(&message[1 + offset]);
+			s->status = toUint8(&message[1 + offset]);
+			s->wordOffset = toUint16(&message[2 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1291,13 +1291,13 @@ LIBFREESPACE_API int freespace_decodeFRSReadResponse(const uint8_t* message, int
             if ((uint8_t) message[offset] != 8) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-    s->status = getNibble(message[0 + offset], 0);
-    s->dataLength = getNibble(message[0 + offset], 1);
-			s->wordOffset = toUint16(&message[1 + offset]);
-			s->data[0] = toUint32(&message[3 + offset]);
-			s->data[1] = toUint32(&message[7 + offset]);
-			s->data[2] = toUint32(&message[11 + offset]);
-			s->FRStype = toUint16(&message[15 + offset]);
+    s->status = getNibble(message[1 + offset], 0);
+    s->dataLength = getNibble(message[1 + offset], 1);
+			s->wordOffset = toUint16(&message[2 + offset]);
+			s->data[0] = toUint32(&message[4 + offset]);
+			s->data[1] = toUint32(&message[8 + offset]);
+			s->data[2] = toUint32(&message[12 + offset]);
+			s->FRStype = toUint16(&message[16 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1325,10 +1325,10 @@ LIBFREESPACE_API int freespace_decodePerResponse(const uint8_t* message, int len
             if ((uint8_t) message[offset] != 16) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-			s->count = toUint32(&message[1 + offset]);
-			s->msError = toUint32(&message[5 + offset]);
-			s->smError = toUint32(&message[9 + offset]);
-			s->frError = toUint32(&message[13 + offset]);
+			s->count = toUint32(&message[2 + offset]);
+			s->msError = toUint32(&message[6 + offset]);
+			s->smError = toUint32(&message[10 + offset]);
+			s->frError = toUint32(&message[14 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;

@@ -58,12 +58,10 @@ class MessageCodeGenerator:
         messages.sort(compareMessages)
         
         codecsHFile = open("../include/freespace/freespace_codecs.h", "w")
-        #codecsHFile = open("freespace_codecs.h", "w")
         self.writeHFileHeader(codecsHFile, 'freespace_codecs')
         self.writeDoxygenModuleDef(codecsHFile)
         
         printersHFile = open("../include/freespace/freespace_printers.h", "w")
-        #printersHFile = open("freespace_printers.h", "w")
         self.writeHFileHeader(printersHFile, 'freespace_printers')
         printersHFile.write('#include "freespace_codecs.h"\n')
         printersHFile.write('#include <stdio.h>\n\n')
@@ -662,6 +660,7 @@ def writeDecodeBody(message, fields, outFile):
     for v in range(3):
         if len(message.ID[v]):
             # Create one case per version of message
+            byteCounter = 0
             outFile.write("\t\tcase %d:\n"%v)
             # Code to check message buffer length and report ID
             if len(message.ID[v]):
@@ -684,7 +683,7 @@ def writeDecodeBody(message, fields, outFile):
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
 '''%message.ID[v]['subId']['id'])
-            byteCounter = 0
+                byteCounter += 1
             for field in message.Fields[v]:
                 elementSize = field['size']
                 if field['name'] == 'RESERVED':
