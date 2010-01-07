@@ -95,12 +95,6 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     case FREESPACE_MESSAGE_PERRESPONSE:
         freespace_printPerResponse(fp, &(s->perResponse));
         break;
-    case FREESPACE_MESSAGE_BODYFRAMEV2:
-        freespace_printBodyFrameV2(fp, &(s->bodyFrameV2));
-        break;
-    case FREESPACE_MESSAGE_USERFRAMEV2:
-        freespace_printUserFrameV2(fp, &(s->userFrameV2));
-        break;
     case FREESPACE_MESSAGE_BODYUSERFRAME:
         freespace_printBodyUserFrame(fp, &(s->bodyUserFrame));
         break;
@@ -1511,66 +1505,6 @@ LIBFREESPACE_API int freespace_printPerRequest(FILE* fp, const struct freespace_
         return FREESPACE_ERROR_UNEXPECTED;
     }
     rc = freespace_printPerRequestStr(str, sizeof(str), s);
-    if (rc < 0) {
-        return rc;
-    }
-    return fprintf(fp, "%s\n", str);
-}
-
-
-LIBFREESPACE_API int freespace_printBodyFrameV2Str(char* dest, int maxlen, const struct freespace_BodyFrameV2* s) {
-    int n;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-#ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "BodyFrameV2(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
-#else
-    n = sprintf(dest, "BodyFrameV2(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
-#endif
-    if (n < 0) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    return n;
-}
-
-LIBFREESPACE_API int freespace_printBodyFrameV2(FILE* fp, const struct freespace_BodyFrameV2* s) {
-    char str[1024];
-    int rc;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-    rc = freespace_printBodyFrameV2Str(str, sizeof(str), s);
-    if (rc < 0) {
-        return rc;
-    }
-    return fprintf(fp, "%s\n", str);
-}
-
-
-LIBFREESPACE_API int freespace_printUserFrameV2Str(char* dest, int maxlen, const struct freespace_UserFrameV2* s) {
-    int n;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-#ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "UserFrameV2(sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
-#else
-    n = sprintf(dest, "UserFrameV2(sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
-#endif
-    if (n < 0) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    return n;
-}
-
-LIBFREESPACE_API int freespace_printUserFrameV2(FILE* fp, const struct freespace_UserFrameV2* s) {
-    char str[1024];
-    int rc;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-    rc = freespace_printUserFrameV2Str(str, sizeof(str), s);
     if (rc < 0) {
         return rc;
     }

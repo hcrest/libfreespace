@@ -850,40 +850,6 @@ LIBFREESPACE_API int freespace_printPerRequest(FILE* fp, const struct freespace_
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
-LIBFREESPACE_API int freespace_printBodyFrameV2Str(char* dest, int maxlen, const struct freespace_BodyFrameV2* s);
-/**
- * Print message to a file pointer.
- * @param fp the destination file pointer
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
-LIBFREESPACE_API int freespace_printBodyFrameV2(FILE* fp, const struct freespace_BodyFrameV2* s);
-
-
-/**
- * Print message struct to string dest, with maximum length maxlen.
- * @param dest the destination string
- * @param maxlen the length of the passed in string
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
-LIBFREESPACE_API int freespace_printUserFrameV2Str(char* dest, int maxlen, const struct freespace_UserFrameV2* s);
-/**
- * Print message to a file pointer.
- * @param fp the destination file pointer
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
-LIBFREESPACE_API int freespace_printUserFrameV2(FILE* fp, const struct freespace_UserFrameV2* s);
-
-
-/**
- * Print message struct to string dest, with maximum length maxlen.
- * @param dest the destination string
- * @param maxlen the length of the passed in string
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
 LIBFREESPACE_API int freespace_printBodyUserFrameStr(char* dest, int maxlen, const struct freespace_BodyUserFrame* s);
 /**
  * Print message to a file pointer.

@@ -1031,7 +1031,7 @@ struct freespace_BodyFrame {
 
 	int16_t angularVelZ;
 	int16_t linearAccelZ;
-	uint32_t sequenceNumber;
+	uint16_t sequenceNumber;
 	int8_t deltaX;
 	int8_t deltaY;
 	int16_t linearAccelY;
@@ -1070,7 +1070,7 @@ struct freespace_UserFrame {
 	uint8_t src; /* Source, used in version 2 only */
 
 	int16_t angularPosC;
-	uint32_t sequenceNumber;
+	uint16_t sequenceNumber;
 	int8_t deltaX;
 	int8_t deltaY;
 	int16_t angularPosD;
@@ -1348,87 +1348,6 @@ struct freespace_PerRequest {
 LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_PerRequest* s, uint8_t* message, int maxlength);
 
 /**   @ingroup messages 
- * Conveys the motion relative to the body frame of the Freespace handheld device. 
- The data have been processed to remove tremor and other unwanted side effects.
- */
-struct freespace_BodyFrameV2 {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
-
-	int16_t angularVelZ;
-	int16_t linearAccelZ;
-	uint16_t sequenceNumber;
-	int8_t deltaX;
-	int8_t deltaY;
-	int16_t linearAccelY;
-	int16_t linearAccelX;
-	int16_t angularVelX;
-	uint8_t button3;
-	uint8_t button2;
-	uint8_t button1;
-	int16_t angularVelY;
-	uint8_t button7;
-	uint8_t button6;
-	uint8_t button5;
-	uint8_t button4;
-	uint8_t button8;
-	int8_t deltaWheel;
-};
-
-
-/** @ingroup messages
- * Decode a BodyFrameV2 message. Fill out the corresponding values in struct s.
- *
- * @param message the message to decode that was received from the Freespace device
- * @param length the length of the received message
- * @param s the preallocated freespace_BodyFrameV2 struct to decode into
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_decodeBodyFrameV2(const uint8_t* message, int length, struct freespace_BodyFrameV2* s, uint8_t ver);
-
-/**   @ingroup messages 
- * Conveys the handheld device position and orientation with respect to a user frame of reference.
- */
-struct freespace_UserFrameV2 {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
-
-	uint16_t sequenceNumber;
-	int8_t deltaX;
-	int8_t deltaY;
-	int16_t angularPosD;
-	int16_t angularPosC;
-	int16_t linearPosZ;
-	int16_t linearPosY;
-	int16_t linearPosX;
-	uint8_t button3;
-	uint8_t button2;
-	uint8_t button1;
-	int16_t angularPosB;
-	uint8_t button7;
-	uint8_t button6;
-	uint8_t button5;
-	uint8_t button4;
-	uint8_t button8;
-	int8_t deltaWheel;
-};
-
-
-/** @ingroup messages
- * Decode a UserFrameV2 message. Fill out the corresponding values in struct s.
- *
- * @param message the message to decode that was received from the Freespace device
- * @param length the length of the received message
- * @param s the preallocated freespace_UserFrameV2 struct to decode into
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_decodeUserFrameV2(const uint8_t* message, int length, struct freespace_UserFrameV2* s, uint8_t ver);
-
-/**   @ingroup messages 
  * Conveys the handheld device body and user frame motion.
  */
 struct freespace_BodyUserFrame {
@@ -1528,9 +1447,7 @@ enum MessageTypes {
     FREESPACE_MESSAGE_FRSWRITEDATA = 44,
     FREESPACE_MESSAGE_FRSREADREQUEST = 45,
     FREESPACE_MESSAGE_PERREQUEST = 46,
-    FREESPACE_MESSAGE_BODYFRAMEV2 = 47,
-    FREESPACE_MESSAGE_USERFRAMEV2 = 48,
-    FREESPACE_MESSAGE_BODYUSERFRAME = 49,
+    FREESPACE_MESSAGE_BODYUSERFRAME = 47,
 };
 
 /** @ingroup messages
@@ -1587,8 +1504,6 @@ struct freespace_message {
 		struct freespace_FRSWriteData fRSWriteData;
 		struct freespace_FRSReadRequest fRSReadRequest;
 		struct freespace_PerRequest perRequest;
-		struct freespace_BodyFrameV2 bodyFrameV2;
-		struct freespace_UserFrameV2 userFrameV2;
 		struct freespace_BodyUserFrame bodyUserFrame;
     };
 };

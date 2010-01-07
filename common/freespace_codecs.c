@@ -21,6 +21,7 @@
 #include "freespace/freespace_codecs.h"
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #ifdef _WIN32
 #define STRICT_DECODE_LENGTH 0
@@ -1173,13 +1174,43 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
 			s->deltaX = toInt8(&message[1 + offset]);
 			s->deltaY = toInt8(&message[2 + offset]);
 			s->deltaWheel = toInt8(&message[3 + offset]);
-			s->sequenceNumber = toUint32(&message[4 + offset]);
+			s->sequenceNumber = toUint16(&message[4 + offset]);
 			s->linearAccelX = toInt16(&message[8 + offset]);
 			s->linearAccelY = toInt16(&message[10 + offset]);
 			s->linearAccelZ = toInt16(&message[12 + offset]);
 			s->angularVelX = toInt16(&message[14 + offset]);
 			s->angularVelY = toInt16(&message[16 + offset]);
 			s->angularVelZ = toInt16(&message[18 + offset]);
+			return FREESPACE_SUCCESS;
+		case 2:
+            if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+            }
+            if ((uint8_t) message[0] != 32) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+			offset = 4;
+			s->len = message[1];
+			s->dest = message[2];
+			s->src = message[3];
+			s->button1 = getBit(message[0 + offset], 0);
+			s->button2 = getBit(message[0 + offset], 1);
+			s->button3 = getBit(message[0 + offset], 2);
+			s->button4 = getBit(message[0 + offset], 3);
+			s->button5 = getBit(message[0 + offset], 4);
+			s->button6 = getBit(message[0 + offset], 5);
+			s->button7 = getBit(message[0 + offset], 6);
+			s->button8 = getBit(message[0 + offset], 7);
+			s->deltaX = toInt8(&message[1 + offset]);
+			s->deltaY = toInt8(&message[2 + offset]);
+			s->deltaWheel = toInt8(&message[3 + offset]);
+			s->sequenceNumber = toUint16(&message[4 + offset]);
+			s->linearAccelX = toInt16(&message[6 + offset]);
+			s->linearAccelY = toInt16(&message[8 + offset]);
+			s->linearAccelZ = toInt16(&message[10 + offset]);
+			s->angularVelX = toInt16(&message[12 + offset]);
+			s->angularVelY = toInt16(&message[14 + offset]);
+			s->angularVelZ = toInt16(&message[16 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1210,7 +1241,7 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 			s->deltaX = toInt8(&message[1 + offset]);
 			s->deltaY = toInt8(&message[2 + offset]);
 			s->deltaWheel = toInt8(&message[3 + offset]);
-			s->sequenceNumber = toUint32(&message[4 + offset]);
+			s->sequenceNumber = toUint16(&message[4 + offset]);
 			s->linearPosX = toInt16(&message[8 + offset]);
 			s->linearPosY = toInt16(&message[10 + offset]);
 			s->linearPosZ = toInt16(&message[12 + offset]);
@@ -1218,6 +1249,37 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 			s->angularPosB = toInt16(&message[16 + offset]);
 			s->angularPosC = toInt16(&message[18 + offset]);
 			s->angularPosD = toInt16(&message[20 + offset]);
+			return FREESPACE_SUCCESS;
+		case 2:
+            if ((STRICT_DECODE_LENGTH && length != 24) || (!STRICT_DECODE_LENGTH && length < 24)) {
+                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+            }
+            if ((uint8_t) message[0] != 33) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+			offset = 4;
+			s->len = message[1];
+			s->dest = message[2];
+			s->src = message[3];
+			s->button1 = getBit(message[0 + offset], 0);
+			s->button2 = getBit(message[0 + offset], 1);
+			s->button3 = getBit(message[0 + offset], 2);
+			s->button4 = getBit(message[0 + offset], 3);
+			s->button5 = getBit(message[0 + offset], 4);
+			s->button6 = getBit(message[0 + offset], 5);
+			s->button7 = getBit(message[0 + offset], 6);
+			s->button8 = getBit(message[0 + offset], 7);
+			s->deltaX = toInt8(&message[1 + offset]);
+			s->deltaY = toInt8(&message[2 + offset]);
+			s->deltaWheel = toInt8(&message[3 + offset]);
+			s->sequenceNumber = toUint16(&message[4 + offset]);
+			s->linearPosX = toInt16(&message[6 + offset]);
+			s->linearPosY = toInt16(&message[8 + offset]);
+			s->linearPosZ = toInt16(&message[10 + offset]);
+			s->angularPosB = toInt16(&message[12 + offset]);
+			s->angularPosC = toInt16(&message[14 + offset]);
+			s->angularPosD = toInt16(&message[16 + offset]);
+			s->angularPosA = (int16_t) sqrt(268435456 - ((s->angularPosB * s->angularPosB) + (s->angularPosC * s->angularPosC) + (s->angularPosD * s->angularPosD)));
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1462,88 +1524,6 @@ LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_PerReques
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
 	}}
 
-LIBFREESPACE_API int freespace_decodeBodyFrameV2(const uint8_t* message, int length, struct freespace_BodyFrameV2* s, uint8_t ver) {
-	uint8_t offset = 1;
-
-	s->ver = ver;
-
-	switch(ver) {
-		case 2:
-            if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
-                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-            }
-            if ((uint8_t) message[0] != 32) {
-                return FREESPACE_ERROR_MALFORMED_MESSAGE;
-            }
-			offset = 4;
-			s->len = message[1];
-			s->dest = message[2];
-			s->src = message[3];
-			s->button1 = getBit(message[0 + offset], 0);
-			s->button2 = getBit(message[0 + offset], 1);
-			s->button3 = getBit(message[0 + offset], 2);
-			s->button4 = getBit(message[0 + offset], 3);
-			s->button5 = getBit(message[0 + offset], 4);
-			s->button6 = getBit(message[0 + offset], 5);
-			s->button7 = getBit(message[0 + offset], 6);
-			s->button8 = getBit(message[0 + offset], 7);
-			s->deltaX = toInt8(&message[1 + offset]);
-			s->deltaY = toInt8(&message[2 + offset]);
-			s->deltaWheel = toInt8(&message[3 + offset]);
-			s->sequenceNumber = toUint16(&message[4 + offset]);
-			s->linearAccelX = toInt16(&message[6 + offset]);
-			s->linearAccelY = toInt16(&message[8 + offset]);
-			s->linearAccelZ = toInt16(&message[10 + offset]);
-			s->angularVelX = toInt16(&message[12 + offset]);
-			s->angularVelY = toInt16(&message[14 + offset]);
-			s->angularVelZ = toInt16(&message[16 + offset]);
-			return FREESPACE_SUCCESS;
-		default:
-			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
-	}
-}
-
-LIBFREESPACE_API int freespace_decodeUserFrameV2(const uint8_t* message, int length, struct freespace_UserFrameV2* s, uint8_t ver) {
-	uint8_t offset = 1;
-
-	s->ver = ver;
-
-	switch(ver) {
-		case 2:
-            if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
-                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-            }
-            if ((uint8_t) message[0] != 33) {
-                return FREESPACE_ERROR_MALFORMED_MESSAGE;
-            }
-			offset = 4;
-			s->len = message[1];
-			s->dest = message[2];
-			s->src = message[3];
-			s->button1 = getBit(message[0 + offset], 0);
-			s->button2 = getBit(message[0 + offset], 1);
-			s->button3 = getBit(message[0 + offset], 2);
-			s->button4 = getBit(message[0 + offset], 3);
-			s->button5 = getBit(message[0 + offset], 4);
-			s->button6 = getBit(message[0 + offset], 5);
-			s->button7 = getBit(message[0 + offset], 6);
-			s->button8 = getBit(message[0 + offset], 7);
-			s->deltaX = toInt8(&message[1 + offset]);
-			s->deltaY = toInt8(&message[2 + offset]);
-			s->deltaWheel = toInt8(&message[3 + offset]);
-			s->sequenceNumber = toUint16(&message[4 + offset]);
-			s->linearPosX = toInt16(&message[6 + offset]);
-			s->linearPosY = toInt16(&message[8 + offset]);
-			s->linearPosZ = toInt16(&message[10 + offset]);
-			s->angularPosB = toInt16(&message[12 + offset]);
-			s->angularPosC = toInt16(&message[14 + offset]);
-			s->angularPosD = toInt16(&message[16 + offset]);
-			return FREESPACE_SUCCESS;
-		default:
-			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
-	}
-}
-
 LIBFREESPACE_API int freespace_decodeBodyUserFrame(const uint8_t* message, int length, struct freespace_BodyUserFrame* s, uint8_t ver) {
 	uint8_t offset = 1;
 
@@ -1696,11 +1676,11 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                             return FREESPACE_ERROR_MALFORMED_MESSAGE;
                     }
 				case 32:
-                    s->messageType = FREESPACE_MESSAGE_BODYFRAMEV2;
-                    return freespace_decodeBodyFrameV2(message, length, &(s->bodyFrameV2), ver);
+                    s->messageType = FREESPACE_MESSAGE_BODYFRAME;
+                    return freespace_decodeBodyFrame(message, length, &(s->bodyFrame), ver);
 				case 33:
-                    s->messageType = FREESPACE_MESSAGE_USERFRAMEV2;
-                    return freespace_decodeUserFrameV2(message, length, &(s->userFrameV2), ver);
+                    s->messageType = FREESPACE_MESSAGE_USERFRAME;
+                    return freespace_decodeUserFrame(message, length, &(s->userFrame), ver);
 				case 34:
                     s->messageType = FREESPACE_MESSAGE_BODYUSERFRAME;
                     return freespace_decodeBodyUserFrame(message, length, &(s->bodyUserFrame), ver);

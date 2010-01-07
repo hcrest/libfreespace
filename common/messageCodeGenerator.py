@@ -70,6 +70,7 @@ class MessageCodeGenerator:
         codecsCFile = open("freespace_codecs.c", "w")
         self.writeCFileHeader(codecsCFile, 'freespace_codecs')
         codecsCFile.write('#include <stdio.h>\n')
+        codecsCFile.write('#include <math.h>\n')
         codecsCFile.write('\n#ifdef _WIN32\n')
         codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
         codecsCFile.write('#else\n')
@@ -592,6 +593,8 @@ def writeEncodeBody(message, fields, outFile):
                 
             # Message fields
             for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    continue
                 elementSize = field['size']
                 if field['name'] == 'RESERVED':
                     byteCounter += elementSize
@@ -685,6 +688,8 @@ def writeDecodeBody(message, fields, outFile):
 '''%message.ID[v]['subId']['id'])
                 byteCounter += 1
             for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    continue
                 elementSize = field['size']
                 if field['name'] == 'RESERVED':
                     byteCounter += elementSize
@@ -719,6 +724,9 @@ def writeDecodeBody(message, fields, outFile):
                     byteCounter += 1
                 else:
                     print ("Unrecognized field type in %s\n" % message.name)
+            for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    outFile.write(specialCaseCode(field['synthesized']))
             outFile.write("\t\t\treturn FREESPACE_SUCCESS;\n")
     # Default case
     outFile.write("\t\tdefault:\n")
@@ -837,6 +845,17 @@ def writeCloseExternC(outHeader):
     outHeader.write('}\n')
     outHeader.write('#endif\n')
 
+#----------------------- Special Case Code ----------------------------
+def specialCaseCode(case):
+    if case == 'case_A':
+        # Calculate the A value of the quaternion
+        # A = sqrt(16384**2 - (B**2 + C**2 + D**2))
+        specialCode = "\t\t\ts->angularPosA = (int16_t) sqrt(268435456 - ((s->angularPosB * s->angularPosB) + (s->angularPosC * s->angularPosC) + (s->angularPosD * s->angularPosD)));\n"
+    else:
+        print ("Unrecognized special case: %s" % case)
+        specialCode =  "Unknown code goes here."
+        
+    return specialCode
 # ---------------------- Main function --------------------------------
 # Courtesy of Guido: http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 class Usage(Exception):
