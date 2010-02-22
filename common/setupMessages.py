@@ -867,6 +867,29 @@ PerRequest.Fields[2] = [
 messages.append(PerRequest)
 
 # ---------------------------------------------------------------------------------------
+# Button Test Mode Request Message
+ButtonTestModeRequest = Message("ButtonTestModeRequest", encode=True)
+ButtonTestModeRequest.Documentation = "Configures button test mode for manufacturing test station."
+ButtonTestModeRequest.addedVersion = "0.5.0"
+ButtonTestModeRequest.deprecatedVersion = ""
+ButtonTestModeRequest.removedVersion = ""
+ButtonTestModeRequest.appliesTo = [10001602, 10002286, 10002288]
+ButtonTestModeRequest.ID[1] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:81}
+}
+ButtonTestModeRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:17}
+}
+ButtonTestModeRequest.Fields[1] = [
+    {name:"enable",     size:1, cType:'uint8_t', Documentation:"0: exit button test mode. 1: enter button test mode."}
+]
+ButtonTestModeRequest.Fields[2] = ButtonTestModeRequest.Fields[1]
+
+messages.append(ButtonTestModeRequest)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
@@ -1261,4 +1284,29 @@ PerResponse.Fields[2] = [
     {name:"frError", size:4, cType:'uint32_t', Documentation:"Number of frame errors detected during the test.  A frame error occurred if both slave-to-master messages in a frame were errors.  Maximum 1 per frame."}
 ]
 messages.append(PerResponse)
+
+# ---------------------------------------------------------------------------------------
+# Button Test Mode Response Message
+ButtonTestModeResponse = Message("ButtonTestModeResponse", decode=True)
+ButtonTestModeResponse.Documentation = "Report button status changes and acknowledge button mode request message."
+ButtonTestModeResponse.addedVersion = "0.5.0"
+ButtonTestModeResponse.deprecatedVersion = ""
+ButtonTestModeResponse.removedVersion = ""
+ButtonTestModeResponse.appliesTo = [10001602, 10002286, 10002288]
+ButtonTestModeResponse.ID[1] = {
+    ConstantID:8,
+    SubMessageID:{size:1, id:81}
+}
+ButtonTestModeResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:17}
+}
+ButtonTestModeResponse.Fields[1] = [
+    {name:"status",     size:1, cType:'uint8_t', Documentation:"0: ack exit test mode. 1: ack enter test mode.  2: button update."},
+    {name:"button",     size:1, cType:'uint8_t', Documentation:"0 - 15: number of button pressed or released.  Only valid when status = update."},
+    {name:"press",      size:1, cType:'uint8_t', Documentation:"0: button released. 1: button pressed.  Only valid when status = update."}
+]
+ButtonTestModeResponse.Fields[2] = ButtonTestModeResponse.Fields[1]
+
+messages.append(ButtonTestModeResponse)
 

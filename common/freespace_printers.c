@@ -77,6 +77,9 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     case FREESPACE_MESSAGE_DATAMODERESPONSE:
         freespace_printDataModeResponse(fp, &(s->dataModeResponse));
         break;
+    case FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE:
+        freespace_printButtonTestModeResponse(fp, &(s->buttonTestModeResponse));
+        break;
     case FREESPACE_MESSAGE_BATTERYLEVEL:
         freespace_printBatteryLevel(fp, &(s->batteryLevel));
         break;
@@ -792,6 +795,36 @@ LIBFREESPACE_API int freespace_printDataModeRequest(FILE* fp, const struct frees
 }
 
 
+LIBFREESPACE_API int freespace_printButtonTestModeRequestStr(char* dest, int maxlen, const struct freespace_ButtonTestModeRequest* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "ButtonTestModeRequest(enable=%d)", s->enable);
+#else
+    n = sprintf(dest, "ButtonTestModeRequest(enable=%d)", s->enable);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printButtonTestModeRequest(FILE* fp, const struct freespace_ButtonTestModeRequest* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printButtonTestModeRequestStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printPairingResponseStr(char* dest, int maxlen, const struct freespace_PairingResponse* s) {
     int n;
     if (s == NULL) {
@@ -1115,6 +1148,36 @@ LIBFREESPACE_API int freespace_printDataModeResponse(FILE* fp, const struct free
         return FREESPACE_ERROR_UNEXPECTED;
     }
     rc = freespace_printDataModeResponseStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
+LIBFREESPACE_API int freespace_printButtonTestModeResponseStr(char* dest, int maxlen, const struct freespace_ButtonTestModeResponse* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "ButtonTestModeResponse(status=%d press=%d button=%d)", s->status, s->press, s->button);
+#else
+    n = sprintf(dest, "ButtonTestModeResponse(status=%d press=%d button=%d)", s->status, s->press, s->button);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printButtonTestModeResponse(FILE* fp, const struct freespace_ButtonTestModeResponse* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printButtonTestModeResponseStr(str, sizeof(str), s);
     if (rc < 0) {
         return rc;
     }

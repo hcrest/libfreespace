@@ -442,6 +442,23 @@ LIBFREESPACE_API int freespace_printDataModeRequest(FILE* fp, const struct frees
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
+LIBFREESPACE_API int freespace_printButtonTestModeRequestStr(char* dest, int maxlen, const struct freespace_ButtonTestModeRequest* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printButtonTestModeRequest(FILE* fp, const struct freespace_ButtonTestModeRequest* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
 LIBFREESPACE_API int freespace_printPairingResponseStr(char* dest, int maxlen, const struct freespace_PairingResponse* s);
 /**
  * Print message to a file pointer.
@@ -620,6 +637,23 @@ LIBFREESPACE_API int freespace_printDataModeResponseStr(char* dest, int maxlen, 
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
 LIBFREESPACE_API int freespace_printDataModeResponse(FILE* fp, const struct freespace_DataModeResponse* s);
+
+
+/**
+ * Print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printButtonTestModeResponseStr(char* dest, int maxlen, const struct freespace_ButtonTestModeResponse* s);
+/**
+ * Print message to a file pointer.
+ * @param fp the destination file pointer
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printButtonTestModeResponse(FILE* fp, const struct freespace_ButtonTestModeResponse* s);
 
 
 /**

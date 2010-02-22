@@ -654,6 +654,31 @@ struct freespace_DataModeRequest {
 LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_DataModeRequest* s, uint8_t* message, int maxlength);
 
 /**   @ingroup messages 
+ * Configures button test mode for manufacturing test station.
+ */
+struct freespace_ButtonTestModeRequest {
+	uint8_t ver; /* HID protocol version */
+	uint8_t len; /* Length, used in version 2 only */
+	uint8_t dest; /* Destination, used in version 2 only */
+	uint8_t src; /* Source, used in version 2 only */
+
+	uint8_t enable;
+};
+
+
+/** @ingroup messages
+ * Encode a ButtonTestModeRequest message.
+ *
+ * @param s the freespace_ButtonTestModeRequest struct
+ * @param message the string to put the encoded message into
+ * @param maxlength the maximum length of the message
+ * @param dest the destination device address for the message
+ * @param ver the protocol version to use for this message
+ * @return the actual size of the encoded message or an error code
+ */
+LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespace_ButtonTestModeRequest* s, uint8_t* message, int maxlength);
+
+/**   @ingroup messages 
  * Pairing response is used to either respond to pairing requests from the host or to send pairing status updates to the host that describe events during the pairing process.
  */
 struct freespace_PairingResponse {
@@ -971,6 +996,31 @@ struct freespace_DataModeResponse {
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, int length, struct freespace_DataModeResponse* s, uint8_t ver);
+
+/**   @ingroup messages 
+ * Report button status changes and acknowledge button mode request message.
+ */
+struct freespace_ButtonTestModeResponse {
+	uint8_t ver; /* HID protocol version */
+	uint8_t len; /* Length, used in version 2 only */
+	uint8_t dest; /* Destination, used in version 2 only */
+	uint8_t src; /* Source, used in version 2 only */
+
+	uint8_t status;
+	uint8_t press;
+	uint8_t button;
+};
+
+
+/** @ingroup messages
+ * Decode a ButtonTestModeResponse message. Fill out the corresponding values in struct s.
+ *
+ * @param message the message to decode that was received from the Freespace device
+ * @param length the length of the received message
+ * @param s the preallocated freespace_ButtonTestModeResponse struct to decode into
+ * @return FREESPACE_SUCCESS or an error
+ */
+LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* message, int length, struct freespace_ButtonTestModeResponse* s, uint8_t ver);
 
 /**   @ingroup messages 
  * Sent by the host to request the battery status of the handheld unit.
@@ -1423,31 +1473,33 @@ enum MessageTypes {
     FREESPACE_MESSAGE_FRSEFLASHWRITEDATA = 20,
     FREESPACE_MESSAGE_DONGLERFENABLEMESSAGE = 21,
     FREESPACE_MESSAGE_DATAMODEREQUEST = 22,
-    FREESPACE_MESSAGE_PAIRINGRESPONSE = 23,
-    FREESPACE_MESSAGE_PRODUCTIDRESPONSE = 24,
-    FREESPACE_MESSAGE_LINKSTATUS = 25,
-    FREESPACE_MESSAGE_ALWAYSONRESPONSE = 26,
-    FREESPACE_MESSAGE_FRSLOOPREADRESPONSE = 27,
-    FREESPACE_MESSAGE_FRSLOOPWRITERESPONSE = 28,
-    FREESPACE_MESSAGE_FRSDONGLEREADRESPONSE = 29,
-    FREESPACE_MESSAGE_FRSDONGLEWRITERESPONSE = 30,
-    FREESPACE_MESSAGE_FRSEFLASHREADRESPONSE = 31,
-    FREESPACE_MESSAGE_FRSEFLASHWRITERESPONSE = 32,
-    FREESPACE_MESSAGE_DATAMODERESPONSE = 33,
-    FREESPACE_MESSAGE_BATTERYLEVELREQUEST = 34,
-    FREESPACE_MESSAGE_BATTERYLEVEL = 35,
-    FREESPACE_MESSAGE_BODYFRAME = 36,
-    FREESPACE_MESSAGE_USERFRAME = 37,
-    FREESPACE_MESSAGE_DATAMOTIONCONTROL = 38,
-    FREESPACE_MESSAGE_FRSWRITERESPONSE = 39,
-    FREESPACE_MESSAGE_FRSREADRESPONSE = 40,
-    FREESPACE_MESSAGE_PERRESPONSE = 41,
-    FREESPACE_MESSAGE_BATTERYLEVELREQUESTV2 = 42,
-    FREESPACE_MESSAGE_FRSWRITEREQUEST = 43,
-    FREESPACE_MESSAGE_FRSWRITEDATA = 44,
-    FREESPACE_MESSAGE_FRSREADREQUEST = 45,
-    FREESPACE_MESSAGE_PERREQUEST = 46,
-    FREESPACE_MESSAGE_BODYUSERFRAME = 47,
+    FREESPACE_MESSAGE_BUTTONTESTMODEREQUEST = 23,
+    FREESPACE_MESSAGE_PAIRINGRESPONSE = 24,
+    FREESPACE_MESSAGE_PRODUCTIDRESPONSE = 25,
+    FREESPACE_MESSAGE_LINKSTATUS = 26,
+    FREESPACE_MESSAGE_ALWAYSONRESPONSE = 27,
+    FREESPACE_MESSAGE_FRSLOOPREADRESPONSE = 28,
+    FREESPACE_MESSAGE_FRSLOOPWRITERESPONSE = 29,
+    FREESPACE_MESSAGE_FRSDONGLEREADRESPONSE = 30,
+    FREESPACE_MESSAGE_FRSDONGLEWRITERESPONSE = 31,
+    FREESPACE_MESSAGE_FRSEFLASHREADRESPONSE = 32,
+    FREESPACE_MESSAGE_FRSEFLASHWRITERESPONSE = 33,
+    FREESPACE_MESSAGE_DATAMODERESPONSE = 34,
+    FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE = 35,
+    FREESPACE_MESSAGE_BATTERYLEVELREQUEST = 36,
+    FREESPACE_MESSAGE_BATTERYLEVEL = 37,
+    FREESPACE_MESSAGE_BODYFRAME = 38,
+    FREESPACE_MESSAGE_USERFRAME = 39,
+    FREESPACE_MESSAGE_DATAMOTIONCONTROL = 40,
+    FREESPACE_MESSAGE_FRSWRITERESPONSE = 41,
+    FREESPACE_MESSAGE_FRSREADRESPONSE = 42,
+    FREESPACE_MESSAGE_PERRESPONSE = 43,
+    FREESPACE_MESSAGE_BATTERYLEVELREQUESTV2 = 44,
+    FREESPACE_MESSAGE_FRSWRITEREQUEST = 45,
+    FREESPACE_MESSAGE_FRSWRITEDATA = 46,
+    FREESPACE_MESSAGE_FRSREADREQUEST = 47,
+    FREESPACE_MESSAGE_PERREQUEST = 48,
+    FREESPACE_MESSAGE_BODYUSERFRAME = 49,
 };
 
 /** @ingroup messages
@@ -1480,6 +1532,7 @@ struct freespace_message {
 		struct freespace_FRSEFlashWriteData fRSEFlashWriteData;
 		struct freespace_DongleRFEnableMessage dongleRFEnableMessage;
 		struct freespace_DataModeRequest dataModeRequest;
+		struct freespace_ButtonTestModeRequest buttonTestModeRequest;
 		struct freespace_PairingResponse pairingResponse;
 		struct freespace_ProductIDResponse productIDResponse;
 		struct freespace_LinkStatus linkStatus;
@@ -1491,6 +1544,7 @@ struct freespace_message {
 		struct freespace_FRSEFlashReadResponse fRSEFlashReadResponse;
 		struct freespace_FRSEFlashWriteResponse fRSEFlashWriteResponse;
 		struct freespace_DataModeResponse dataModeResponse;
+		struct freespace_ButtonTestModeResponse buttonTestModeResponse;
 		struct freespace_BatteryLevelRequest batteryLevelRequest;
 		struct freespace_BatteryLevel batteryLevel;
 		struct freespace_BodyFrame bodyFrame;

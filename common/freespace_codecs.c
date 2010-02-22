@@ -703,6 +703,37 @@ LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_Data
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
 	}}
 
+LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespace_ButtonTestModeRequest* s, uint8_t* message, int maxlength) {
+
+	uint8_t offset = 1;
+
+	switch(s->ver) {
+		case 1:
+			if (maxlength < 3) {
+				printf("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
+				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+			}
+			message[0] = (uint8_t) 7;
+			message[0 + offset] = (uint8_t) 81;
+			message[1 + offset] = s->enable >> 0;
+			return 2 + offset;
+		case 2:
+			if (maxlength < 6) {
+				printf("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
+				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+			}
+			message[0] = (uint8_t) 7;
+			message[2] = s->dest;
+			message[3] = 0;
+			offset = 4;
+			message[0 + offset] = (uint8_t) 17;
+			message[1 + offset] = s->enable >> 0;
+			message[1] = 2 + offset;
+			return 2 + offset;
+		default:
+			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
+	}}
+
 LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int length, struct freespace_PairingResponse* s, uint8_t ver) {
 	uint8_t offset = 1;
 
@@ -1091,6 +1122,51 @@ LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, in
 			s->disableFreespace = getBit(message[1 + offset], 4);
 			s->SDA = getBit(message[1 + offset], 5);
 			s->aggregate = getBit(message[1 + offset], 6);
+			return FREESPACE_SUCCESS;
+		default:
+			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
+	}
+}
+
+LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* message, int length, struct freespace_ButtonTestModeResponse* s, uint8_t ver) {
+	uint8_t offset = 1;
+
+	s->ver = ver;
+
+	switch(ver) {
+		case 1:
+            if ((STRICT_DECODE_LENGTH && length != 5) || (!STRICT_DECODE_LENGTH && length < 5)) {
+                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+            }
+            if ((uint8_t) message[0] != 8) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+
+            if ((uint8_t) message[offset] != 81) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+			s->status = toUint8(&message[1 + offset]);
+			s->button = toUint8(&message[2 + offset]);
+			s->press = toUint8(&message[3 + offset]);
+			return FREESPACE_SUCCESS;
+		case 2:
+            if ((STRICT_DECODE_LENGTH && length != 8) || (!STRICT_DECODE_LENGTH && length < 8)) {
+                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+            }
+            if ((uint8_t) message[0] != 5) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+			offset = 4;
+			s->len = message[1];
+			s->dest = message[2];
+			s->src = message[3];
+
+            if ((uint8_t) message[offset] != 17) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+			s->status = toUint8(&message[1 + offset]);
+			s->button = toUint8(&message[2 + offset]);
+			s->press = toUint8(&message[3 + offset]);
 			return FREESPACE_SUCCESS;
 		default:
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
@@ -1624,6 +1700,9 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                         case 73:
                             s->messageType = FREESPACE_MESSAGE_DATAMODERESPONSE;
                             return freespace_decodeDataModeResponse(message, length, &(s->dataModeResponse), ver);
+                        case 81:
+                            s->messageType = FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE;
+                            return freespace_decodeButtonTestModeResponse(message, length, &(s->buttonTestModeResponse), ver);
                         default:
                             return FREESPACE_ERROR_MALFORMED_MESSAGE;
                     }
@@ -1652,6 +1731,9 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                         case 4:
                             s->messageType = FREESPACE_MESSAGE_DATAMODERESPONSE;
                             return freespace_decodeDataModeResponse(message, length, &(s->dataModeResponse), ver);
+                        case 17:
+                            s->messageType = FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE;
+                            return freespace_decodeButtonTestModeResponse(message, length, &(s->buttonTestModeResponse), ver);
                         case 5:
                             s->messageType = FREESPACE_MESSAGE_BATTERYLEVEL;
                             return freespace_decodeBatteryLevel(message, length, &(s->batteryLevel), ver);
