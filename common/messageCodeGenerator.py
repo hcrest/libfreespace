@@ -211,7 +211,7 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
                 continue
             outFile.write('''
     case %(enumName)s:
-        freespace_print%(messageName)s(fp, &(s->%(structName)s));
+        freespace_print%(messageName)s(fp, &(s->msg.%(structName)s));
         break;'''%{'enumName':message.enumName, 
                                                                              'messageName':message.name, 
                                                                              'structName':message.structName})
@@ -274,7 +274,7 @@ struct freespace_message {
         for message in messages:
             file.write("\n\t\tstruct freespace_%(name)s %(varName)s;"%{'name':message.name, 'varName':message.structName})
         file.write('''
-    };
+    } msg;
 };
 
 /** @ingroup messages
@@ -290,12 +290,14 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 /** @ingroup messages
  * Encode an arbitrary message.
  *
- * @param s the freespace_message struct
- * @param message the string to put the encoded message into
- * @param maxlength the maximum length of the message
+ * @param hVer the HID protocol version to use to encode the message
+ * @param message the freespace_message struct
+ * @param msgBuf the buffer to put the encoded message into
+ * @param maxLength the maximum length of the encoded message (i.e sizeof(*msgBuf))
+ * @param dest the HCOMM destination address to send the message to
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxLength, uint8_t dest);
 
 ''')
         
@@ -307,7 +309,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
     }
 
     switch (ver) {\n''')
-        subIdMap = [1, 1, 4] # A lookup table that tells where in the messge to find the sub ID. The HID version is the index to the table.
+        subIdMap = [1, 1, 4] # A lookup table that tells where in the message to find the sub ID. The HID version is the index to the table.
         for v in range(3):
             usedIDs = []
             file.write("\t\tcase %d:\n" % v)
@@ -328,7 +330,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                             file.write('''
                         case %(subId)d:
                             s->messageType = %(messageType)s;
-                            return freespace_decode%(subName)s(message, length, &(s->%(unionStruct)s), ver);'''
+                            return freespace_decode%(subName)s(message, length, &(s->msg.%(unionStruct)s), ver);'''
                             %{'subId':subMessage.ID[v]['subId']['id'],
                            'subName':subMessage.name,
                            'unionStruct':subMessage.structName,
@@ -341,7 +343,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                 else:
                     file.write('''
                     s->messageType = %(messageType)s;
-                    return freespace_decode%(name)s(message, length, &(s->%(unionStruct)s), ver);
+                    return freespace_decode%(name)s(message, length, &(s->msg.%(unionStruct)s), ver);
 '''%{'messageType':message.enumName,
                      'name':message.name,
                      'unionStruct':message.structName})
@@ -357,22 +359,26 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 }
 ''')
         
-#        file.write('''
-#LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength) {
-#    switch (s->messageType) {''')
-#        for message in messages:
-#            if (not message.encode) or (not message.hasUnReservedFields()) or (not message.shouldGenerate):
-#                continue
-#            file.write('''
-#    case %(enumName)s:
-#        return freespace_encode%(messageName)s(&(s->%(structName)s), message, maxlength);'''%{'enumName':message.enumName, 
-#                                                                                            'messageName':message.name, 
-#                                                                                            'structName':message.structName})
-#        file.write('''
-#    default:
-#        return -1;
-#    }
-#}''')
+        file.write('''
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxlength, uint8_t dest) {
+    switch (message->messageType) {''')
+        for message in messages:
+            if (not message.encode):
+                continue
+            file.write('''
+        case %(enumName)s:
+            message->msg.%(structName)s.ver = hVer;
+            message->msg.%(structName)s.dest = dest;
+            message->msg.%(structName)s.src = 0;
+            return freespace_encode%(messageName)s(&(message->msg.%(structName)s), msgBuf, maxlength);'''%{'structName':message.structName,
+                                                                                                           'enumName':message.enumName, 
+                                                                                                           'messageName':message.name, 
+                                                                                                           'structName':message.structName})
+        file.write('''
+        default:
+            return -1;
+        }
+}''')
 
 
 

@@ -1559,7 +1559,7 @@ struct freespace_message {
 		struct freespace_FRSReadRequest fRSReadRequest;
 		struct freespace_PerRequest perRequest;
 		struct freespace_BodyUserFrame bodyUserFrame;
-    };
+    } msg;
 };
 
 /** @ingroup messages
@@ -1575,12 +1575,14 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 /** @ingroup messages
  * Encode an arbitrary message.
  *
- * @param s the freespace_message struct
- * @param message the string to put the encoded message into
- * @param maxlength the maximum length of the message
+ * @param hVer the HID protocol version to use to encode the message
+ * @param message the freespace_message struct
+ * @param msgBuf the buffer to put the encoded message into
+ * @param maxLength the maximum length of the encoded message (i.e sizeof(*msgBuf))
+ * @param dest the HCOMM destination address to send the message to
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxLength, uint8_t dest);
 
 #ifdef __cplusplus
 }

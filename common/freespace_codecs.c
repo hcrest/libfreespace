@@ -1664,57 +1664,57 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 			switch(message[0]) {
 				case 6:
                     s->messageType = FREESPACE_MESSAGE_COPROCESSORINREPORT;
-                    return freespace_decodeCoprocessorInReport(message, length, &(s->coprocessorInReport), ver);
+                    return freespace_decodeCoprocessorInReport(message, length, &(s->msg.coprocessorInReport), ver);
 				case 8:
                     switch (message[1]) {
                         case 13:
                             s->messageType = FREESPACE_MESSAGE_PAIRINGRESPONSE;
-                            return freespace_decodePairingResponse(message, length, &(s->pairingResponse), ver);
+                            return freespace_decodePairingResponse(message, length, &(s->msg.pairingResponse), ver);
                         case 32:
                             s->messageType = FREESPACE_MESSAGE_PRODUCTIDRESPONSE;
-                            return freespace_decodeProductIDResponse(message, length, &(s->productIDResponse), ver);
+                            return freespace_decodeProductIDResponse(message, length, &(s->msg.productIDResponse), ver);
                         case 48:
                             s->messageType = FREESPACE_MESSAGE_LINKSTATUS;
-                            return freespace_decodeLinkStatus(message, length, &(s->linkStatus), ver);
+                            return freespace_decodeLinkStatus(message, length, &(s->msg.linkStatus), ver);
                         case 49:
                             s->messageType = FREESPACE_MESSAGE_ALWAYSONRESPONSE;
-                            return freespace_decodeAlwaysOnResponse(message, length, &(s->alwaysOnResponse), ver);
+                            return freespace_decodeAlwaysOnResponse(message, length, &(s->msg.alwaysOnResponse), ver);
                         case 58:
                             s->messageType = FREESPACE_MESSAGE_FRSLOOPREADRESPONSE;
-                            return freespace_decodeFRSLoopReadResponse(message, length, &(s->fRSLoopReadResponse), ver);
+                            return freespace_decodeFRSLoopReadResponse(message, length, &(s->msg.fRSLoopReadResponse), ver);
                         case 61:
                             s->messageType = FREESPACE_MESSAGE_FRSLOOPWRITERESPONSE;
-                            return freespace_decodeFRSLoopWriteResponse(message, length, &(s->fRSLoopWriteResponse), ver);
+                            return freespace_decodeFRSLoopWriteResponse(message, length, &(s->msg.fRSLoopWriteResponse), ver);
                         case 59:
                             s->messageType = FREESPACE_MESSAGE_FRSDONGLEREADRESPONSE;
-                            return freespace_decodeFRSDongleReadResponse(message, length, &(s->fRSDongleReadResponse), ver);
+                            return freespace_decodeFRSDongleReadResponse(message, length, &(s->msg.fRSDongleReadResponse), ver);
                         case 62:
                             s->messageType = FREESPACE_MESSAGE_FRSDONGLEWRITERESPONSE;
-                            return freespace_decodeFRSDongleWriteResponse(message, length, &(s->fRSDongleWriteResponse), ver);
+                            return freespace_decodeFRSDongleWriteResponse(message, length, &(s->msg.fRSDongleWriteResponse), ver);
                         case 65:
                             s->messageType = FREESPACE_MESSAGE_FRSEFLASHREADRESPONSE;
-                            return freespace_decodeFRSEFlashReadResponse(message, length, &(s->fRSEFlashReadResponse), ver);
+                            return freespace_decodeFRSEFlashReadResponse(message, length, &(s->msg.fRSEFlashReadResponse), ver);
                         case 66:
                             s->messageType = FREESPACE_MESSAGE_FRSEFLASHWRITERESPONSE;
-                            return freespace_decodeFRSEFlashWriteResponse(message, length, &(s->fRSEFlashWriteResponse), ver);
+                            return freespace_decodeFRSEFlashWriteResponse(message, length, &(s->msg.fRSEFlashWriteResponse), ver);
                         case 73:
                             s->messageType = FREESPACE_MESSAGE_DATAMODERESPONSE;
-                            return freespace_decodeDataModeResponse(message, length, &(s->dataModeResponse), ver);
+                            return freespace_decodeDataModeResponse(message, length, &(s->msg.dataModeResponse), ver);
                         case 81:
                             s->messageType = FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE;
-                            return freespace_decodeButtonTestModeResponse(message, length, &(s->buttonTestModeResponse), ver);
+                            return freespace_decodeButtonTestModeResponse(message, length, &(s->msg.buttonTestModeResponse), ver);
                         default:
                             return FREESPACE_ERROR_MALFORMED_MESSAGE;
                     }
 				case 10:
                     s->messageType = FREESPACE_MESSAGE_BATTERYLEVEL;
-                    return freespace_decodeBatteryLevel(message, length, &(s->batteryLevel), ver);
+                    return freespace_decodeBatteryLevel(message, length, &(s->msg.batteryLevel), ver);
 				case 32:
                     s->messageType = FREESPACE_MESSAGE_BODYFRAME;
-                    return freespace_decodeBodyFrame(message, length, &(s->bodyFrame), ver);
+                    return freespace_decodeBodyFrame(message, length, &(s->msg.bodyFrame), ver);
 				case 33:
                     s->messageType = FREESPACE_MESSAGE_USERFRAME;
-                    return freespace_decodeUserFrame(message, length, &(s->userFrame), ver);
+                    return freespace_decodeUserFrame(message, length, &(s->msg.userFrame), ver);
                 default:
                     return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
@@ -1724,22 +1724,22 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                     switch (message[4]) {
                         case 2:
                             s->messageType = FREESPACE_MESSAGE_PAIRINGRESPONSE;
-                            return freespace_decodePairingResponse(message, length, &(s->pairingResponse), ver);
+                            return freespace_decodePairingResponse(message, length, &(s->msg.pairingResponse), ver);
                         case 3:
                             s->messageType = FREESPACE_MESSAGE_LINKSTATUS;
-                            return freespace_decodeLinkStatus(message, length, &(s->linkStatus), ver);
+                            return freespace_decodeLinkStatus(message, length, &(s->msg.linkStatus), ver);
                         case 4:
                             s->messageType = FREESPACE_MESSAGE_DATAMODERESPONSE;
-                            return freespace_decodeDataModeResponse(message, length, &(s->dataModeResponse), ver);
+                            return freespace_decodeDataModeResponse(message, length, &(s->msg.dataModeResponse), ver);
                         case 17:
                             s->messageType = FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE;
-                            return freespace_decodeButtonTestModeResponse(message, length, &(s->buttonTestModeResponse), ver);
+                            return freespace_decodeButtonTestModeResponse(message, length, &(s->msg.buttonTestModeResponse), ver);
                         case 5:
                             s->messageType = FREESPACE_MESSAGE_BATTERYLEVEL;
-                            return freespace_decodeBatteryLevel(message, length, &(s->batteryLevel), ver);
+                            return freespace_decodeBatteryLevel(message, length, &(s->msg.batteryLevel), ver);
                         case 6:
                             s->messageType = FREESPACE_MESSAGE_FRSWRITERESPONSE;
-                            return freespace_decodeFRSWriteResponse(message, length, &(s->fRSWriteResponse), ver);
+                            return freespace_decodeFRSWriteResponse(message, length, &(s->msg.fRSWriteResponse), ver);
                         default:
                             return FREESPACE_ERROR_MALFORMED_MESSAGE;
                     }
@@ -1747,25 +1747,25 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                     switch (message[4]) {
                         case 9:
                             s->messageType = FREESPACE_MESSAGE_PRODUCTIDRESPONSE;
-                            return freespace_decodeProductIDResponse(message, length, &(s->productIDResponse), ver);
+                            return freespace_decodeProductIDResponse(message, length, &(s->msg.productIDResponse), ver);
                         case 8:
                             s->messageType = FREESPACE_MESSAGE_FRSREADRESPONSE;
-                            return freespace_decodeFRSReadResponse(message, length, &(s->fRSReadResponse), ver);
+                            return freespace_decodeFRSReadResponse(message, length, &(s->msg.fRSReadResponse), ver);
                         case 16:
                             s->messageType = FREESPACE_MESSAGE_PERRESPONSE;
-                            return freespace_decodePerResponse(message, length, &(s->perResponse), ver);
+                            return freespace_decodePerResponse(message, length, &(s->msg.perResponse), ver);
                         default:
                             return FREESPACE_ERROR_MALFORMED_MESSAGE;
                     }
 				case 32:
                     s->messageType = FREESPACE_MESSAGE_BODYFRAME;
-                    return freespace_decodeBodyFrame(message, length, &(s->bodyFrame), ver);
+                    return freespace_decodeBodyFrame(message, length, &(s->msg.bodyFrame), ver);
 				case 33:
                     s->messageType = FREESPACE_MESSAGE_USERFRAME;
-                    return freespace_decodeUserFrame(message, length, &(s->userFrame), ver);
+                    return freespace_decodeUserFrame(message, length, &(s->msg.userFrame), ver);
 				case 34:
                     s->messageType = FREESPACE_MESSAGE_BODYUSERFRAME;
-                    return freespace_decodeBodyUserFrame(message, length, &(s->bodyUserFrame), ver);
+                    return freespace_decodeBodyUserFrame(message, length, &(s->msg.bodyUserFrame), ver);
                 default:
                     return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
@@ -1773,4 +1773,161 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
     default:
         return FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
     }
+}
+
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxlength, uint8_t dest) {
+    switch (message->messageType) {
+        case FREESPACE_MESSAGE_COPROCESSOROUTREPORT:
+            message->msg.coprocessorOutReport.ver = hVer;
+            message->msg.coprocessorOutReport.dest = dest;
+            message->msg.coprocessorOutReport.src = 0;
+            return freespace_encodeCoprocessorOutReport(&(message->msg.coprocessorOutReport), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_PAIRINGMESSAGE:
+            message->msg.pairingMessage.ver = hVer;
+            message->msg.pairingMessage.dest = dest;
+            message->msg.pairingMessage.src = 0;
+            return freespace_encodePairingMessage(&(message->msg.pairingMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_PRODUCTIDREQUEST:
+            message->msg.productIDRequest.ver = hVer;
+            message->msg.productIDRequest.dest = dest;
+            message->msg.productIDRequest.src = 0;
+            return freespace_encodeProductIDRequest(&(message->msg.productIDRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_LEDSETREQUEST:
+            message->msg.lEDSetRequest.ver = hVer;
+            message->msg.lEDSetRequest.dest = dest;
+            message->msg.lEDSetRequest.src = 0;
+            return freespace_encodeLEDSetRequest(&(message->msg.lEDSetRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_LINKQUALITYREQUEST:
+            message->msg.linkQualityRequest.ver = hVer;
+            message->msg.linkQualityRequest.dest = dest;
+            message->msg.linkQualityRequest.src = 0;
+            return freespace_encodeLinkQualityRequest(&(message->msg.linkQualityRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_ALWAYSONREQUEST:
+            message->msg.alwaysOnRequest.ver = hVer;
+            message->msg.alwaysOnRequest.dest = dest;
+            message->msg.alwaysOnRequest.src = 0;
+            return freespace_encodeAlwaysOnRequest(&(message->msg.alwaysOnRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FREQUENCYFIXREQUEST:
+            message->msg.frequencyFixRequest.ver = hVer;
+            message->msg.frequencyFixRequest.dest = dest;
+            message->msg.frequencyFixRequest.src = 0;
+            return freespace_encodeFrequencyFixRequest(&(message->msg.frequencyFixRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_SOFTWARERESETMESSAGE:
+            message->msg.softwareResetMessage.ver = hVer;
+            message->msg.softwareResetMessage.dest = dest;
+            message->msg.softwareResetMessage.src = 0;
+            return freespace_encodeSoftwareResetMessage(&(message->msg.softwareResetMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_DONGLERFDISABLEMESSAGE:
+            message->msg.dongleRFDisableMessage.ver = hVer;
+            message->msg.dongleRFDisableMessage.dest = dest;
+            message->msg.dongleRFDisableMessage.src = 0;
+            return freespace_encodeDongleRFDisableMessage(&(message->msg.dongleRFDisableMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_TXDISABLEMESSAGE:
+            message->msg.txDisableMessage.ver = hVer;
+            message->msg.txDisableMessage.dest = dest;
+            message->msg.txDisableMessage.src = 0;
+            return freespace_encodeTxDisableMessage(&(message->msg.txDisableMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_DONGLERFSUPRESSHOMEFREQUENCYMESSAGE:
+            message->msg.dongleRFSupressHomeFrequencyMessage.ver = hVer;
+            message->msg.dongleRFSupressHomeFrequencyMessage.dest = dest;
+            message->msg.dongleRFSupressHomeFrequencyMessage.src = 0;
+            return freespace_encodeDongleRFSupressHomeFrequencyMessage(&(message->msg.dongleRFSupressHomeFrequencyMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSLOOPREADREQUEST:
+            message->msg.fRSLoopReadRequest.ver = hVer;
+            message->msg.fRSLoopReadRequest.dest = dest;
+            message->msg.fRSLoopReadRequest.src = 0;
+            return freespace_encodeFRSLoopReadRequest(&(message->msg.fRSLoopReadRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSLOOPWRITEREQUEST:
+            message->msg.fRSLoopWriteRequest.ver = hVer;
+            message->msg.fRSLoopWriteRequest.dest = dest;
+            message->msg.fRSLoopWriteRequest.src = 0;
+            return freespace_encodeFRSLoopWriteRequest(&(message->msg.fRSLoopWriteRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSLOOPWRITEDATA:
+            message->msg.fRSLoopWriteData.ver = hVer;
+            message->msg.fRSLoopWriteData.dest = dest;
+            message->msg.fRSLoopWriteData.src = 0;
+            return freespace_encodeFRSLoopWriteData(&(message->msg.fRSLoopWriteData), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSDONGLEREADREQUEST:
+            message->msg.fRSDongleReadRequest.ver = hVer;
+            message->msg.fRSDongleReadRequest.dest = dest;
+            message->msg.fRSDongleReadRequest.src = 0;
+            return freespace_encodeFRSDongleReadRequest(&(message->msg.fRSDongleReadRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSDONGLEWRITEREQUEST:
+            message->msg.fRSDongleWriteRequest.ver = hVer;
+            message->msg.fRSDongleWriteRequest.dest = dest;
+            message->msg.fRSDongleWriteRequest.src = 0;
+            return freespace_encodeFRSDongleWriteRequest(&(message->msg.fRSDongleWriteRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSDONGLEWRITEDATA:
+            message->msg.fRSDongleWriteData.ver = hVer;
+            message->msg.fRSDongleWriteData.dest = dest;
+            message->msg.fRSDongleWriteData.src = 0;
+            return freespace_encodeFRSDongleWriteData(&(message->msg.fRSDongleWriteData), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSEFLASHREADREQUEST:
+            message->msg.fRSEFlashReadRequest.ver = hVer;
+            message->msg.fRSEFlashReadRequest.dest = dest;
+            message->msg.fRSEFlashReadRequest.src = 0;
+            return freespace_encodeFRSEFlashReadRequest(&(message->msg.fRSEFlashReadRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSEFLASHWRITEREQUEST:
+            message->msg.fRSEFlashWriteRequest.ver = hVer;
+            message->msg.fRSEFlashWriteRequest.dest = dest;
+            message->msg.fRSEFlashWriteRequest.src = 0;
+            return freespace_encodeFRSEFlashWriteRequest(&(message->msg.fRSEFlashWriteRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSEFLASHWRITEDATA:
+            message->msg.fRSEFlashWriteData.ver = hVer;
+            message->msg.fRSEFlashWriteData.dest = dest;
+            message->msg.fRSEFlashWriteData.src = 0;
+            return freespace_encodeFRSEFlashWriteData(&(message->msg.fRSEFlashWriteData), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_DONGLERFENABLEMESSAGE:
+            message->msg.dongleRFEnableMessage.ver = hVer;
+            message->msg.dongleRFEnableMessage.dest = dest;
+            message->msg.dongleRFEnableMessage.src = 0;
+            return freespace_encodeDongleRFEnableMessage(&(message->msg.dongleRFEnableMessage), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_DATAMODEREQUEST:
+            message->msg.dataModeRequest.ver = hVer;
+            message->msg.dataModeRequest.dest = dest;
+            message->msg.dataModeRequest.src = 0;
+            return freespace_encodeDataModeRequest(&(message->msg.dataModeRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_BUTTONTESTMODEREQUEST:
+            message->msg.buttonTestModeRequest.ver = hVer;
+            message->msg.buttonTestModeRequest.dest = dest;
+            message->msg.buttonTestModeRequest.src = 0;
+            return freespace_encodeButtonTestModeRequest(&(message->msg.buttonTestModeRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_BATTERYLEVELREQUEST:
+            message->msg.batteryLevelRequest.ver = hVer;
+            message->msg.batteryLevelRequest.dest = dest;
+            message->msg.batteryLevelRequest.src = 0;
+            return freespace_encodeBatteryLevelRequest(&(message->msg.batteryLevelRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_DATAMOTIONCONTROL:
+            message->msg.dataMotionControl.ver = hVer;
+            message->msg.dataMotionControl.dest = dest;
+            message->msg.dataMotionControl.src = 0;
+            return freespace_encodeDataMotionControl(&(message->msg.dataMotionControl), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_BATTERYLEVELREQUESTV2:
+            message->msg.batteryLevelRequestV2.ver = hVer;
+            message->msg.batteryLevelRequestV2.dest = dest;
+            message->msg.batteryLevelRequestV2.src = 0;
+            return freespace_encodeBatteryLevelRequestV2(&(message->msg.batteryLevelRequestV2), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSWRITEREQUEST:
+            message->msg.fRSWriteRequest.ver = hVer;
+            message->msg.fRSWriteRequest.dest = dest;
+            message->msg.fRSWriteRequest.src = 0;
+            return freespace_encodeFRSWriteRequest(&(message->msg.fRSWriteRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSWRITEDATA:
+            message->msg.fRSWriteData.ver = hVer;
+            message->msg.fRSWriteData.dest = dest;
+            message->msg.fRSWriteData.src = 0;
+            return freespace_encodeFRSWriteData(&(message->msg.fRSWriteData), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_FRSREADREQUEST:
+            message->msg.fRSReadRequest.ver = hVer;
+            message->msg.fRSReadRequest.dest = dest;
+            message->msg.fRSReadRequest.src = 0;
+            return freespace_encodeFRSReadRequest(&(message->msg.fRSReadRequest), msgBuf, maxlength);
+        case FREESPACE_MESSAGE_PERREQUEST:
+            message->msg.perRequest.ver = hVer;
+            message->msg.perRequest.dest = dest;
+            message->msg.perRequest.src = 0;
+            return freespace_encodePerRequest(&(message->msg.perRequest), msgBuf, maxlength);
+        default:
+            return -1;
+        }
 }

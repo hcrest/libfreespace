@@ -91,6 +91,14 @@ static const struct FreespaceDeviceAPI deviceAPITable[] = {
     { 0x1d5a, 0xc071, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MCV)"},
     { 0x1d5a, 0xc022, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKV)"},
     { 0x1d5a, 0xc073, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKCV)"},
+    { 0x1d5a, 0xc080, 1, 2, {{4, 0xff01}, {0, 0}}, "USB Freespace Module (MV)"},
+    { 0x1d5a, 0xc100, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP160"},
+    { 0x1d5a, 0xc101, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP260"},
+    { 0x1d5a, 0xc102, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U160"},
+    { 0x1d5a, 0xc103, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U260"},
+    { 0x1d5a, 0xc104, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP160"},
+    { 0x1d5a, 0xc105, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP260"},
+    { 0x1d5a, 0xc200, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
 };
 
 
