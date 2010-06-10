@@ -42,64 +42,64 @@ void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_
 void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     switch(s->messageType) {
     case FREESPACE_MESSAGE_COPROCESSORINREPORT:
-        freespace_printCoprocessorInReport(fp, &(s->msg.coprocessorInReport));
+        freespace_printCoprocessorInReport(fp, &(s->coprocessorInReport));
         break;
     case FREESPACE_MESSAGE_PAIRINGRESPONSE:
-        freespace_printPairingResponse(fp, &(s->msg.pairingResponse));
+        freespace_printPairingResponse(fp, &(s->pairingResponse));
         break;
     case FREESPACE_MESSAGE_PRODUCTIDRESPONSE:
-        freespace_printProductIDResponse(fp, &(s->msg.productIDResponse));
+        freespace_printProductIDResponse(fp, &(s->productIDResponse));
         break;
     case FREESPACE_MESSAGE_LINKSTATUS:
-        freespace_printLinkStatus(fp, &(s->msg.linkStatus));
+        freespace_printLinkStatus(fp, &(s->linkStatus));
         break;
     case FREESPACE_MESSAGE_ALWAYSONRESPONSE:
-        freespace_printAlwaysOnResponse(fp, &(s->msg.alwaysOnResponse));
+        freespace_printAlwaysOnResponse(fp, &(s->alwaysOnResponse));
         break;
     case FREESPACE_MESSAGE_FRSLOOPREADRESPONSE:
-        freespace_printFRSLoopReadResponse(fp, &(s->msg.fRSLoopReadResponse));
+        freespace_printFRSLoopReadResponse(fp, &(s->fRSLoopReadResponse));
         break;
     case FREESPACE_MESSAGE_FRSLOOPWRITERESPONSE:
-        freespace_printFRSLoopWriteResponse(fp, &(s->msg.fRSLoopWriteResponse));
+        freespace_printFRSLoopWriteResponse(fp, &(s->fRSLoopWriteResponse));
         break;
     case FREESPACE_MESSAGE_FRSDONGLEREADRESPONSE:
-        freespace_printFRSDongleReadResponse(fp, &(s->msg.fRSDongleReadResponse));
+        freespace_printFRSDongleReadResponse(fp, &(s->fRSDongleReadResponse));
         break;
     case FREESPACE_MESSAGE_FRSDONGLEWRITERESPONSE:
-        freespace_printFRSDongleWriteResponse(fp, &(s->msg.fRSDongleWriteResponse));
+        freespace_printFRSDongleWriteResponse(fp, &(s->fRSDongleWriteResponse));
         break;
     case FREESPACE_MESSAGE_FRSEFLASHREADRESPONSE:
-        freespace_printFRSEFlashReadResponse(fp, &(s->msg.fRSEFlashReadResponse));
+        freespace_printFRSEFlashReadResponse(fp, &(s->fRSEFlashReadResponse));
         break;
     case FREESPACE_MESSAGE_FRSEFLASHWRITERESPONSE:
-        freespace_printFRSEFlashWriteResponse(fp, &(s->msg.fRSEFlashWriteResponse));
+        freespace_printFRSEFlashWriteResponse(fp, &(s->fRSEFlashWriteResponse));
         break;
     case FREESPACE_MESSAGE_DATAMODERESPONSE:
-        freespace_printDataModeResponse(fp, &(s->msg.dataModeResponse));
+        freespace_printDataModeResponse(fp, &(s->dataModeResponse));
         break;
     case FREESPACE_MESSAGE_BUTTONTESTMODERESPONSE:
-        freespace_printButtonTestModeResponse(fp, &(s->msg.buttonTestModeResponse));
+        freespace_printButtonTestModeResponse(fp, &(s->buttonTestModeResponse));
         break;
     case FREESPACE_MESSAGE_BATTERYLEVEL:
-        freespace_printBatteryLevel(fp, &(s->msg.batteryLevel));
+        freespace_printBatteryLevel(fp, &(s->batteryLevel));
         break;
     case FREESPACE_MESSAGE_BODYFRAME:
-        freespace_printBodyFrame(fp, &(s->msg.bodyFrame));
+        freespace_printBodyFrame(fp, &(s->bodyFrame));
         break;
     case FREESPACE_MESSAGE_USERFRAME:
-        freespace_printUserFrame(fp, &(s->msg.userFrame));
+        freespace_printUserFrame(fp, &(s->userFrame));
         break;
     case FREESPACE_MESSAGE_FRSWRITERESPONSE:
-        freespace_printFRSWriteResponse(fp, &(s->msg.fRSWriteResponse));
+        freespace_printFRSWriteResponse(fp, &(s->fRSWriteResponse));
         break;
     case FREESPACE_MESSAGE_FRSREADRESPONSE:
-        freespace_printFRSReadResponse(fp, &(s->msg.fRSReadResponse));
+        freespace_printFRSReadResponse(fp, &(s->fRSReadResponse));
         break;
     case FREESPACE_MESSAGE_PERRESPONSE:
-        freespace_printPerResponse(fp, &(s->msg.perResponse));
+        freespace_printPerResponse(fp, &(s->perResponse));
         break;
     case FREESPACE_MESSAGE_BODYUSERFRAME:
-        freespace_printBodyUserFrame(fp, &(s->msg.bodyUserFrame));
+        freespace_printBodyUserFrame(fp, &(s->bodyUserFrame));
         break;
     default:
         return;
@@ -1418,36 +1418,6 @@ LIBFREESPACE_API int freespace_printPerResponse(FILE* fp, const struct freespace
         return FREESPACE_ERROR_UNEXPECTED;
     }
     rc = freespace_printPerResponseStr(str, sizeof(str), s);
-    if (rc < 0) {
-        return rc;
-    }
-    return fprintf(fp, "%s\n", str);
-}
-
-
-LIBFREESPACE_API int freespace_printBatteryLevelRequestV2Str(char* dest, int maxlen, const struct freespace_BatteryLevelRequestV2* s) {
-    int n;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-#ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "BatteryLevelRequestV2()");
-#else
-    n = sprintf(dest, "BatteryLevelRequestV2()");
-#endif
-    if (n < 0) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    return n;
-}
-
-LIBFREESPACE_API int freespace_printBatteryLevelRequestV2(FILE* fp, const struct freespace_BatteryLevelRequestV2* s) {
-    char str[1024];
-    int rc;
-    if (s == NULL) {
-        return FREESPACE_ERROR_UNEXPECTED;
-    }
-    rc = freespace_printBatteryLevelRequestV2Str(str, sizeof(str), s);
     if (rc < 0) {
         return rc;
     }

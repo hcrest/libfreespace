@@ -211,7 +211,7 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
                 continue
             outFile.write('''
     case %(enumName)s:
-        freespace_print%(messageName)s(fp, &(s->msg.%(structName)s));
+        freespace_print%(messageName)s(fp, &(s->%(structName)s));
         break;'''%{'enumName':message.enumName, 
                                                                              'messageName':message.name, 
                                                                              'structName':message.structName})
@@ -274,7 +274,7 @@ struct freespace_message {
         for message in messages:
             file.write("\n\t\tstruct freespace_%(name)s %(varName)s;"%{'name':message.name, 'varName':message.structName})
         file.write('''
-    } msg;
+    };
 };
 
 /** @ingroup messages
@@ -330,7 +330,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                             file.write('''
                         case %(subId)d:
                             s->messageType = %(messageType)s;
-                            return freespace_decode%(subName)s(message, length, &(s->msg.%(unionStruct)s), ver);'''
+                            return freespace_decode%(subName)s(message, length, &(s->%(unionStruct)s), ver);'''
                             %{'subId':subMessage.ID[v]['subId']['id'],
                            'subName':subMessage.name,
                            'unionStruct':subMessage.structName,
@@ -343,7 +343,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                 else:
                     file.write('''
                     s->messageType = %(messageType)s;
-                    return freespace_decode%(name)s(message, length, &(s->msg.%(unionStruct)s), ver);
+                    return freespace_decode%(name)s(message, length, &(s->%(unionStruct)s), ver);
 '''%{'messageType':message.enumName,
                      'name':message.name,
                      'unionStruct':message.structName})
@@ -367,13 +367,13 @@ LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespa
                 continue
             file.write('''
         case %(enumName)s:
-            message->msg.%(structName)s.ver = hVer;
-            message->msg.%(structName)s.dest = dest;
-            message->msg.%(structName)s.src = 0;
-            return freespace_encode%(messageName)s(&(message->msg.%(structName)s), msgBuf, maxlength);'''%{'structName':message.structName,
-                                                                                                           'enumName':message.enumName, 
-                                                                                                           'messageName':message.name, 
-                                                                                                           'structName':message.structName})
+            message->%(structName)s.ver = hVer;
+            message->%(structName)s.dest = dest;
+            message->%(structName)s.src = 0;
+            return freespace_encode%(messageName)s(&(message->%(structName)s), msgBuf, maxlength);'''%{'structName':message.structName,
+                                                                                                       'enumName':message.enumName, 
+                                                                                                       'messageName':message.name, 
+                                                                                                       'structName':message.structName})
         file.write('''
         default:
             return -1;

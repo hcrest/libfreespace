@@ -1268,30 +1268,6 @@ struct freespace_PerResponse {
 LIBFREESPACE_API int freespace_decodePerResponse(const uint8_t* message, int length, struct freespace_PerResponse* s, uint8_t ver);
 
 /**   @ingroup messages 
- * Sent by the host to request the battery status of the handheld unit.
- */
-struct freespace_BatteryLevelRequestV2 {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
-
-};
-
-
-/** @ingroup messages
- * Encode a BatteryLevelRequestV2 message.
- *
- * @param s the freespace_BatteryLevelRequestV2 struct
- * @param message the string to put the encoded message into
- * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
- * @return the actual size of the encoded message or an error code
- */
-LIBFREESPACE_API int freespace_encodeBatteryLevelRequestV2(const struct freespace_BatteryLevelRequestV2* s, uint8_t* message, int maxlength);
-
-/**   @ingroup messages 
  * This is sent from the host towards the device to initiate a flash record write.
 	A length of 0 will cause the record to be invalidated.
  */
@@ -1494,12 +1470,11 @@ enum MessageTypes {
     FREESPACE_MESSAGE_FRSWRITERESPONSE = 41,
     FREESPACE_MESSAGE_FRSREADRESPONSE = 42,
     FREESPACE_MESSAGE_PERRESPONSE = 43,
-    FREESPACE_MESSAGE_BATTERYLEVELREQUESTV2 = 44,
-    FREESPACE_MESSAGE_FRSWRITEREQUEST = 45,
-    FREESPACE_MESSAGE_FRSWRITEDATA = 46,
-    FREESPACE_MESSAGE_FRSREADREQUEST = 47,
-    FREESPACE_MESSAGE_PERREQUEST = 48,
-    FREESPACE_MESSAGE_BODYUSERFRAME = 49,
+    FREESPACE_MESSAGE_FRSWRITEREQUEST = 44,
+    FREESPACE_MESSAGE_FRSWRITEDATA = 45,
+    FREESPACE_MESSAGE_FRSREADREQUEST = 46,
+    FREESPACE_MESSAGE_PERREQUEST = 47,
+    FREESPACE_MESSAGE_BODYUSERFRAME = 48,
 };
 
 /** @ingroup messages
@@ -1553,13 +1528,12 @@ struct freespace_message {
 		struct freespace_FRSWriteResponse fRSWriteResponse;
 		struct freespace_FRSReadResponse fRSReadResponse;
 		struct freespace_PerResponse perResponse;
-		struct freespace_BatteryLevelRequestV2 batteryLevelRequestV2;
 		struct freespace_FRSWriteRequest fRSWriteRequest;
 		struct freespace_FRSWriteData fRSWriteData;
 		struct freespace_FRSReadRequest fRSReadRequest;
 		struct freespace_PerRequest perRequest;
 		struct freespace_BodyUserFrame bodyUserFrame;
-    } msg;
+    };
 };
 
 /** @ingroup messages

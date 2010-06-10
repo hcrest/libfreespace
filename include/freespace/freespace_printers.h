@@ -799,23 +799,6 @@ LIBFREESPACE_API int freespace_printPerResponse(FILE* fp, const struct freespace
  * @param s the struct to print
  * @return the number of characters actually printed, or an error if it tries to print more than maxlen
  */
-LIBFREESPACE_API int freespace_printBatteryLevelRequestV2Str(char* dest, int maxlen, const struct freespace_BatteryLevelRequestV2* s);
-/**
- * Print message to a file pointer.
- * @param fp the destination file pointer
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
-LIBFREESPACE_API int freespace_printBatteryLevelRequestV2(FILE* fp, const struct freespace_BatteryLevelRequestV2* s);
-
-
-/**
- * Print message struct to string dest, with maximum length maxlen.
- * @param dest the destination string
- * @param maxlen the length of the passed in string
- * @param s the struct to print
- * @return the number of characters actually printed, or an error if it tries to print more than maxlen
- */
 LIBFREESPACE_API int freespace_printFRSWriteRequestStr(char* dest, int maxlen, const struct freespace_FRSWriteRequest* s);
 /**
  * Print message to a file pointer.

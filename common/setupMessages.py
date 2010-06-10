@@ -121,30 +121,21 @@ BatteryLevelRequest.Documentation = "Sent by the host to request the battery sta
 BatteryLevelRequest.addedVersion = "1.0.0"
 BatteryLevelRequest.deprecatedVersion = ""
 BatteryLevelRequest.removedVersion = ""
-BatteryLevelRequest.appliesTo = [10001602]
+BatteryLevelRequest.appliesTo = [10001602, 10002286]
 BatteryLevelRequest.ID[1] = {
     ConstantID:9
+}
+BatteryLevelRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:5}
 }
 BatteryLevelRequest.Fields[1] = [
     {name:RESERVED, size:1}
 ]
+BatteryLevelRequest.Fields[2] = [
+]
 
 messages.append(BatteryLevelRequest)
-
-# ---------------------------------------------------------------------------------------
-# Battery Level Request V2 Message
-BatteryLevelRequestV2 = Message("BatteryLevelRequestV2", encode=True)
-BatteryLevelRequestV2.Documentation = "Sent by the host to request the battery status of the handheld unit."
-BatteryLevelRequestV2.addedVersion = ""
-BatteryLevelRequestV2.deprecatedVersion = ""
-BatteryLevelRequestV2.removedVersion = ""
-BatteryLevelRequestV2.appliesTo = []
-BatteryLevelRequestV2.ID[2] = {
-    ConstantID:7,
-    SubMessageID:{size:1, id:5}
-}
-
-messages.append(BatteryLevelRequestV2)
 
 # ---------------------------------------------------------------------------------------
 # Battery Level Message
