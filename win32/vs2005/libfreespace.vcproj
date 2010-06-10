@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\common\freespace_deviceTable.c"
+				>
+			</File>
+			<File
 				RelativePath="..\freespace_discovery.c"
 				>
 			</File>
@@ -231,6 +235,10 @@
 			</File>
 			<File
 				RelativePath="..\freespace_deviceMgr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\freespace\freespace_deviceTable.h"
 				>
 			</File>
 			<File

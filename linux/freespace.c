@@ -19,6 +19,7 @@
  */
 
 #include "../include/freespace/freespace.h"
+#include "../include/freespace/freespace_deviceTable.h"
 #include "hotplug.h"
 #include "../config.h"
 
@@ -29,53 +30,6 @@
 #include <string.h>
 
 #define FREESPACE_RECEIVE_QUEUE_SIZE 8 // Could be tuned better. 3-4 might be good enough
-
-/**
- * Figure out which API to use depending on the reported
- * Freespace version.
- */
-struct FreespaceDeviceAPI {
-    // Set of devices with this version.
-    uint16_t idVendor_;
-    uint16_t idProduct_;
-
-    const char* name_;
-    int controlInterfaceNumber_;
-};
-
-/*
- * Naming convention:
- *   UserMeaningfulName vN (XXXX)
- *   N = USB interface version number
- *   XXXX = Advertised interfaces:
- *      M = Mouse
- *      K = Keyboard
- *      C = Consumer page
- *      V = Joined multi-axis and vendor-specific
- *      A = Separate multi-axis and vendor-specific (deprecated)
- */
-static struct FreespaceDeviceAPI deviceAPITable[] = {
-    { 0x1d5a, 0xc001, "Piranha", 0 },
-    { 0x1d5a, 0xc002, "Piranha bootloader", 0 },
-    { 0x1d5a, 0xc003, "Piranha factory test dongle", 0 },
-    { 0x1d5a, 0xc004, "Piranha sniffer dongle", 0 },
-    { 0x1d5a, 0xc005, "FSRK STM32F10x eval board (E)", 0 },
-    { 0x1d5a, 0xc006, "Cortex Bootloader", 0 },
-    { 0x1d5a, 0xc007, "FSRK Gen4 Dongle", 0 },
-    { 0x1d5a, 0xc008, "FSRK3 SPI to USB adapter board (S)", 0 },
-    { 0x1d5a, 0xc009, "FSRK3 Cascade RF to USB adapter board (R)", 0 },
-    { 0x1d5a, 0xc00a, "Coprocessor to USB adapter v1 (MA)", 0 },
-    { 0x1d5a, 0xc00b, "USB RF Transceiver v1 (MKCA)", 1 },
-    { 0x1d5a, 0xc00c, "SPI to USB adapter v1 (MA)", 1 },
-    { 0x1d5a, 0xc010, "USB RF Transceiver v1 (MV)", 1 },
-    { 0x1d5a, 0xc011, "USB RF Transceiver v1 (MCV)", 1 },
-    { 0x1d5a, 0xc012, "USB RF Transceiver v1 (MKV)", 1 },
-    { 0x1d5a, 0xc013, "USB RF Transceiver v1 (MKCV)", 1 },
-    { 0x1d5a, 0xc020, "SPI to USB adapter v1 (MV)", 1 },
-    { 0x1d5a, 0xc021, "SPI to USB adapter v1 (V)", 1 },
-    { 0x1d5a, 0xc030, "Coprocessor to USB adapter v1 (MV)", 1 },
-    { 0x1d5a, 0xc031, "Coprocessor to USB adapter v1 (V)", 1 },
-};
 
 /**
  * The device state is primarily used to keep track of FreespaceDevice allocations.
@@ -129,7 +83,7 @@ struct FreespaceDevice {
     uint16_t idProduct_;
     int kernelDriverDetached_;
 
-    struct FreespaceDeviceAPI* api_;
+    struct freespace_deviceAPI* api_;
     int writeEndpointAddress_;
     int readEndpointAddress_;
     int maxWriteSize_;
@@ -225,10 +179,10 @@ void freespace_exit() {
     freespace_hotplug_exit();
 }
 
-static struct FreespaceDeviceAPI* lookupDevice(struct libusb_device_descriptor* desc) {
+static struct freespace_deviceAPI* lookupDevice(struct libusb_device_descriptor* desc) {
     int i;
-    for (i = 0; i < (sizeof(deviceAPITable) / sizeof(struct FreespaceDeviceAPI)); i++) {
-        struct FreespaceDeviceAPI* api = &deviceAPITable[i];
+    for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
+        struct freespace_deviceAPI* api = &freespace_deviceAPITable[i];
         if (desc->idVendor == api->idVendor_ &&
             desc->idProduct == api->idProduct_) {
             return api;
@@ -306,7 +260,7 @@ static int scanDevices() {
     for (i = 0; i < count; i++) {
         struct libusb_device_descriptor desc;
         struct libusb_device* dev = devs[i];
-        struct FreespaceDeviceAPI* api;
+        struct freespace_deviceAPI* api;
 
         rc = libusb_get_device_descriptor(dev, &desc);
         if (rc < 0) {

@@ -23,6 +23,7 @@
 
 #include "freespace/freespace.h"
 #include "freespace/freespace_codecs.h"
+#include "freespace/freespace_deviceTable.h"
 
 // Define our debug printf statements
 #ifdef DEBUG
@@ -125,14 +126,6 @@ enum freespace_discoveryStatus {
     FREESPACE_DISCOVERY_STATUS_ADDED,
     FREESPACE_DISCOVERY_STATUS_REMOVED
 };
-
-/*
- * Define the maximum number of handles (interfaces) per device that
- * can be joined together as a single virtual device.
- * Changing this value requires changing the deviceAPITable definition 
- * in freespace_discoveryDetail.c
- */
-#define FREESPACE_HANDLE_COUNT_MAX 2
 
 // The information used to uniquely identify a device interface (handle).
 struct FreespaceDeviceInterfaceInfo {
