@@ -26,7 +26,15 @@
 #ifdef _WIN32
 #define STRICT_DECODE_LENGTH 0
 #else
-#define STRICT_DECODE_LENGTH -1
+#define STRICT_DECODE_LENGTH 0
+#endif
+
+#undef CODECS_PRINTF
+//#define CODECS_DEBUG
+#ifdef CODECS_DEBUG
+#define CODECS_PRINTF printf
+#else
+#define CODECS_PRINTF(...)
 #endif
 
 
@@ -96,7 +104,7 @@ LIBFREESPACE_API int freespace_encodeCoprocessorOutReport(const struct freespace
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 16) {
-				printf("freespace_CoprocessorOutReport encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_CoprocessorOutReport encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 5;
@@ -128,6 +136,7 @@ LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message,
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 16) || (!STRICT_DECODE_LENGTH && length < 16)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "CoprocessorInReport", 16, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 6) {
@@ -161,7 +170,7 @@ LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_Pairi
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_PairingMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_PairingMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -169,7 +178,7 @@ LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_Pairi
 			return 7 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_PairingMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_PairingMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -190,7 +199,7 @@ LIBFREESPACE_API int freespace_encodeProductIDRequest(const struct freespace_Pro
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_ProductIDRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_ProductIDRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -198,7 +207,7 @@ LIBFREESPACE_API int freespace_encodeProductIDRequest(const struct freespace_Pro
 			return 7 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_ProductIDRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_ProductIDRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -219,7 +228,7 @@ LIBFREESPACE_API int freespace_encodeLEDSetRequest(const struct freespace_LEDSet
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_LEDSetRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_LEDSetRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -229,7 +238,7 @@ LIBFREESPACE_API int freespace_encodeLEDSetRequest(const struct freespace_LEDSet
 			return 7 + offset;
 		case 2:
 			if (maxlength < 11) {
-				printf("freespace_LEDSetRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_LEDSetRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -252,7 +261,7 @@ LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_L
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_LinkQualityRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_LinkQualityRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -261,7 +270,7 @@ LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_L
 			return 7 + offset;
 		case 2:
 			if (maxlength < 11) {
-				printf("freespace_LinkQualityRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_LinkQualityRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -283,7 +292,7 @@ LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(const struct freespace_Alwa
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_AlwaysOnRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_AlwaysOnRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -300,7 +309,7 @@ LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FrequencyFixRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FrequencyFixRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -314,7 +323,7 @@ LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_
 			return 7 + offset;
 		case 2:
 			if (maxlength < 10) {
-				printf("freespace_FrequencyFixRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FrequencyFixRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -340,7 +349,7 @@ LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_SoftwareResetMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_SoftwareResetMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -358,7 +367,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespa
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_DongleRFDisableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFDisableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -366,7 +375,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespa
 			return 7 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_DongleRFDisableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFDisableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -387,7 +396,7 @@ LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_TxD
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 2) {
-				printf("freespace_TxDisableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_TxDisableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -395,7 +404,7 @@ LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_TxD
 			return 1 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_TxDisableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_TxDisableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -416,7 +425,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const s
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_DongleRFSupressHomeFrequencyMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFSupressHomeFrequencyMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -426,7 +435,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const s
 			return 7 + offset;
 		case 2:
 			if (maxlength < 11) {
-				printf("freespace_DongleRFSupressHomeFrequencyMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFSupressHomeFrequencyMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -449,7 +458,7 @@ LIBFREESPACE_API int freespace_encodeFRSLoopReadRequest(const struct freespace_F
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSLoopReadRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSLoopReadRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -472,7 +481,7 @@ LIBFREESPACE_API int freespace_encodeFRSLoopWriteRequest(const struct freespace_
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSLoopWriteRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSLoopWriteRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -493,7 +502,7 @@ LIBFREESPACE_API int freespace_encodeFRSLoopWriteData(const struct freespace_FRS
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSLoopWriteData encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSLoopWriteData encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -516,7 +525,7 @@ LIBFREESPACE_API int freespace_encodeFRSDongleReadRequest(const struct freespace
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSDongleReadRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSDongleReadRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -539,7 +548,7 @@ LIBFREESPACE_API int freespace_encodeFRSDongleWriteRequest(const struct freespac
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSDongleWriteRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSDongleWriteRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -560,7 +569,7 @@ LIBFREESPACE_API int freespace_encodeFRSDongleWriteData(const struct freespace_F
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSDongleWriteData encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSDongleWriteData encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -583,7 +592,7 @@ LIBFREESPACE_API int freespace_encodeFRSEFlashReadRequest(const struct freespace
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSEFlashReadRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSEFlashReadRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -606,7 +615,7 @@ LIBFREESPACE_API int freespace_encodeFRSEFlashWriteRequest(const struct freespac
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSEFlashWriteRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSEFlashWriteRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -627,7 +636,7 @@ LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_F
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_FRSEFlashWriteData encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSEFlashWriteData encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -650,7 +659,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(const struct freespac
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 8) {
-				printf("freespace_DongleRFEnableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFEnableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -658,7 +667,7 @@ LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(const struct freespac
 			return 7 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_DongleRFEnableMessage encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DongleRFEnableMessage encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -679,7 +688,7 @@ LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_Data
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 3) {
-				printf("freespace_DataModeRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DataModeRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -688,7 +697,7 @@ LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_Data
 			return 2 + offset;
 		case 2:
 			if (maxlength < 6) {
-				printf("freespace_DataModeRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DataModeRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -710,7 +719,7 @@ LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespac
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 3) {
-				printf("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -719,7 +728,7 @@ LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespac
 			return 2 + offset;
 		case 2:
 			if (maxlength < 6) {
-				printf("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_ButtonTestModeRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -742,6 +751,7 @@ LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "PairingResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -757,6 +767,7 @@ LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 12) || (!STRICT_DECODE_LENGTH && length < 12)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "PairingResponse", 12, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -787,6 +798,7 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "ProductIDResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -808,6 +820,7 @@ LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, i
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "ProductIDResponse", 22, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 6) {
@@ -844,6 +857,7 @@ LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int leng
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "LinkStatus", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -859,6 +873,7 @@ LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int leng
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 31) || (!STRICT_DECODE_LENGTH && length < 31)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "LinkStatus", 31, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -890,6 +905,7 @@ LIBFREESPACE_API int freespace_decodeAlwaysOnResponse(const uint8_t* message, in
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "AlwaysOnResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -913,6 +929,7 @@ LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const uint8_t* message,
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSLoopReadResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -945,6 +962,7 @@ LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSLoopWriteResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -970,6 +988,7 @@ LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* messag
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSDongleReadResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1002,6 +1021,7 @@ LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* messa
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSDongleWriteResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1027,6 +1047,7 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* messag
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSEFlashReadResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1059,6 +1080,7 @@ LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* messa
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 27) || (!STRICT_DECODE_LENGTH && length < 27)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSEFlashWriteResponse", 27, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1084,6 +1106,7 @@ LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, in
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 3) || (!STRICT_DECODE_LENGTH && length < 3)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "DataModeResponse", 3, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1102,6 +1125,7 @@ LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, in
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 6) || (!STRICT_DECODE_LENGTH && length < 6)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "DataModeResponse", 6, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -1136,6 +1160,7 @@ LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* messa
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 5) || (!STRICT_DECODE_LENGTH && length < 5)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "ButtonTestModeResponse", 5, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 8) {
@@ -1151,6 +1176,7 @@ LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* messa
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 8) || (!STRICT_DECODE_LENGTH && length < 8)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "ButtonTestModeResponse", 8, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -1180,14 +1206,14 @@ LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(const struct freespace_
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 2) {
-				printf("freespace_BatteryLevelRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_BatteryLevelRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 9;
 			return 1 + offset;
 		case 2:
 			if (maxlength < 5) {
-				printf("freespace_BatteryLevelRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_BatteryLevelRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -1209,6 +1235,7 @@ LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int le
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 4) || (!STRICT_DECODE_LENGTH && length < 4)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "BatteryLevel", 4, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 10) {
@@ -1218,6 +1245,7 @@ LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int le
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 6) || (!STRICT_DECODE_LENGTH && length < 6)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "BatteryLevel", 6, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -1246,6 +1274,7 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 21) || (!STRICT_DECODE_LENGTH && length < 21)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "BodyFrame", 21, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 32) {
@@ -1272,6 +1301,7 @@ LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int lengt
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "BodyFrame", 22, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 32) {
@@ -1313,6 +1343,7 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 	switch(ver) {
 		case 1:
             if ((STRICT_DECODE_LENGTH && length != 23) || (!STRICT_DECODE_LENGTH && length < 23)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "UserFrame", 23, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 33) {
@@ -1340,6 +1371,7 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 			return FREESPACE_SUCCESS;
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 24) || (!STRICT_DECODE_LENGTH && length < 24)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "UserFrame", 24, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 33) {
@@ -1381,7 +1413,7 @@ LIBFREESPACE_API int freespace_encodeDataMotionControl(const struct freespace_Da
 	switch(s->ver) {
 		case 1:
 			if (maxlength < 2) {
-				printf("freespace_DataMotionControl encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_DataMotionControl encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 34;
@@ -1399,6 +1431,7 @@ LIBFREESPACE_API int freespace_decodeFRSWriteResponse(const uint8_t* message, in
 	switch(ver) {
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 8) || (!STRICT_DECODE_LENGTH && length < 8)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSWriteResponse", 8, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 5) {
@@ -1428,6 +1461,7 @@ LIBFREESPACE_API int freespace_decodeFRSReadResponse(const uint8_t* message, int
 	switch(ver) {
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "FRSReadResponse", 22, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 6) {
@@ -1462,6 +1496,7 @@ LIBFREESPACE_API int freespace_decodePerResponse(const uint8_t* message, int len
 	switch(ver) {
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "PerResponse", 22, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 6) {
@@ -1492,7 +1527,7 @@ LIBFREESPACE_API int freespace_encodeFRSWriteRequest(const struct freespace_FRSW
 	switch(s->ver) {
 		case 2:
 			if (maxlength < 10) {
-				printf("freespace_FRSWriteRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSWriteRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -1517,7 +1552,7 @@ LIBFREESPACE_API int freespace_encodeFRSWriteData(const struct freespace_FRSWrit
 	switch(s->ver) {
 		case 2:
 			if (maxlength < 12) {
-				printf("freespace_FRSWriteData encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSWriteData encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -1544,7 +1579,7 @@ LIBFREESPACE_API int freespace_encodeFRSReadRequest(const struct freespace_FRSRe
 	switch(s->ver) {
 		case 2:
 			if (maxlength < 12) {
-				printf("freespace_FRSReadRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_FRSReadRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -1571,7 +1606,7 @@ LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_PerReques
 	switch(s->ver) {
 		case 2:
 			if (maxlength < 11) {
-				printf("freespace_PerRequest encode(<INVALID LENGTH>)\n");
+				CODECS_PRINTF("freespace_PerRequest encode(<INVALID LENGTH>)\n");
 				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
 			}
 			message[0] = (uint8_t) 7;
@@ -1599,6 +1634,7 @@ LIBFREESPACE_API int freespace_decodeBodyUserFrame(const uint8_t* message, int l
 	switch(ver) {
 		case 2:
             if ((STRICT_DECODE_LENGTH && length != 36) || (!STRICT_DECODE_LENGTH && length < 36)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "BodyUserFrame", 36, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 34) {

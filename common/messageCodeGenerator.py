@@ -74,7 +74,14 @@ class MessageCodeGenerator:
         codecsCFile.write('\n#ifdef _WIN32\n')
         codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
         codecsCFile.write('#else\n')
-        codecsCFile.write('#define STRICT_DECODE_LENGTH -1\n')
+        codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
+        codecsCFile.write('#endif\n\n')
+        codecsCFile.write('#undef CODECS_PRINTF\n')
+        codecsCFile.write('//#define CODECS_DEBUG\n')
+        codecsCFile.write('#ifdef CODECS_DEBUG\n')
+        codecsCFile.write('#define CODECS_PRINTF printf\n')
+        codecsCFile.write('#else\n')
+        codecsCFile.write('#define CODECS_PRINTF(...)\n')
         codecsCFile.write('#endif\n\n')
         self.writeBitHelper(codecsCFile)
         
@@ -582,7 +589,7 @@ def writeEncodeBody(message, fields, outFile):
             outFile.write("\t\tcase %d:\n"%v)
             # Check message buffer length
             outFile.write("\t\t\tif (maxlength < %d) {\n"%message.getMessageSize(v))
-            outFile.write('\t\t\t\tprintf("freespace_%s encode(<INVALID LENGTH>)\\n");\n'%message.name)
+            outFile.write('\t\t\t\tCODECS_PRINTF("freespace_%s encode(<INVALID LENGTH>)\\n");\n'%message.name)
             outFile.write('\t\t\t\treturn FREESPACE_ERROR_BUFFER_TOO_SMALL;\n')
             outFile.write("\t\t\t}\n")
             # Message ID
@@ -674,12 +681,13 @@ def writeDecodeBody(message, fields, outFile):
             # Code to check message buffer length and report ID
             if len(message.ID[v]):
                 outFile.write('''            if ((STRICT_DECODE_LENGTH && length != %(size)d) || (!STRICT_DECODE_LENGTH && length < %(size)d)) {
+                CODECS_PRINTF(\"Length mismatch for %%s.  Expected %%d.  Got %%d.\\n\", \"%(name)s\", %(size)d, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != %(id)d) {
                 return FREESPACE_ERROR_MALFORMED_MESSAGE;
             }
-'''%{'size':message.getMessageSize(v), 'id':message.ID[v]['constID']})
+'''%{'size':message.getMessageSize(v), 'id':message.ID[v]['constID'], 'name':message.name})
             if v == 2:
                 outFile.write("\t\t\toffset = 4;\n")
                 outFile.write("\t\t\ts->len = message[1];\n")
