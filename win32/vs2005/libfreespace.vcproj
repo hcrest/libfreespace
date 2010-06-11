@@ -230,6 +230,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\freespace\freespace_common.h"
+				>
+			</File>
+			<File
 				RelativePath="..\freespace_device.h"
 				>
 			</File>

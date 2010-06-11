@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -90,7 +90,9 @@ struct FreespaceDevice {
     int maxReadSize_;
 
     freespace_receiveCallback receiveCallback_;
+    freespace_receiveStructCallback receiveStructCallback_;
     void* receiveCookie_;
+    void* receiveStructCookie_;
 
     int receiveQueueHead_;
     struct FreespaceReceiveTransfer receiveQueue_[FREESPACE_RECEIVE_QUEUE_SIZE];
@@ -355,6 +357,7 @@ int freespace_getDeviceInfo(FreespaceDeviceId id,
         info->vendor = device->idVendor_;
         info->product = device->idProduct_;
         info->name = device->api_->name_;
+        info->hVer = device->api_->hVer_;
         return FREESPACE_SUCCESS;
     } else {
         return FREESPACE_ERROR_NOT_FOUND;
@@ -371,10 +374,22 @@ static void receiveCallback(struct libusb_transfer* transfer) {
         return;
     }
 
-    if (device->receiveCallback_ != NULL) {
+    if (device->receiveCallback_ != NULL || device->receiveStructCallback_ != NULL) {
         // Using async interface, so call user back immediately.
         int rc = libusb_transfer_status_to_freespace_error(transfer->status);
-        device->receiveCallback_(device->id_, (const uint8_t*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
+        if (device->receiveCallback_ != NULL) {
+            device->receiveCallback_(device->id_, (const uint8_t*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
+        }
+        if (device->receiveStructCallback_ != NULL) {
+            struct freespace_message m;
+            
+            rc = freespace_decode_message((const uint8_t*) transfer->buffer, transfer->actual_length, &m, device->api_->hVer_);
+            if (rc == FREESPACE_SUCCESS) {
+                device->receiveStructCallback_(device->id_, &m, device->receiveStructCookie_, FREESPACE_SUCCESS);
+            } else {
+                device->receiveStructCallback_(device->id_, NULL, device->receiveStructCookie_, rc);
+            }
+        }
 
         // Re-submit the transfer for the to get the next receive going.
         // NOTE: Can't handle any error returns here.
@@ -606,6 +621,31 @@ int freespace_send(FreespaceDeviceId id,
     return FREESPACE_SUCCESS;
 }
 
+int freespace_sendMessageStruct(FreespaceDeviceId id,
+                                struct freespace_message* message,
+                                freespace_address address) {
+    int rc;
+    uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
+    struct FreespaceDeviceInfo info;
+    
+    // Address is reserved for now and must be set to 0 by the caller.
+    if (address == 0) {
+        address = 4;
+    }
+
+    rc = freespace_getDeviceInfo(id, &info);
+    if (rc != FREESPACE_SUCCESS) {
+        return rc;
+    }
+    
+    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    if (rc <= FREESPACE_SUCCESS) {
+        return rc;
+    }
+    
+    return freespace_send(id, msgBuf, rc);
+}
+
 int freespace_read(FreespaceDeviceId id,
                    uint8_t* message,
                    int maxLength,
@@ -670,6 +710,28 @@ int freespace_read(FreespaceDeviceId id,
     }
 
     return rc;
+}
+
+int freespace_readMessageStruct(FreespaceDeviceId id,
+                                struct freespace_message* message,
+                                unsigned int timeoutMs) {
+    int rc;
+    uint8_t buffer[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+    int actLen;
+    struct FreespaceDeviceInfo info;
+    
+    rc = freespace_getDeviceInfo(id, &info);
+    if (rc != FREESPACE_SUCCESS) {
+        return rc;
+    }
+    
+    rc = freespace_read(id, buffer, sizeof(buffer), timeoutMs, &actLen);
+    
+    if (rc == FREESPACE_SUCCESS) {
+        return freespace_decode_message(buffer, actLen, message, info.hVer);
+    } else {
+        return rc;
+    }
 }
 
 int freespace_flush(FreespaceDeviceId id) {
@@ -793,6 +855,35 @@ int freespace_sendAsync(FreespaceDeviceId id,
 #endif
 }
 
+int freespace_sendMessageStructAsync(FreespaceDeviceId id,
+                                     struct freespace_message* message,
+                                     freespace_address address,
+                                     unsigned int timeoutMs,
+                                     freespace_sendCallback callback,
+                                     void* cookie) {
+
+    int rc;
+    uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
+    struct FreespaceDeviceInfo info;
+    
+    // Address is reserved for now and must be set to 0 by the caller.
+    if (address == 0) {
+        address = 4;
+    }
+    
+    rc = freespace_getDeviceInfo(id, &info);
+    if (rc != FREESPACE_SUCCESS) {
+        return rc;
+    }
+    
+    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    if (rc <= FREESPACE_SUCCESS) {
+        return rc;
+    }
+
+    return freespace_sendAsync(id, msgBuf, rc, timeoutMs, callback, cookie);
+}
+
 int freespace_getNextTimeout(int* timeoutMsOut) {
     struct timeval tv;
     int hotplugTimeout = freespace_hotplug_timeout();
@@ -906,3 +997,54 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
     }
     return FREESPACE_SUCCESS;
 }
+
+int freespace_setReceiveStructCallback(FreespaceDeviceId id,
+                                       freespace_receiveStructCallback callback,
+                                       void* cookie) {
+    struct FreespaceDevice* device = findDeviceById(id);
+    int wereInSyncMode;
+    int rc;
+
+    if (device == NULL) {
+        return FREESPACE_ERROR_NOT_FOUND;
+    }
+
+    wereInSyncMode = (device->receiveStructCallback_ == NULL);
+    device->receiveStructCallback_ = callback;
+    device->receiveStructCookie_ = cookie;
+
+    if (callback != NULL && wereInSyncMode && device->state_ == FREESPACE_OPENED) {
+        struct freespace_message m;
+        
+        // Transition from sync mode to async mode.
+
+        // Need to run the callback on all received messages.
+        struct FreespaceReceiveTransfer* rt;
+        rt = &device->receiveQueue_[device->receiveQueueHead_];
+        while (rt->submitted_ == 0) {
+            rc = freespace_decode_message((const uint8_t*) rt->buffer_, rt->transfer_->actual_length, &m, device->api_->hVer_);
+            if (rc == FREESPACE_SUCCESS) {
+                callback(device->id_,
+                         &m,
+                         cookie,
+                         libusb_transfer_status_to_freespace_error(rt->transfer_->status));
+            } else {
+                callback(device->id_,
+                         NULL,
+                         cookie,
+                         rc);
+            }
+
+            rt->submitted_ = 1;
+            libusb_submit_transfer(rt->transfer_);
+            device->receiveQueueHead_++;
+            if (device->receiveQueueHead_ >= FREESPACE_RECEIVE_QUEUE_SIZE) {
+                device->receiveQueueHead_ = 0;
+            }
+
+            rt = &device->receiveQueue_[device->receiveQueueHead_];
+        }
+    }
+    return FREESPACE_SUCCESS;
+}
+

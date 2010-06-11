@@ -696,22 +696,28 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 }
 
 LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
-                                                 struct freespace_message* message) {
+                                                 struct freespace_message* message,
+                                                 freespace_address address) {
 
     int retVal;
-    uint8_t* msgBuf = (uint8_t*) malloc(FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
+    uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
     
+    // Address is reserved for now and must be set to 0 by the caller.
+    if (address == 0) {
+        address = 4;
+    }
+
     retVal = freespace_getDeviceInfo(id, &info);
     if (retVal != FREESPACE_SUCCESS) {
         return retVal;
     }
     
-    retVal = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, 4);
+    retVal = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
     if (retVal <= FREESPACE_SUCCESS) {
         return retVal;
     }
-
+    
     return freespace_send(id, msgBuf, retVal);
 }
 
@@ -743,20 +749,26 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
 
 LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
                                                       struct freespace_message* message,
+                                                      freespace_address address,
                                                       unsigned int timeoutMs,
                                                       freespace_sendCallback callback,
                                                       void* cookie) {
 
     int retVal;
-    uint8_t* msgBuf = (uint8_t*) malloc(FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
+    uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
+    
+    // Address is reserved for now and must be set to 0 by the caller.
+    if (address == 0) {
+        address = 4;
+    }
     
     retVal = freespace_getDeviceInfo(id, &info);
     if (retVal != FREESPACE_SUCCESS) {
         return retVal;
     }
     
-    retVal = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, 4);
+    retVal = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
     if (retVal <= FREESPACE_SUCCESS) {
         return retVal;
     }
@@ -864,7 +876,7 @@ LIBFREESPACE_API int freespace_readMessageStruct(FreespaceDeviceId id,
     } else {
         return retVal;
     }
-												 }
+}
 
 LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id) {
     int idx;

@@ -2,7 +2,7 @@
 #
 # This file is part of libfreespace.
 #  
-# Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+# Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
 # 
 # libfreespace is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -167,7 +167,7 @@ static uint8_t byteFromBits(uint8_t lsb,
         outHeader.write("\n")
         writeIfndef(outHeader, name)
         outHeader.write("\n")
-        outHeader.write('#include "freespace/freespace.h"\n')
+        outHeader.write('#include "freespace/freespace_common.h"\n')
         outHeader.write("\n")
         writeExternC(outHeader)
         outHeader.write('\n')
@@ -816,7 +816,7 @@ def writeCopyright(outHeader):
     outHeader.write('''/*
  * This file is part of libfreespace.
  * 
- * Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+ * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
