@@ -62,6 +62,8 @@ class Message:
             size += self.ID[version]['subId']['size']
         if len(self.Fields[version]):
             for element in self.Fields[version]:
+                if element.has_key('synthesized'):
+                    continue
                 size += element['size']
         return size
     

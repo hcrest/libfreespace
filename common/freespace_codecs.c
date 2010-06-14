@@ -1370,8 +1370,8 @@ LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int lengt
 			s->angularPosD = toInt16(&message[20 + offset]);
 			return FREESPACE_SUCCESS;
 		case 2:
-            if ((STRICT_DECODE_LENGTH && length != 24) || (!STRICT_DECODE_LENGTH && length < 24)) {
-                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "UserFrame", 24, length);
+            if ((STRICT_DECODE_LENGTH && length != 22) || (!STRICT_DECODE_LENGTH && length < 22)) {
+                CODECS_PRINTF("Length mismatch for %s.  Expected %d.  Got %d.\n", "UserFrame", 22, length);
                 return FREESPACE_ERROR_BUFFER_TOO_SMALL;
             }
             if ((uint8_t) message[0] != 33) {
