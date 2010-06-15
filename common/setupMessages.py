@@ -2,7 +2,7 @@
 #
 # This file is part of libfreespace.
 #  
-# Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+# Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
 # 
 # libfreespace is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -179,7 +179,7 @@ BodyFrameMessage.ID[2] = {
     ConstantID:32
 }
 BodyFrameMessage.Fields[1] = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
     {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
@@ -193,7 +193,7 @@ BodyFrameMessage.Fields[1] = [
     {name:"angularVelZ",    size:2, cType:'int16_t'}
 ]
 BodyFrameMessage.Fields[2] = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
     {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
@@ -223,7 +223,7 @@ UserFrameMessage.ID[2] = {
     ConstantID:33
 }
 UserFrameMessage.Fields[1] = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
     {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
@@ -238,7 +238,7 @@ UserFrameMessage.Fields[1] = [
     {name:"angularPosD",    size:2, cType:'int16_t'}
 ]
 UserFrameMessage.Fields[2] = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
     {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
@@ -246,8 +246,8 @@ UserFrameMessage.Fields[2] = [
     {name:"linearPosX",     size:2, cType:'int16_t', Documentation:"Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference."},
     {name:"linearPosY",     size:2, cType:'int16_t'},
     {name:"linearPosZ",     size:2, cType:'int16_t'},
-    {name:"angularPosA",    size:2, cType:'int16_t', 'synthesized':'case_A'},
-    {name:"angularPosB",    size:2, cType:'int16_t', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosA",    size:2, cType:'int16_t', 'synthesized':'case_A', Documentation:"Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients."},
+    {name:"angularPosB",    size:2, cType:'int16_t'},
     {name:"angularPosC",    size:2, cType:'int16_t'},
     {name:"angularPosD",    size:2, cType:'int16_t'}
 ]
@@ -266,7 +266,7 @@ BodyUserFrameMessage.ID[2] = {
     ConstantID:34
 }
 BodyUserFrameMessage.Fields[2] = [
-    {name:"buttons",        size:1, bits:[{name:'button1'},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
     {name:"deltaX",         size:1, cType:'int8_t', Documentation:"X pointer movement."},
     {name:"deltaY",         size:1, cType:'int8_t', Documentation:"Y pointer movement."},
     {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},

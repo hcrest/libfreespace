@@ -231,9 +231,9 @@ LIBFREESPACE_API int freespace_printLEDSetRequestStr(char* dest, int maxlen, con
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "LEDSetRequest(selectLED=%d onOff=%d)", s->selectLED, s->onOff);
+    n = sprintf_s(dest, maxlen, "LEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
 #else
-    n = sprintf(dest, "LEDSetRequest(selectLED=%d onOff=%d)", s->selectLED, s->onOff);
+    n = sprintf(dest, "LEDSetRequest(onOff=%d selectLED=%d)", s->onOff, s->selectLED);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -321,9 +321,9 @@ LIBFREESPACE_API int freespace_printFrequencyFixRequestStr(char* dest, int maxle
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FrequencyFixRequest(channel3=%d channel2=%d channel1=%d channel0=%d channel4=%d device=%d)", s->channel3, s->channel2, s->channel1, s->channel0, s->channel4, s->device);
+    n = sprintf_s(dest, maxlen, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
 #else
-    n = sprintf(dest, "FrequencyFixRequest(channel3=%d channel2=%d channel1=%d channel0=%d channel4=%d device=%d)", s->channel3, s->channel2, s->channel1, s->channel0, s->channel4, s->device);
+    n = sprintf(dest, "FrequencyFixRequest(channel0=%d channel1=%d channel2=%d channel3=%d channel4=%d device=%d)", s->channel0, s->channel1, s->channel2, s->channel3, s->channel4, s->device);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -441,9 +441,9 @@ LIBFREESPACE_API int freespace_printDongleRFSupressHomeFrequencyMessageStr(char*
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DongleRFSupressHomeFrequencyMessage(high=%d low=%d)", s->high, s->low);
+    n = sprintf_s(dest, maxlen, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
 #else
-    n = sprintf(dest, "DongleRFSupressHomeFrequencyMessage(high=%d low=%d)", s->high, s->low);
+    n = sprintf(dest, "DongleRFSupressHomeFrequencyMessage(low=%d high=%d)", s->low, s->high);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -471,9 +471,9 @@ LIBFREESPACE_API int freespace_printFRSLoopReadRequestStr(char* dest, int maxlen
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSLoopReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #else
-    n = sprintf(dest, "FRSLoopReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf(dest, "FRSLoopReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -561,9 +561,9 @@ LIBFREESPACE_API int freespace_printFRSDongleReadRequestStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSDongleReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #else
-    n = sprintf(dest, "FRSDongleReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf(dest, "FRSDongleReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -651,9 +651,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadRequestStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf_s(dest, maxlen, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #else
-    n = sprintf(dest, "FRSEFlashReadRequest(BlockSize=%d wordOffset=%d FRStype=%d)", s->BlockSize, s->wordOffset, s->FRStype);
+    n = sprintf(dest, "FRSEFlashReadRequest(wordOffset=%d FRStype=%d BlockSize=%d)", s->wordOffset, s->FRStype, s->BlockSize);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -771,9 +771,9 @@ LIBFREESPACE_API int freespace_printDataModeRequestStr(char* dest, int maxlen, c
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataModeRequest(status=%d disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->status, s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
+    n = sprintf_s(dest, maxlen, "DataModeRequest(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d SDA=%d status=%d aggregate=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, s->SDA, s->status, s->aggregate);
 #else
-    n = sprintf(dest, "DataModeRequest(status=%d disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->status, s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
+    n = sprintf(dest, "DataModeRequest(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d SDA=%d status=%d aggregate=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, s->SDA, s->status, s->aggregate);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -831,9 +831,9 @@ LIBFREESPACE_API int freespace_printPairingResponseStr(char* dest, int maxlen, c
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "PairingResponse(autoPairing=%d pairing=%d success=%d)", s->autoPairing, s->pairing, s->success);
+    n = sprintf_s(dest, maxlen, "PairingResponse(pairing=%d autoPairing=%d success=%d)", s->pairing, s->autoPairing, s->success);
 #else
-    n = sprintf(dest, "PairingResponse(autoPairing=%d pairing=%d success=%d)", s->autoPairing, s->pairing, s->success);
+    n = sprintf(dest, "PairingResponse(pairing=%d autoPairing=%d success=%d)", s->pairing, s->autoPairing, s->success);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -861,9 +861,9 @@ LIBFREESPACE_API int freespace_printProductIDResponseStr(char* dest, int maxlen,
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "ProductIDResponse(swPartNumber=%d invalidNS=%d serialNumber=%d startup=%d swVersionMajor=%d swicn=%d swBuildNumber=%d swVersionPatch=%d swVersionMinor=%d deviceClass=%d)", s->swPartNumber, s->invalidNS, s->serialNumber, s->startup, s->swVersionMajor, s->swicn, s->swBuildNumber, s->swVersionPatch, s->swVersionMinor, s->deviceClass);
+    n = sprintf_s(dest, maxlen, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d serialNumber=%d deviceClass=%d invalidNS=%d startup=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->serialNumber, s->deviceClass, s->invalidNS, s->startup);
 #else
-    n = sprintf(dest, "ProductIDResponse(swPartNumber=%d invalidNS=%d serialNumber=%d startup=%d swVersionMajor=%d swicn=%d swBuildNumber=%d swVersionPatch=%d swVersionMinor=%d deviceClass=%d)", s->swPartNumber, s->invalidNS, s->serialNumber, s->startup, s->swVersionMajor, s->swicn, s->swBuildNumber, s->swVersionPatch, s->swVersionMinor, s->deviceClass);
+    n = sprintf(dest, "ProductIDResponse(swPartNumber=%d swBuildNumber=%d swicn=%d swVersionPatch=%d swVersionMinor=%d swVersionMajor=%d serialNumber=%d deviceClass=%d invalidNS=%d startup=%d)", s->swPartNumber, s->swBuildNumber, s->swicn, s->swVersionPatch, s->swVersionMinor, s->swVersionMajor, s->serialNumber, s->deviceClass, s->invalidNS, s->startup);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -891,9 +891,9 @@ LIBFREESPACE_API int freespace_printLinkStatusStr(char* dest, int maxlen, const 
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "LinkStatus(status=%d resetStatus=%d mode=%d txDisabled=%d)", s->status, s->resetStatus, s->mode, s->txDisabled);
+    n = sprintf_s(dest, maxlen, "LinkStatus(status=%d mode=%d resetStatus=%d txDisabled=%d)", s->status, s->mode, s->resetStatus, s->txDisabled);
 #else
-    n = sprintf(dest, "LinkStatus(status=%d resetStatus=%d mode=%d txDisabled=%d)", s->status, s->resetStatus, s->mode, s->txDisabled);
+    n = sprintf(dest, "LinkStatus(status=%d mode=%d resetStatus=%d txDisabled=%d)", s->status, s->mode, s->resetStatus, s->txDisabled);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -951,9 +951,9 @@ LIBFREESPACE_API int freespace_printFRSLoopReadResponseStr(char* dest, int maxle
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf_s(dest, maxlen, "FRSLoopReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #else
-    n = sprintf(dest, "FRSLoopReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf(dest, "FRSLoopReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -981,9 +981,9 @@ LIBFREESPACE_API int freespace_printFRSLoopWriteResponseStr(char* dest, int maxl
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSLoopWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf_s(dest, maxlen, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
-    n = sprintf(dest, "FRSLoopWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf(dest, "FRSLoopWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1011,9 +1011,9 @@ LIBFREESPACE_API int freespace_printFRSDongleReadResponseStr(char* dest, int max
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf_s(dest, maxlen, "FRSDongleReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #else
-    n = sprintf(dest, "FRSDongleReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf(dest, "FRSDongleReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1041,9 +1041,9 @@ LIBFREESPACE_API int freespace_printFRSDongleWriteResponseStr(char* dest, int ma
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSDongleWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf_s(dest, maxlen, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
-    n = sprintf(dest, "FRSDongleWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf(dest, "FRSDongleWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1071,9 +1071,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashReadResponseStr(char* dest, int max
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf_s(dest, maxlen, "FRSEFlashReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #else
-    n = sprintf(dest, "FRSEFlashReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf(dest, "FRSEFlashReadResponse(wordOffset=%d  status=%d dataLength=%d FRStype=%d)", s->wordOffset, s->status, s->dataLength, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1101,9 +1101,9 @@ LIBFREESPACE_API int freespace_printFRSEFlashWriteResponseStr(char* dest, int ma
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSEFlashWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf_s(dest, maxlen, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #else
-    n = sprintf(dest, "FRSEFlashWriteResponse(status=%d wordOffset=%d)", s->status, s->wordOffset);
+    n = sprintf(dest, "FRSEFlashWriteResponse(wordOffset=%d status=%d)", s->wordOffset, s->status);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1131,9 +1131,9 @@ LIBFREESPACE_API int freespace_printDataModeResponseStr(char* dest, int maxlen, 
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataModeResponse(disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
+    n = sprintf_s(dest, maxlen, "DataModeResponse(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d SDA=%d aggregate=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, s->SDA, s->aggregate);
 #else
-    n = sprintf(dest, "DataModeResponse(disableFreespace=%d inhibitPowerManager=%d enableUserPosition=%d enableBodyMotion=%d SDA=%d aggregate=%d enableMouseMovement=%d)", s->disableFreespace, s->inhibitPowerManager, s->enableUserPosition, s->enableBodyMotion, s->SDA, s->aggregate, s->enableMouseMovement);
+    n = sprintf(dest, "DataModeResponse(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d SDA=%d aggregate=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace, s->SDA, s->aggregate);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1161,9 +1161,9 @@ LIBFREESPACE_API int freespace_printButtonTestModeResponseStr(char* dest, int ma
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "ButtonTestModeResponse(status=%d press=%d button=%d)", s->status, s->press, s->button);
+    n = sprintf_s(dest, maxlen, "ButtonTestModeResponse(status=%d button=%d press=%d)", s->status, s->button, s->press);
 #else
-    n = sprintf(dest, "ButtonTestModeResponse(status=%d press=%d button=%d)", s->status, s->press, s->button);
+    n = sprintf(dest, "ButtonTestModeResponse(status=%d button=%d press=%d)", s->status, s->button, s->press);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1251,9 +1251,9 @@ LIBFREESPACE_API int freespace_printBodyFrameStr(char* dest, int maxlen, const s
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "BodyFrame(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+    n = sprintf_s(dest, maxlen, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
 #else
-    n = sprintf(dest, "BodyFrame(angularVelZ=%d linearAccelZ=%d sequenceNumber=%d deltaX=%d deltaY=%d linearAccelY=%d linearAccelX=%d angularVelX=%d button3=%d button2=%d button1=%d angularVelY=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularVelZ, s->linearAccelZ, s->sequenceNumber, s->deltaX, s->deltaY, s->linearAccelY, s->linearAccelX, s->angularVelX, s->button3, s->button2, s->button1, s->angularVelY, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+    n = sprintf(dest, "BodyFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1281,9 +1281,9 @@ LIBFREESPACE_API int freespace_printUserFrameStr(char* dest, int maxlen, const s
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "UserFrame(angularPosC=%d sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosA=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularPosC, s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosA, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+    n = sprintf_s(dest, maxlen, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
 #else
-    n = sprintf(dest, "UserFrame(angularPosC=%d sequenceNumber=%d deltaX=%d deltaY=%d angularPosD=%d angularPosA=%d linearPosZ=%d linearPosY=%d linearPosX=%d button3=%d button2=%d button1=%d angularPosB=%d button7=%d button6=%d button5=%d button4=%d button8=%d deltaWheel=%d)", s->angularPosC, s->sequenceNumber, s->deltaX, s->deltaY, s->angularPosD, s->angularPosA, s->linearPosZ, s->linearPosY, s->linearPosX, s->button3, s->button2, s->button1, s->angularPosB, s->button7, s->button6, s->button5, s->button4, s->button8, s->deltaWheel);
+    n = sprintf(dest, "UserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosA=%d angularPosB=%d angularPosC=%d angularPosD=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosA, s->angularPosB, s->angularPosC, s->angularPosD);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1311,9 +1311,9 @@ LIBFREESPACE_API int freespace_printDataMotionControlStr(char* dest, int maxlen,
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "DataMotionControl(enableMouseMovement=%d enableUserPosition=%d disableFreespace=%d inhibitPowerManager=%d enableBodyMotion=%d)", s->enableMouseMovement, s->enableUserPosition, s->disableFreespace, s->inhibitPowerManager, s->enableBodyMotion);
+    n = sprintf_s(dest, maxlen, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
 #else
-    n = sprintf(dest, "DataMotionControl(enableMouseMovement=%d enableUserPosition=%d disableFreespace=%d inhibitPowerManager=%d enableBodyMotion=%d)", s->enableMouseMovement, s->enableUserPosition, s->disableFreespace, s->inhibitPowerManager, s->enableBodyMotion);
+    n = sprintf(dest, "DataMotionControl(enableBodyMotion=%d enableUserPosition=%d inhibitPowerManager=%d enableMouseMovement=%d disableFreespace=%d)", s->enableBodyMotion, s->enableUserPosition, s->inhibitPowerManager, s->enableMouseMovement, s->disableFreespace);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1371,9 +1371,9 @@ LIBFREESPACE_API int freespace_printFRSReadResponseStr(char* dest, int maxlen, c
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf_s(dest, maxlen, "FRSReadResponse(status=%d dataLength=%d wordOffset=%d  FRStype=%d)", s->status, s->dataLength, s->wordOffset, s->FRStype);
 #else
-    n = sprintf(dest, "FRSReadResponse(status=%d FRStype=%d wordOffset=%d  dataLength=%d)", s->status, s->FRStype, s->wordOffset, s->dataLength);
+    n = sprintf(dest, "FRSReadResponse(status=%d dataLength=%d wordOffset=%d  FRStype=%d)", s->status, s->dataLength, s->wordOffset, s->FRStype);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1401,9 +1401,9 @@ LIBFREESPACE_API int freespace_printPerResponseStr(char* dest, int maxlen, const
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "PerResponse(count=%d msError=%d frError=%d smError=%d)", s->count, s->msError, s->frError, s->smError);
+    n = sprintf_s(dest, maxlen, "PerResponse(count=%d msError=%d smError=%d frError=%d)", s->count, s->msError, s->smError, s->frError);
 #else
-    n = sprintf(dest, "PerResponse(count=%d msError=%d frError=%d smError=%d)", s->count, s->msError, s->frError, s->smError);
+    n = sprintf(dest, "PerResponse(count=%d msError=%d smError=%d frError=%d)", s->count, s->msError, s->smError, s->frError);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1491,9 +1491,9 @@ LIBFREESPACE_API int freespace_printFRSReadRequestStr(char* dest, int maxlen, co
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "FRSReadRequest(BlockSize=%d FRStype=%d readOffset=%d)", s->BlockSize, s->FRStype, s->readOffset);
+    n = sprintf_s(dest, maxlen, "FRSReadRequest(readOffset=%d FRStype=%d BlockSize=%d)", s->readOffset, s->FRStype, s->BlockSize);
 #else
-    n = sprintf(dest, "FRSReadRequest(BlockSize=%d FRStype=%d readOffset=%d)", s->BlockSize, s->FRStype, s->readOffset);
+    n = sprintf(dest, "FRSReadRequest(readOffset=%d FRStype=%d BlockSize=%d)", s->readOffset, s->FRStype, s->BlockSize);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1521,9 +1521,9 @@ LIBFREESPACE_API int freespace_printPerRequestStr(char* dest, int maxlen, const 
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "PerRequest( op=%d)", s->op);
+    n = sprintf_s(dest, maxlen, "PerRequest(op=%d )", s->op);
 #else
-    n = sprintf(dest, "PerRequest( op=%d)", s->op);
+    n = sprintf(dest, "PerRequest(op=%d )", s->op);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;
@@ -1551,9 +1551,9 @@ LIBFREESPACE_API int freespace_printBodyUserFrameStr(char* dest, int maxlen, con
         return FREESPACE_ERROR_UNEXPECTED;
     }
 #ifdef _WIN32
-    n = sprintf_s(dest, maxlen, "BodyUserFrame(sequenceNumber=%d angularVelZ=%d angularVelX=%d angularVelY=%d linearPosZ=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d angularPosB=%d linearPosY=%d linearPosX=%d angularPosA=%d deltaWheel=%d linearAccelZ=%d linearAccelY=%d linearAccelX=%d button3=%d button2=%d button1=%d button7=%d button6=%d button5=%d button4=%d button8=%d)", s->sequenceNumber, s->angularVelZ, s->angularVelX, s->angularVelY, s->linearPosZ, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->angularPosB, s->linearPosY, s->linearPosX, s->angularPosA, s->deltaWheel, s->linearAccelZ, s->linearAccelY, s->linearAccelX, s->button3, s->button2, s->button1, s->button7, s->button6, s->button5, s->button4, s->button8);
+    n = sprintf_s(dest, maxlen, "BodyUserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosB=%d angularPosC=%d angularPosD=%d angularPosA=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosB, s->angularPosC, s->angularPosD, s->angularPosA);
 #else
-    n = sprintf(dest, "BodyUserFrame(sequenceNumber=%d angularVelZ=%d angularVelX=%d angularVelY=%d linearPosZ=%d deltaX=%d deltaY=%d angularPosD=%d angularPosC=%d angularPosB=%d linearPosY=%d linearPosX=%d angularPosA=%d deltaWheel=%d linearAccelZ=%d linearAccelY=%d linearAccelX=%d button3=%d button2=%d button1=%d button7=%d button6=%d button5=%d button4=%d button8=%d)", s->sequenceNumber, s->angularVelZ, s->angularVelX, s->angularVelY, s->linearPosZ, s->deltaX, s->deltaY, s->angularPosD, s->angularPosC, s->angularPosB, s->linearPosY, s->linearPosX, s->angularPosA, s->deltaWheel, s->linearAccelZ, s->linearAccelY, s->linearAccelX, s->button3, s->button2, s->button1, s->button7, s->button6, s->button5, s->button4, s->button8);
+    n = sprintf(dest, "BodyUserFrame(button1=%d button2=%d button3=%d button4=%d button5=%d button6=%d button7=%d button8=%d deltaX=%d deltaY=%d deltaWheel=%d sequenceNumber=%d linearAccelX=%d linearAccelY=%d linearAccelZ=%d angularVelX=%d angularVelY=%d angularVelZ=%d linearPosX=%d linearPosY=%d linearPosZ=%d angularPosB=%d angularPosC=%d angularPosD=%d angularPosA=%d)", s->button1, s->button2, s->button3, s->button4, s->button5, s->button6, s->button7, s->button8, s->deltaX, s->deltaY, s->deltaWheel, s->sequenceNumber, s->linearAccelX, s->linearAccelY, s->linearAccelZ, s->angularVelX, s->angularVelY, s->angularVelZ, s->linearPosX, s->linearPosY, s->linearPosZ, s->angularPosB, s->angularPosC, s->angularPosD, s->angularPosA);
 #endif
     if (n < 0) {
         return FREESPACE_ERROR_BUFFER_TOO_SMALL;

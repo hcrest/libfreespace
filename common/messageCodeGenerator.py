@@ -433,56 +433,78 @@ def writeCodecCFile(message, fields, outFile):
 
 def writeStruct(message, fields, outHeader):
     if message.Documentation != None:
-        outHeader.write("/**   @ingroup messages \n * " + message.Documentation + "\n */\n")
+        outHeader.write("/** @ingroup messages \n * " + message.Documentation + "\n */\n")
     outHeader.write("struct freespace_" + message.name + " {\n")
-    outHeader.write("\tuint8_t ver; /* HID protocol version */\n")
-    outHeader.write("\tuint8_t len; /* Length, used in version 2 only */\n")
-    outHeader.write("\tuint8_t dest; /* Destination, used in version 2 only */\n")
-    outHeader.write("\tuint8_t src; /* Source, used in version 2 only */\n\n")
-    for fieldName in fields.keys():
-        if len(fields[fieldName]['Doc']):
-            outHeader.write("\n\t/** " + fields[fieldName]['Doc'] + " */\n")
+    outHeader.write("\tuint8_t ver; /**< HID protocol version */\n")
+    outHeader.write("\tuint8_t len; /**< Length, used in version 2 only */\n")
+    outHeader.write("\tuint8_t dest; /**< Destination, used in version 2 only */\n")
+    outHeader.write("\tuint8_t src; /**< Source, used in version 2 only */\n\n")
+    for field in fields:
+        if len(field['Doc']):
+            outHeader.write("\n\t/** " + field['Doc'] + " */\n")
         outHeader.write("\t")
-        outHeader.write(fields[fieldName]['type'])
-        outHeader.write(" " + fieldName)
-        if fields[fieldName]['count'] != 1:
-            outHeader.write("[%d]"%fields[fieldName]['count'])
+        outHeader.write(field['type'])
+        outHeader.write(" " + field['name'])
+        if field['count'] != 1:
+            outHeader.write("[%d]"%field['count'])
         outHeader.write(";\n")
     outHeader.write("};\n")
         
 def extractFields(message):
     fields = {}
+    fieldsList = []
     for version in message.Fields:
         for field in version:
             if field['name'] == 'RESERVED':
                 continue
-            if field.has_key('Documentation'):
-                tempDoc = field['Documentation']
-            else:
-                tempDoc = ""
             if field.has_key('cType'):
                 if not fields.has_key(field['name']):
-                    fields[field['name']] = cTypeToTypeInfo(field['cType'], field['size'])
-                    fields[field['name']]['Doc'] = tempDoc
-                    if fields[field['name']]['warning'] == 'yes':
+                    item = cTypeToTypeInfo(field['cType'], field['size'])
+                    if field.has_key('comment'):
+                        item['Doc'] = field['comment']
+                    else:
+                        item['Doc'] = ""
+                    if item['warning'] == 'yes':
                         print ("Type problem found in message=>%s, field=>%s"%(message.name, field['name']))
+                    item['name'] = field['name']
+                    field['typeDecode'] = item
+                    fields[field['name']] = item
+                    fieldsList.append(item)
+                else:
+                    field['typeDecode'] = fields[field['name']]
             elif field.has_key('bits'):
                 for bit in field['bits']:
                     if bit['name'] == 'RESERVED':
                         continue
                     if not fields.has_key(bit['name']):
-                        fields[bit['name']] = bitToTypeInfo(bit)
+                        item = bitToTypeInfo(bit)
                         if bit.has_key('comment'):
-                            fields[bit['name']]['Doc'] = bit['comment']
+                            item['Doc'] = bit['comment']
                         else:
-                            fields[bit['name']]['Doc'] = ""
+                            item['Doc'] = ""
+                        item['name'] = bit['name']
+                        bit['typeDecode'] = item
+                        fields[bit['name']] = item
+                        fieldsList.append(item)
+                    else:
+                        bit['typeDecode'] = fields[bit['name']]
             elif field.has_key('nibbles'):
                 for nibble in field['nibbles']:
                     if nibble['name'] == 'RESERVED':
                         continue
                     if not fields.has_key(nibble['name']):
-                        fields[nibble['name']] = {'type':'int', 'signed':False, 'length':4, 'count':1, 'warning':'no', 'Doc':tempDoc}
-    return fields
+                        item = {'type':'int', 'signed':False, 'length':4, 'count':1, 'warning':'no'}
+                        if nibble.has_key('comment'):
+                            item['Doc'] = nibble['comment']
+                        else:
+                            item['Doc'] = ""
+                        item['name'] = nibble['name']
+                        nibble['typeDecode'] = item
+                        fields[nibble['name']] = item
+                        fieldsList.append(item)
+                    else:
+                        nibble['typeDecode'] = fields[nibble['name']]
+    return fieldsList
     
 def cTypeToTypeInfo(ct, sizeInBytes):
     typeInfo = {'type':ct, 'warning':'no'}
@@ -644,13 +666,13 @@ def writeEncodeBody(message, fields, outFile):
                     outFile.write(');\n')
                     byteCounter += 1
                 elif field.has_key('cType'):
-                    if fields[field['name']]['count'] == 1:
-                        for j in range (fields[field['name']]['width']):
+                    if field['typeDecode']['count'] == 1:
+                        for j in range (field['typeDecode']['width']):
                             outFile.write('\t\t\tmessage[%d + offset] = s->%s >> %d;\n'%(byteCounter, field['name'], 8 * j))
                             byteCounter += 1
                     else:
-                        for i in range (fields[field['name']]['count']):
-                            for j in range (fields[field['name']]['width']):
+                        for i in range (field['typeDecode']['count']):
+                            for j in range (field['typeDecode']['width']):
                                 outFile.write('\t\t\tmessage[%d + offset] = s->%s[%d] >> %d;\n'%(byteCounter, field['name'], i, 8 * j))
                                 byteCounter += 1
                 else:
@@ -709,15 +731,13 @@ def writeDecodeBody(message, fields, outFile):
                     byteCounter += elementSize
                     continue
                 if field.has_key('cType'):
-                    
-                    
-                    if fields[field['name']]['count'] == 1:
-                        outFile.write("\t\t\ts->%s = %s(&message[%d + offset]);\n" % (field['name'], IntConversionHelper(fields[field['name']]['type']), byteCounter))
-                        byteCounter += fields[field['name']]['width']
+                    if field['typeDecode']['count'] == 1:
+                        outFile.write("\t\t\ts->%s = %s(&message[%d + offset]);\n" % (field['name'], IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                        byteCounter += field['typeDecode']['width']
                     else:
-                        for i in range (fields[field['name']]['count']):
-                            outFile.write("\t\t\ts->%s[%d] = %s(&message[%d + offset]);\n" % (field['name'], i, IntConversionHelper(fields[field['name']]['type']), byteCounter))
-                            byteCounter += fields[field['name']]['width']
+                        for i in range (field['typeDecode']['count']):
+                            outFile.write("\t\t\ts->%s[%d] = %s(&message[%d + offset]);\n" % (field['name'], i, IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                            byteCounter += field['typeDecode']['width']
                 elif field.has_key('bits'):
                     bitCounter = 0
                     for bit in field['bits']:
@@ -751,17 +771,17 @@ def writeDecodeBody(message, fields, outFile):
 def printStrHelper(message, outFile):
     fields = extractFields(message)
     first = True
-    for fieldName in fields.keys():
+    for field in fields:
         if not first:
             outFile.write(' ')
         else:
             first = False
-        if fields[fieldName]['count'] == 1:
-            outFile.write("%s=%%d"%fieldName)
+        if field['count'] == 1:
+            outFile.write("%s=%%d"%field['name'])
     outFile.write(')"')
-    for fieldName in fields.keys():
-        if fields[fieldName]['count'] == 1:
-            outFile.write(', s->%s'%fieldName)
+    for field in fields:
+        if field['count'] == 1:
+            outFile.write(', s->%s'%field['name'])
     outFile.write(');')
 
 def writePrintBody(message, outFile):

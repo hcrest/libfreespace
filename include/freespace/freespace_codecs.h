@@ -34,14 +34,14 @@ extern "C" {
  * This page describes the messages that can be sent to and from the Freespace Device.
  * They are represented as structs which can be encoded and decoded from strings.
  */
-/**   @ingroup messages 
+/** @ingroup messages 
  * Reserved for passing message through from the Freespace coprocessor to the USB host.
  */
 struct freespace_CoprocessorOutReport {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 	uint8_t payloadLength;
 	uint8_t payload[14];
@@ -60,14 +60,14 @@ struct freespace_CoprocessorOutReport {
  */
 LIBFREESPACE_API int freespace_encodeCoprocessorOutReport(const struct freespace_CoprocessorOutReport* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Used for passing messages through from the USB host to the Freespace coprocessor interface.
  */
 struct freespace_CoprocessorInReport {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 	uint8_t payloadLength;
 	uint8_t payload[14];
@@ -84,14 +84,14 @@ struct freespace_CoprocessorInReport {
  */
 LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message, int length, struct freespace_CoprocessorInReport* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Used by the host to put the dongle into pairing mode.
  */
 struct freespace_PairingMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -108,14 +108,14 @@ struct freespace_PairingMessage {
  */
 LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_PairingMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the host to the attached device(dongle) to request the product ID information. The dongle will forward this request to the Loop.
  */
 struct freespace_ProductIDRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -132,17 +132,33 @@ struct freespace_ProductIDRequest {
  */
 LIBFREESPACE_API int freespace_encodeProductIDRequest(const struct freespace_ProductIDRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This request causes the Loop or dongle to set a status LED to a particular value
  */
 struct freespace_LEDSetRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t selectLED;
+
+	/** WP160: 0-Off, 1-On, 2-Release, FSAP160: 0-cause0, 1-cause1, 2-cause2 */
 	uint8_t onOff;
+
+	/** LED Select: 0-green(all devices)
+	 1-red(all devices)
+	 2-yellow(all devices)
+	 3-blue(all devices)
+	 4-FTA green
+	 5-FTA red
+	 6-S2U yellow
+	 7-S2U blue
+	 8-Dominion LED PWM
+	 9-Dominion LED1
+	 10-Dominion LED2
+	 11-RFT LED A
+	 12-RFT LED B */
+	uint8_t selectLED;
 };
 
 
@@ -158,15 +174,17 @@ struct freespace_LEDSetRequest {
  */
 LIBFREESPACE_API int freespace_encodeLEDSetRequest(const struct freespace_LEDSetRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Controls link quality status reporting
  */
 struct freespace_LinkQualityRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** 0: disable status messages, 1: enable status messages */
 	uint8_t enable;
 };
 
@@ -183,14 +201,14 @@ struct freespace_LinkQualityRequest {
  */
 LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_LinkQualityRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message forces the Loop into an always on state. It is relayed to the Loop from the dongle.
  */
 struct freespace_AlwaysOnRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -207,21 +225,23 @@ struct freespace_AlwaysOnRequest {
  */
 LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(const struct freespace_AlwaysOnRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message causes the RF frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.
 	 When the loop is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep.
  */
 struct freespace_FrequencyFixRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t channel3;
-	uint8_t channel2;
-	uint8_t channel1;
 	uint8_t channel0;
+	uint8_t channel1;
+	uint8_t channel2;
+	uint8_t channel3;
 	uint8_t channel4;
+
+	/** 1 for dongle, 2 for loop */
 	uint8_t device;
 };
 
@@ -238,15 +258,17 @@ struct freespace_FrequencyFixRequest {
  */
 LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_FrequencyFixRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message causes the dongle to reset itself.
  */
 struct freespace_SoftwareResetMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** 1 for dongle */
 	uint8_t device;
 };
 
@@ -263,14 +285,14 @@ struct freespace_SoftwareResetMessage {
  */
 LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace_SoftwareResetMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message disables the RF on the dongle.
  */
 struct freespace_DongleRFDisableMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -287,14 +309,14 @@ struct freespace_DongleRFDisableMessage {
  */
 LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespace_DongleRFDisableMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message disables the RF transmission on the dongle.
  */
 struct freespace_TxDisableMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -311,7 +333,7 @@ struct freespace_TxDisableMessage {
  */
 LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_TxDisableMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message is for RF Home frequency supression on the dongle.
 
 	802.11 defines the peak of a channel to cover the range +-11MHz from the center frequency of the channel.
@@ -320,13 +342,13 @@ LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_TxD
 	To disable home frequency suppression, set either Low or High to be out-of-range. 0xFF is the preferred value for disabling suppression.
  */
 struct freespace_DongleRFSupressHomeFrequencyMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t high;
 	uint8_t low;
+	uint8_t high;
 };
 
 
@@ -342,19 +364,25 @@ struct freespace_DongleRFSupressHomeFrequencyMessage {
  */
 LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const struct freespace_DongleRFSupressHomeFrequencyMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from dongle towards the loop to request flash record to be sent.
 	The data sent starts from the word offset and continues through to the end of the record.
  */
 struct freespace_FRSLoopReadRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint16_t BlockSize;
+
+	/** Offset from start of record to begin reading. */
 	uint16_t wordOffset;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
+
+	/** Number of 32-bit words to read. */
+	uint16_t BlockSize;
 };
 
 
@@ -370,17 +398,21 @@ struct freespace_FRSLoopReadRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopReadRequest(const struct freespace_FRSLoopReadRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the host towards the loop to initiate a flash record write.
 	A length of 0 will cause the record to be invalidated.
  */
 struct freespace_FRSLoopWriteRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Length in 32-bit words of record to be written. */
 	uint16_t length;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
 };
 
@@ -397,16 +429,20 @@ struct freespace_FRSLoopWriteRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopWriteRequest(const struct freespace_FRSLoopWriteRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message is sent from the host towards the loop to write data to the record a previous write request indicated.
  */
 struct freespace_FRSLoopWriteData {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Offset from start of record to write data. */
 	uint16_t wordOffset;
+
+	/** 32-bit word to write. */
 	uint32_t data;
 };
 
@@ -423,18 +459,24 @@ struct freespace_FRSLoopWriteData {
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopWriteData(const struct freespace_FRSLoopWriteData* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSDongleReadRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint16_t BlockSize;
+
+	/** Offset from start of record to begin reading. */
 	uint16_t wordOffset;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
+
+	/** Number of 32-bit words to read. */
+	uint16_t BlockSize;
 };
 
 
@@ -450,16 +492,20 @@ struct freespace_FRSDongleReadRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleReadRequest(const struct freespace_FRSDongleReadRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSDongleWriteRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Length in 32-bit words of record to be written. */
 	uint16_t length;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
 };
 
@@ -476,16 +522,20 @@ struct freespace_FRSDongleWriteRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleWriteRequest(const struct freespace_FRSDongleWriteRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSDongleWriteData {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Offset from start of record to write data. */
 	uint16_t wordOffset;
+
+	/** 32-bit word to write. */
 	uint32_t data;
 };
 
@@ -502,18 +552,24 @@ struct freespace_FRSDongleWriteData {
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleWriteData(const struct freespace_FRSDongleWriteData* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSEFlashReadRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint16_t BlockSize;
+
+	/** Offset from start of record to begin reading. */
 	uint16_t wordOffset;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
+
+	/** Number of 32-bit words to read. */
+	uint16_t BlockSize;
 };
 
 
@@ -529,16 +585,20 @@ struct freespace_FRSEFlashReadRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashReadRequest(const struct freespace_FRSEFlashReadRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSEFlashWriteRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Length in 32-bit words of record to be written. */
 	uint16_t length;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
 };
 
@@ -555,16 +615,20 @@ struct freespace_FRSEFlashWriteRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashWriteRequest(const struct freespace_FRSEFlashWriteRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSEFlashWriteData {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Offset from start of record to write data. */
 	uint16_t wordOffset;
+
+	/** 32-bit word to write. */
 	uint32_t data;
 };
 
@@ -581,14 +645,14 @@ struct freespace_FRSEFlashWriteData {
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_FRSEFlashWriteData* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message enables the RF on the dongle.
  */
 struct freespace_DongleRFEnableMessage {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -605,39 +669,39 @@ struct freespace_DongleRFEnableMessage {
  */
 LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(const struct freespace_DongleRFEnableMessage* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features.
  */
 struct freespace_DataModeRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-
-	/** Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode. */
-	uint8_t status;
-
-	/** Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits. */
-	uint8_t disableFreespace;
-
-	/** Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion. */
-	uint8_t inhibitPowerManager;
-
-	/** Enable User Position: when set to 1 enables User Frame Position reports */
-	uint8_t enableUserPosition;
 
 	/** Enable Body Motion: when set to 1 enables Body Frame Motion reports. */
 	uint8_t enableBodyMotion;
 
-	/** Reserved for testing, */
-	uint8_t SDA;
+	/** Enable User Position: when set to 1 enables User Frame Position reports */
+	uint8_t enableUserPosition;
 
-	/** Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two.  */
-	uint8_t aggregate;
+	/** Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion. */
+	uint8_t inhibitPowerManager;
 
 	/** Enable Mouse Movement: when set to 1 enables Mouse Movement reports. */
 	uint8_t enableMouseMovement;
+
+	/** Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits. */
+	uint8_t disableFreespace;
+
+	/** Reserved for testing, */
+	uint8_t SDA;
+
+	/** Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode. */
+	uint8_t status;
+
+	/** Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two.  */
+	uint8_t aggregate;
 };
 
 
@@ -653,15 +717,17 @@ struct freespace_DataModeRequest {
  */
 LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_DataModeRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Configures button test mode for manufacturing test station.
  */
 struct freespace_ButtonTestModeRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** 0: exit button test mode. 1: enter button test mode. */
 	uint8_t enable;
 };
 
@@ -678,23 +744,23 @@ struct freespace_ButtonTestModeRequest {
  */
 LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespace_ButtonTestModeRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Pairing response is used to either respond to pairing requests from the host or to send pairing status updates to the host that describe events during the pairing process.
  */
 struct freespace_PairingResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-
-	/** 0: dongle is not in auto-pairing
-	1: dongle is in auto-pairing */
-	uint8_t autoPairing;
 
 	/** 0: not pairing.
 	 1: pairing */
 	uint8_t pairing;
+
+	/** 0: dongle is not in auto-pairing
+	1: dongle is in auto-pairing */
+	uint8_t autoPairing;
 
 	/** 0: not successful or still in progress
 	1: successful */
@@ -712,34 +778,34 @@ struct freespace_PairingResponse {
  */
 LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int length, struct freespace_PairingResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the polled device towards the host to convey the product ID information.
  */
 struct freespace_ProductIDResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 	uint32_t swPartNumber;
-
-	/** 0: read serial number is valid, 1 read serial number is invalid; retry read until valid. */
-	uint8_t invalidNS;
-	uint32_t serialNumber;
-
-	/** The device has just started up. This bit self clears after the first message is sent. */
-	uint8_t startup;
-	uint8_t swVersionMajor;
-	uint32_t swicn;
 	uint32_t swBuildNumber;
+	uint32_t swicn;
 	uint16_t swVersionPatch;
 	uint8_t swVersionMinor;
+	uint8_t swVersionMajor;
+	uint32_t serialNumber;
 
 	/** The device class represents the characteristics of the device providing the product ID. 
 	 0: device type not known.
 	 1: non-data-generating device.
 	 2: data-generating device. */
 	int deviceClass;
+
+	/** 0: read serial number is valid, 1 read serial number is invalid; retry read until valid. */
+	uint8_t invalidNS;
+
+	/** The device has just started up. This bit self clears after the first message is sent. */
+	uint8_t startup;
 };
 
 
@@ -753,18 +819,31 @@ struct freespace_ProductIDResponse {
  */
 LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, int length, struct freespace_ProductIDResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message is sent from a compliance test-ready dongle to indicate the dongle's current status.
  */
 struct freespace_LinkStatus {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** 0: bad
+	1: good */
 	uint8_t status;
-	uint8_t resetStatus;
+
+	/** 0: normal operation
+	1: fixed frequency operation
+	2: RF disabled */
 	uint8_t mode;
+
+	/** 0: did not occur
+	1: occurred. Self clears. */
+	uint8_t resetStatus;
+
+	/** 0: TX is enabled
+	1: TX is disabled. */
 	uint8_t txDisabled;
 };
 
@@ -779,14 +858,14 @@ struct freespace_LinkStatus {
  */
 LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int length, struct freespace_LinkStatus* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message is sent from a the loop to acknowledge an always on mode request message.
  */
 struct freespace_AlwaysOnResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -801,20 +880,36 @@ struct freespace_AlwaysOnResponse {
  */
 LIBFREESPACE_API int freespace_decodeAlwaysOnResponse(const uint8_t* message, int length, struct freespace_AlwaysOnResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the loop to the host to convey an FRS record.
  */
 struct freespace_FRSLoopReadResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	int status;
-	uint16_t FRStype;
+
+	/** Word Offset indicates the number of words the data is offset from the beginning of the record */
 	uint16_t wordOffset;
 	uint32_t data[5];
+
+	/** Status:
+	0: no error
+	1: unrecognized FRS type
+	2: busy
+	3: read completed
+	4: offset out of range
+	5: record empty
+	6: read block completed
+	7: read block completed and read reacord completed */
+	int status;
+
+	/** Data Length indicates the number of data words contained within the message, typically 5 words */
 	int dataLength;
+
+	/** FRS record type */
+	uint16_t FRStype;
 };
 
 
@@ -828,17 +923,29 @@ struct freespace_FRSLoopReadResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const uint8_t* message, int length, struct freespace_FRSLoopReadResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the loop to the host to indicate status of the write operation.
  */
 struct freespace_FRSLoopWriteResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t status;
 	uint16_t wordOffset;
+
+	/** Status/Error:
+	0: word received
+	1: unrecognized FRS type
+	2: busy
+	3: write completed
+	4: write mode entered already
+	5: write failed
+	6: data received while not in write mode
+	7: invalid length
+	8: record valid (the complete record passed internal validation checks)
+	9:record invalid (the complete record failed internal validation checks) */
+	uint8_t status;
 };
 
 
@@ -852,20 +959,36 @@ struct freespace_FRSLoopWriteResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message, int length, struct freespace_FRSLoopWriteResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the dongle to the host to convey an FRS record.
  */
 struct freespace_FRSDongleReadResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	int status;
-	uint16_t FRStype;
+
+	/** Word Offset indicates the number of words the data is offset from the beginning of the record */
 	uint16_t wordOffset;
 	uint32_t data[5];
+
+	/** Status:
+	0: no error
+	1: unrecognized FRS type
+	2: busy
+	3: read completed
+	4: offset out of range
+	5: record empty
+	6: read block completed
+	7: read block completed and read reacord completed */
+	int status;
+
+	/** Data Length indicates the number of data words contained within the message, typically 5 words */
 	int dataLength;
+
+	/** FRS record type */
+	uint16_t FRStype;
 };
 
 
@@ -879,17 +1002,29 @@ struct freespace_FRSDongleReadResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* message, int length, struct freespace_FRSDongleReadResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the dongle to the host to indicate status of the write operation.
  */
 struct freespace_FRSDongleWriteResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t status;
 	uint16_t wordOffset;
+
+	/** Status/Error:
+	0: word received
+	1: unrecognized FRS type
+	2: busy
+	3: write completed
+	4: write mode entered already
+	5: write failed
+	6: data received while not in write mode
+	7: invalid length
+	8: record valid (the complete record passed internal validation checks)
+	9:record invalid (the complete record failed internal validation checks) */
+	uint8_t status;
 };
 
 
@@ -903,20 +1038,36 @@ struct freespace_FRSDongleWriteResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* message, int length, struct freespace_FRSDongleWriteResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the loop to the host to convey an FRS record.
  */
 struct freespace_FRSEFlashReadResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	int status;
-	uint16_t FRStype;
+
+	/** Word Offset indicates the number of words the data is offset from the beginning of the record */
 	uint16_t wordOffset;
 	uint32_t data[5];
+
+	/** Status:
+	0: no error
+	1: unrecognized FRS type
+	2: busy
+	3: read completed
+	4: offset out of range
+	5: record empty
+	6: read block completed
+	7: read block completed and read reacord completed */
+	int status;
+
+	/** Data Length indicates the number of data words contained within the message, typically 5 words */
 	int dataLength;
+
+	/** FRS record type */
+	uint16_t FRStype;
 };
 
 
@@ -930,17 +1081,29 @@ struct freespace_FRSEFlashReadResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* message, int length, struct freespace_FRSEFlashReadResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSEFlashWriteResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t status;
 	uint16_t wordOffset;
+
+	/** Status/Error:
+	0: word received
+	1: unrecognized FRS type
+	2: busy
+	3: write completed
+	4: write mode entered already
+	5: write failed
+	6: data received while not in write mode
+	7: invalid length
+	8: record valid (the complete record passed internal validation checks)
+	9:record invalid (the complete record failed internal validation checks) */
+	uint8_t status;
 };
 
 
@@ -954,36 +1117,36 @@ struct freespace_FRSEFlashWriteResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* message, int length, struct freespace_FRSEFlashWriteResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This report acknowledges the last DataModeRequest received by the dongle.
  */
 struct freespace_DataModeResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 
-	/** Disable Freespace: when set to 1 the Freespace motion sensing system disabled. */
-	uint8_t disableFreespace;
-
-	/** Inhibit Power Manager: when set to 1 the power management feature isinhibited. */
-	uint8_t inhibitPowerManager;
+	/** Enable Body Motion: when set to 1 Body Frame Motion reports are enabled. */
+	uint8_t enableBodyMotion;
 
 	/** Enable User Position: when set to 1 User Frame Position reports are enabled */
 	uint8_t enableUserPosition;
 
-	/** Enable Body Motion: when set to 1 Body Frame Motion reports are enabled. */
-	uint8_t enableBodyMotion;
+	/** Inhibit Power Manager: when set to 1 the power management feature isinhibited. */
+	uint8_t inhibitPowerManager;
+
+	/** Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled. */
+	uint8_t enableMouseMovement;
+
+	/** Disable Freespace: when set to 1 the Freespace motion sensing system disabled. */
+	uint8_t disableFreespace;
 
 	/** Reserved for testing, */
 	uint8_t SDA;
 
 	/** Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two.  */
 	uint8_t aggregate;
-
-	/** Enable Mouse Movement: when set to 1 Mouse Movement reports are enabled. */
-	uint8_t enableMouseMovement;
 };
 
 
@@ -997,18 +1160,24 @@ struct freespace_DataModeResponse {
  */
 LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, int length, struct freespace_DataModeResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Report button status changes and acknowledge button mode request message.
  */
 struct freespace_ButtonTestModeResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** 0: ack exit test mode. 1: ack enter test mode.  2: button update. */
 	uint8_t status;
-	uint8_t press;
+
+	/** 0 - 15: number of button pressed or released.  Only valid when status = update. */
 	uint8_t button;
+
+	/** 0: button released. 1: button pressed.  Only valid when status = update. */
+	uint8_t press;
 };
 
 
@@ -1022,14 +1191,14 @@ struct freespace_ButtonTestModeResponse {
  */
 LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* message, int length, struct freespace_ButtonTestModeResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Sent by the host to request the battery status of the handheld unit.
  */
 struct freespace_BatteryLevelRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 };
 
@@ -1046,15 +1215,17 @@ struct freespace_BatteryLevelRequest {
  */
 LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(const struct freespace_BatteryLevelRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Indicates the battery strength of the handheld unit.
  */
 struct freespace_BatteryLevel {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** A percentage of the operating voltage range (0-100%) */
 	uint8_t batteryStrength;
 };
 
@@ -1069,34 +1240,49 @@ struct freespace_BatteryLevel {
  */
 LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int length, struct freespace_BatteryLevel* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Conveys the motion relative to the body frame of the Freespace handheld device. 
  The data have been processed to remove tremor and other unwanted side effects.
  */
 struct freespace_BodyFrame {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	int16_t angularVelZ;
-	int16_t linearAccelZ;
-	uint16_t sequenceNumber;
-	int8_t deltaX;
-	int8_t deltaY;
-	int16_t linearAccelY;
-	int16_t linearAccelX;
-	int16_t angularVelX;
-	uint8_t button3;
-	uint8_t button2;
+
+	/** Button bits. */
 	uint8_t button1;
-	int16_t angularVelY;
-	uint8_t button7;
-	uint8_t button6;
-	uint8_t button5;
+	uint8_t button2;
+	uint8_t button3;
 	uint8_t button4;
+	uint8_t button5;
+	uint8_t button6;
+	uint8_t button7;
 	uint8_t button8;
+
+	/** X pointer movement. */
+	int8_t deltaX;
+
+	/** Y pointer movement. */
+	int8_t deltaY;
+
+	/** Scroll wheel movement. */
 	int8_t deltaWheel;
+
+	/** A monotonically increasing integer generated by the Freespace sensor board at a nominal rate of 125 Hz.
+	Can be used to correlate body frame messages with the user frame messages */
+	uint16_t sequenceNumber;
+
+	/** Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference. */
+	int16_t linearAccelX;
+	int16_t linearAccelY;
+	int16_t linearAccelZ;
+
+	/** Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference. */
+	int16_t angularVelX;
+	int16_t angularVelY;
+	int16_t angularVelZ;
 };
 
 
@@ -1110,34 +1296,48 @@ struct freespace_BodyFrame {
  */
 LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int length, struct freespace_BodyFrame* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Conveys the handheld device position and orientation with respect to a user frame of reference.
  */
 struct freespace_UserFrame {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	int16_t angularPosC;
-	uint16_t sequenceNumber;
-	int8_t deltaX;
-	int8_t deltaY;
-	int16_t angularPosD;
-	int16_t angularPosA;
-	int16_t linearPosZ;
-	int16_t linearPosY;
-	int16_t linearPosX;
-	uint8_t button3;
-	uint8_t button2;
+
+	/** Button bits. */
 	uint8_t button1;
-	int16_t angularPosB;
-	uint8_t button7;
-	uint8_t button6;
-	uint8_t button5;
+	uint8_t button2;
+	uint8_t button3;
 	uint8_t button4;
+	uint8_t button5;
+	uint8_t button6;
+	uint8_t button7;
 	uint8_t button8;
+
+	/** X pointer movement. */
+	int8_t deltaX;
+
+	/** Y pointer movement. */
+	int8_t deltaY;
+
+	/** Scroll wheel movement. */
 	int8_t deltaWheel;
+
+	/** Correlates the position report with the Body Frame Motion Report */
+	uint16_t sequenceNumber;
+
+	/** Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference. */
+	int16_t linearPosX;
+	int16_t linearPosY;
+	int16_t linearPosZ;
+
+	/** Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients. */
+	int16_t angularPosA;
+	int16_t angularPosB;
+	int16_t angularPosC;
+	int16_t angularPosD;
 };
 
 
@@ -1151,30 +1351,30 @@ struct freespace_UserFrame {
  */
 LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int length, struct freespace_UserFrame* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features.
  */
 struct freespace_DataMotionControl {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
 
-	/** Enable Mouse Movement: when set to 1 enables Mouse Movement reports. */
-	uint8_t enableMouseMovement;
+	/** Enable Body Motion: when set to 1 enables Body Frame Motion reports. */
+	uint8_t enableBodyMotion;
 
 	/** Enable User Position: when set to 1 enables User Frame Position reports */
 	uint8_t enableUserPosition;
 
-	/** Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits. */
-	uint8_t disableFreespace;
-
 	/** Inhibit Power Manager: when set to 1 disables the power management feature that automatically stops sending motion reports after a period of no motion. */
 	uint8_t inhibitPowerManager;
 
-	/** Enable Body Motion: when set to 1 enables Body Frame Motion reports. */
-	uint8_t enableBodyMotion;
+	/** Enable Mouse Movement: when set to 1 enables Mouse Movement reports. */
+	uint8_t enableMouseMovement;
+
+	/** Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits. */
+	uint8_t disableFreespace;
 };
 
 
@@ -1190,15 +1390,27 @@ struct freespace_DataMotionControl {
  */
 LIBFREESPACE_API int freespace_encodeDataMotionControl(const struct freespace_DataMotionControl* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the device to the host to indicate status of the write operation.
  */
 struct freespace_FRSWriteResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Status/Error:
+	0: word received
+	1: unrecognized FRS type
+	2: busy
+	3: write completed
+	4: write mode entered already
+	5: write failed
+	6: data received while not in write mode
+	7: invalid length
+	8: record valid (the complete record passed internal validation checks)
+	9:record invalid (the complete record failed internal validation checks) */
 	uint8_t status;
 	uint16_t wordOffset;
 };
@@ -1214,20 +1426,36 @@ struct freespace_FRSWriteResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSWriteResponse(const uint8_t* message, int length, struct freespace_FRSWriteResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the device to the host to convey an FRS record.
  */
 struct freespace_FRSReadResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Status:
+	0: no error
+	1: unrecognized FRS type
+	2: busy
+	3: read completed
+	4: offset out of range
+	5: record empty
+	6: read block completed
+	7: read block completed and read reacord completed */
 	int status;
-	uint16_t FRStype;
+
+	/** Data Length indicates the number of data words contained within the message, typically 5 words */
+	int dataLength;
+
+	/** Word Offset indicates the number of words the data is offset from the beginning of the record */
 	uint16_t wordOffset;
 	uint32_t data[3];
-	int dataLength;
+
+	/** FRS record type */
+	uint16_t FRStype;
 };
 
 
@@ -1241,19 +1469,27 @@ struct freespace_FRSReadResponse {
  */
 LIBFREESPACE_API int freespace_decodeFRSReadResponse(const uint8_t* message, int length, struct freespace_FRSReadResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This report provides the results of a packet error rate test.  WiCE(tm) only.
  */
 struct freespace_PerResponse {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Frame count of the PER test.  The duration. */
 	uint32_t count;
+
+	/** Number of master-to-slave errors detected during the test.  Maximum 1 per frame. */
 	uint32_t msError;
-	uint32_t frError;
+
+	/** Number of slave-to-master errors detected during the test.  Maximum 2 per frame. */
 	uint32_t smError;
+
+	/** Number of frame errors detected during the test.  A frame error occurred if both slave-to-master messages in a frame were errors.  Maximum 1 per frame. */
+	uint32_t frError;
 };
 
 
@@ -1267,17 +1503,21 @@ struct freespace_PerResponse {
  */
 LIBFREESPACE_API int freespace_decodePerResponse(const uint8_t* message, int length, struct freespace_PerResponse* s, uint8_t ver);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This is sent from the host towards the device to initiate a flash record write.
 	A length of 0 will cause the record to be invalidated.
  */
 struct freespace_FRSWriteRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Length in 32-bit words of record to be written. */
 	uint16_t length;
+
+	/** FRS record type to read. */
 	uint16_t FRStype;
 };
 
@@ -1294,16 +1534,20 @@ struct freespace_FRSWriteRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSWriteRequest(const struct freespace_FRSWriteRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * This message is sent from the host towards the device to write data to the record a previous write request indicated.
  */
 struct freespace_FRSWriteData {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Offset from start of record to write data. */
 	uint16_t wordOffset;
+
+	/** 32-bit word to write. */
 	uint32_t data;
 };
 
@@ -1320,18 +1564,24 @@ struct freespace_FRSWriteData {
  */
 LIBFREESPACE_API int freespace_encodeFRSWriteData(const struct freespace_FRSWriteData* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Undocumented Message
  */
 struct freespace_FRSReadRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint16_t BlockSize;
-	uint16_t FRStype;
+
+	/** Offset from start of record to begin reading. */
 	uint16_t readOffset;
+
+	/** FRS record type to read. */
+	uint16_t FRStype;
+
+	/** Number of 32-bit words to read. */
+	uint16_t BlockSize;
 };
 
 
@@ -1347,17 +1597,22 @@ struct freespace_FRSReadRequest {
  */
 LIBFREESPACE_API int freespace_encodeFRSReadRequest(const struct freespace_FRSReadRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Configures and executes packet error rate tests.  WiCE(tm) only.
  */
 struct freespace_PerRequest {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
-	uint8_t payload[5];
+
+	/** 0: sets the frequency set for fixed-frequency PER tests.  1: starts a PER test. */
 	uint8_t op;
+
+	/** op == 0: Sets fixed channels for the test.  All 5 0xFF will clear the fixed frequency state.
+op == 1: Starts a PER test of duration ((payload[1] * 256 + payload[0]) * 256) WiCE(tm) frames. */
+	uint8_t payload[5];
 };
 
 
@@ -1373,40 +1628,58 @@ struct freespace_PerRequest {
  */
 LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_PerRequest* s, uint8_t* message, int maxlength);
 
-/**   @ingroup messages 
+/** @ingroup messages 
  * Conveys the handheld device body and user frame motion.
  */
 struct freespace_BodyUserFrame {
-	uint8_t ver; /* HID protocol version */
-	uint8_t len; /* Length, used in version 2 only */
-	uint8_t dest; /* Destination, used in version 2 only */
-	uint8_t src; /* Source, used in version 2 only */
+	uint8_t ver; /**< HID protocol version */
+	uint8_t len; /**< Length, used in version 2 only */
+	uint8_t dest; /**< Destination, used in version 2 only */
+	uint8_t src; /**< Source, used in version 2 only */
 
+
+	/** Button bits. */
+	uint8_t button1;
+	uint8_t button2;
+	uint8_t button3;
+	uint8_t button4;
+	uint8_t button5;
+	uint8_t button6;
+	uint8_t button7;
+	uint8_t button8;
+
+	/** X pointer movement. */
+	int8_t deltaX;
+
+	/** Y pointer movement. */
+	int8_t deltaY;
+
+	/** Scroll wheel movement. */
+	int8_t deltaWheel;
+
+	/** Correlates the position report with the Body Frame Motion Report */
 	uint16_t sequenceNumber;
-	int16_t angularVelZ;
+
+	/** Linear Acceleration is reported in SI units (cm/s^2) with an exponent of -1. X is positive forward. Y is positive right. Z is positive down wrt handheld frame of reference. */
+	int16_t linearAccelX;
+	int16_t linearAccelY;
+	int16_t linearAccelZ;
+
+	/** Angular Velocity is reported in units of rad/s with an exponent of -3. X positive is tilt right(roll). Y positive it tilt up(pitch). Z positive is turn right(yaw) wrt the handheld device frame of reference. */
 	int16_t angularVelX;
 	int16_t angularVelY;
-	int16_t linearPosZ;
-	int8_t deltaX;
-	int8_t deltaY;
-	int16_t angularPosD;
-	int16_t angularPosC;
-	int16_t angularPosB;
-	int16_t linearPosY;
+	int16_t angularVelZ;
+
+	/** Linear Offset is in units of meters. X positive is right. Y positive is near. Z positive is down wrt the user frame of reference. */
 	int16_t linearPosX;
+	int16_t linearPosY;
+	int16_t linearPosZ;
+
+	/** Angular Position is in dimensionless units. The axes are given in quaternion form where A, B, C, D represent the real, i, j, and k coefficients. */
+	int16_t angularPosB;
+	int16_t angularPosC;
+	int16_t angularPosD;
 	int16_t angularPosA;
-	int8_t deltaWheel;
-	int16_t linearAccelZ;
-	int16_t linearAccelY;
-	int16_t linearAccelX;
-	uint8_t button3;
-	uint8_t button2;
-	uint8_t button1;
-	uint8_t button7;
-	uint8_t button6;
-	uint8_t button5;
-	uint8_t button4;
-	uint8_t button8;
 };
 
 
