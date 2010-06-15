@@ -38,7 +38,7 @@ extern "C" {
 #ifdef _WIN32
 #endif
 
-/*
+/**
  * Define the maximum number of handles (interfaces) per device that
  * can be joined together as a single virtual device.
  * Changing this value requires changing instances of freespace_deviceAPI.
@@ -46,13 +46,14 @@ extern "C" {
  */
 #define FREESPACE_HANDLE_COUNT_MAX 2
 
-/*
+/**
  * This must be updated when devices are added or subtraced from the device
  * table.
  */
 #define FREESPACE_DEVICES_COUNT 41
 
 /**
+ * @ingroup device
  * A specific usage available for a given freespace_deviceAPI.
  */
 struct freespace_deviceUsageAPI {
@@ -61,8 +62,8 @@ struct freespace_deviceUsageAPI {
 };
 
 /**
- * Figure out which API to use depending on the reported
- * Freespace version.
+ * @ingroup device
+ * Figure out which API to use depending on the reported Freespace version.
  */
 struct freespace_deviceAPI {
     // Set of devices with this version.
@@ -75,6 +76,10 @@ struct freespace_deviceAPI {
     const char* name_;
 };
 
+/**
+ * @ingroup device
+ * Stores information for all Freespace devices.
+ */
 extern const struct freespace_deviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT];
 
 #ifdef __cplusplus

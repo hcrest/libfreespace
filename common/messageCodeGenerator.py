@@ -290,6 +290,7 @@ struct freespace_message {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_message struct to decode into
+ * @param ver the HID protocol version to use to decode the message
  * @return FREESPACE_SUCESS or an error code
  */
 LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s, uint8_t ver);
@@ -556,8 +557,6 @@ def writeEncodeDecl(message, outHeader):
  * @param s the freespace_%(name)s struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_%(name)s* s, uint8_t* message, int maxlength);
@@ -571,6 +570,7 @@ def writeDecodeDecl(message, outHeader):
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_%(name)s struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s, uint8_t ver);

@@ -54,8 +54,6 @@ struct freespace_CoprocessorOutReport {
  * @param s the freespace_CoprocessorOutReport struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeCoprocessorOutReport(const struct freespace_CoprocessorOutReport* s, uint8_t* message, int maxlength);
@@ -80,6 +78,7 @@ struct freespace_CoprocessorInReport {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_CoprocessorInReport struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message, int length, struct freespace_CoprocessorInReport* s, uint8_t ver);
@@ -102,8 +101,6 @@ struct freespace_PairingMessage {
  * @param s the freespace_PairingMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_PairingMessage* s, uint8_t* message, int maxlength);
@@ -126,8 +123,6 @@ struct freespace_ProductIDRequest {
  * @param s the freespace_ProductIDRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeProductIDRequest(const struct freespace_ProductIDRequest* s, uint8_t* message, int maxlength);
@@ -168,8 +163,6 @@ struct freespace_LEDSetRequest {
  * @param s the freespace_LEDSetRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeLEDSetRequest(const struct freespace_LEDSetRequest* s, uint8_t* message, int maxlength);
@@ -195,8 +188,6 @@ struct freespace_LinkQualityRequest {
  * @param s the freespace_LinkQualityRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_LinkQualityRequest* s, uint8_t* message, int maxlength);
@@ -219,8 +210,6 @@ struct freespace_AlwaysOnRequest {
  * @param s the freespace_AlwaysOnRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(const struct freespace_AlwaysOnRequest* s, uint8_t* message, int maxlength);
@@ -252,8 +241,6 @@ struct freespace_FrequencyFixRequest {
  * @param s the freespace_FrequencyFixRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFrequencyFixRequest(const struct freespace_FrequencyFixRequest* s, uint8_t* message, int maxlength);
@@ -279,8 +266,6 @@ struct freespace_SoftwareResetMessage {
  * @param s the freespace_SoftwareResetMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace_SoftwareResetMessage* s, uint8_t* message, int maxlength);
@@ -303,8 +288,6 @@ struct freespace_DongleRFDisableMessage {
  * @param s the freespace_DongleRFDisableMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespace_DongleRFDisableMessage* s, uint8_t* message, int maxlength);
@@ -327,8 +310,6 @@ struct freespace_TxDisableMessage {
  * @param s the freespace_TxDisableMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_TxDisableMessage* s, uint8_t* message, int maxlength);
@@ -358,8 +339,6 @@ struct freespace_DongleRFSupressHomeFrequencyMessage {
  * @param s the freespace_DongleRFSupressHomeFrequencyMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeDongleRFSupressHomeFrequencyMessage(const struct freespace_DongleRFSupressHomeFrequencyMessage* s, uint8_t* message, int maxlength);
@@ -392,8 +371,6 @@ struct freespace_FRSLoopReadRequest {
  * @param s the freespace_FRSLoopReadRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopReadRequest(const struct freespace_FRSLoopReadRequest* s, uint8_t* message, int maxlength);
@@ -423,8 +400,6 @@ struct freespace_FRSLoopWriteRequest {
  * @param s the freespace_FRSLoopWriteRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopWriteRequest(const struct freespace_FRSLoopWriteRequest* s, uint8_t* message, int maxlength);
@@ -453,8 +428,6 @@ struct freespace_FRSLoopWriteData {
  * @param s the freespace_FRSLoopWriteData struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSLoopWriteData(const struct freespace_FRSLoopWriteData* s, uint8_t* message, int maxlength);
@@ -486,8 +459,6 @@ struct freespace_FRSDongleReadRequest {
  * @param s the freespace_FRSDongleReadRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleReadRequest(const struct freespace_FRSDongleReadRequest* s, uint8_t* message, int maxlength);
@@ -516,8 +487,6 @@ struct freespace_FRSDongleWriteRequest {
  * @param s the freespace_FRSDongleWriteRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleWriteRequest(const struct freespace_FRSDongleWriteRequest* s, uint8_t* message, int maxlength);
@@ -546,8 +515,6 @@ struct freespace_FRSDongleWriteData {
  * @param s the freespace_FRSDongleWriteData struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSDongleWriteData(const struct freespace_FRSDongleWriteData* s, uint8_t* message, int maxlength);
@@ -579,8 +546,6 @@ struct freespace_FRSEFlashReadRequest {
  * @param s the freespace_FRSEFlashReadRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashReadRequest(const struct freespace_FRSEFlashReadRequest* s, uint8_t* message, int maxlength);
@@ -609,8 +574,6 @@ struct freespace_FRSEFlashWriteRequest {
  * @param s the freespace_FRSEFlashWriteRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashWriteRequest(const struct freespace_FRSEFlashWriteRequest* s, uint8_t* message, int maxlength);
@@ -639,8 +602,6 @@ struct freespace_FRSEFlashWriteData {
  * @param s the freespace_FRSEFlashWriteData struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_FRSEFlashWriteData* s, uint8_t* message, int maxlength);
@@ -663,8 +624,6 @@ struct freespace_DongleRFEnableMessage {
  * @param s the freespace_DongleRFEnableMessage struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(const struct freespace_DongleRFEnableMessage* s, uint8_t* message, int maxlength);
@@ -711,8 +670,6 @@ struct freespace_DataModeRequest {
  * @param s the freespace_DataModeRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeDataModeRequest(const struct freespace_DataModeRequest* s, uint8_t* message, int maxlength);
@@ -738,8 +695,6 @@ struct freespace_ButtonTestModeRequest {
  * @param s the freespace_ButtonTestModeRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeButtonTestModeRequest(const struct freespace_ButtonTestModeRequest* s, uint8_t* message, int maxlength);
@@ -774,6 +729,7 @@ struct freespace_PairingResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_PairingResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodePairingResponse(const uint8_t* message, int length, struct freespace_PairingResponse* s, uint8_t ver);
@@ -815,6 +771,7 @@ struct freespace_ProductIDResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_ProductIDResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeProductIDResponse(const uint8_t* message, int length, struct freespace_ProductIDResponse* s, uint8_t ver);
@@ -854,6 +811,7 @@ struct freespace_LinkStatus {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_LinkStatus struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int length, struct freespace_LinkStatus* s, uint8_t ver);
@@ -876,6 +834,7 @@ struct freespace_AlwaysOnResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_AlwaysOnResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeAlwaysOnResponse(const uint8_t* message, int length, struct freespace_AlwaysOnResponse* s, uint8_t ver);
@@ -919,6 +878,7 @@ struct freespace_FRSLoopReadResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSLoopReadResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSLoopReadResponse(const uint8_t* message, int length, struct freespace_FRSLoopReadResponse* s, uint8_t ver);
@@ -955,6 +915,7 @@ struct freespace_FRSLoopWriteResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSLoopWriteResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSLoopWriteResponse(const uint8_t* message, int length, struct freespace_FRSLoopWriteResponse* s, uint8_t ver);
@@ -998,6 +959,7 @@ struct freespace_FRSDongleReadResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSDongleReadResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSDongleReadResponse(const uint8_t* message, int length, struct freespace_FRSDongleReadResponse* s, uint8_t ver);
@@ -1034,6 +996,7 @@ struct freespace_FRSDongleWriteResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSDongleWriteResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSDongleWriteResponse(const uint8_t* message, int length, struct freespace_FRSDongleWriteResponse* s, uint8_t ver);
@@ -1077,6 +1040,7 @@ struct freespace_FRSEFlashReadResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSEFlashReadResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSEFlashReadResponse(const uint8_t* message, int length, struct freespace_FRSEFlashReadResponse* s, uint8_t ver);
@@ -1113,6 +1077,7 @@ struct freespace_FRSEFlashWriteResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSEFlashWriteResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSEFlashWriteResponse(const uint8_t* message, int length, struct freespace_FRSEFlashWriteResponse* s, uint8_t ver);
@@ -1156,6 +1121,7 @@ struct freespace_DataModeResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_DataModeResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeDataModeResponse(const uint8_t* message, int length, struct freespace_DataModeResponse* s, uint8_t ver);
@@ -1187,6 +1153,7 @@ struct freespace_ButtonTestModeResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_ButtonTestModeResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* message, int length, struct freespace_ButtonTestModeResponse* s, uint8_t ver);
@@ -1209,8 +1176,6 @@ struct freespace_BatteryLevelRequest {
  * @param s the freespace_BatteryLevelRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(const struct freespace_BatteryLevelRequest* s, uint8_t* message, int maxlength);
@@ -1236,6 +1201,7 @@ struct freespace_BatteryLevel {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_BatteryLevel struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeBatteryLevel(const uint8_t* message, int length, struct freespace_BatteryLevel* s, uint8_t ver);
@@ -1292,6 +1258,7 @@ struct freespace_BodyFrame {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_BodyFrame struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeBodyFrame(const uint8_t* message, int length, struct freespace_BodyFrame* s, uint8_t ver);
@@ -1347,6 +1314,7 @@ struct freespace_UserFrame {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_UserFrame struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeUserFrame(const uint8_t* message, int length, struct freespace_UserFrame* s, uint8_t ver);
@@ -1384,8 +1352,6 @@ struct freespace_DataMotionControl {
  * @param s the freespace_DataMotionControl struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeDataMotionControl(const struct freespace_DataMotionControl* s, uint8_t* message, int maxlength);
@@ -1422,6 +1388,7 @@ struct freespace_FRSWriteResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSWriteResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSWriteResponse(const uint8_t* message, int length, struct freespace_FRSWriteResponse* s, uint8_t ver);
@@ -1465,6 +1432,7 @@ struct freespace_FRSReadResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_FRSReadResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeFRSReadResponse(const uint8_t* message, int length, struct freespace_FRSReadResponse* s, uint8_t ver);
@@ -1499,6 +1467,7 @@ struct freespace_PerResponse {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_PerResponse struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodePerResponse(const uint8_t* message, int length, struct freespace_PerResponse* s, uint8_t ver);
@@ -1528,8 +1497,6 @@ struct freespace_FRSWriteRequest {
  * @param s the freespace_FRSWriteRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSWriteRequest(const struct freespace_FRSWriteRequest* s, uint8_t* message, int maxlength);
@@ -1558,8 +1525,6 @@ struct freespace_FRSWriteData {
  * @param s the freespace_FRSWriteData struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSWriteData(const struct freespace_FRSWriteData* s, uint8_t* message, int maxlength);
@@ -1591,8 +1556,6 @@ struct freespace_FRSReadRequest {
  * @param s the freespace_FRSReadRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodeFRSReadRequest(const struct freespace_FRSReadRequest* s, uint8_t* message, int maxlength);
@@ -1622,8 +1585,6 @@ op == 1: Starts a PER test of duration ((payload[1] * 256 + payload[0]) * 256) W
  * @param s the freespace_PerRequest struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @param dest the destination device address for the message
- * @param ver the protocol version to use for this message
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_PerRequest* s, uint8_t* message, int maxlength);
@@ -1689,6 +1650,7 @@ struct freespace_BodyUserFrame {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_BodyUserFrame struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_decodeBodyUserFrame(const uint8_t* message, int length, struct freespace_BodyUserFrame* s, uint8_t ver);
@@ -1815,6 +1777,7 @@ struct freespace_message {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_message struct to decode into
+ * @param ver the HID protocol version to use to decode the message
  * @return FREESPACE_SUCESS or an error code
  */
 LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s, uint8_t ver);
