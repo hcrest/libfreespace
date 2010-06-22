@@ -23,6 +23,7 @@
 
 #include "freespace/freespace.h"
 #include "freespace/freespace_codecs.h"
+#include "freespace/freespace_deviceTable.h"
 
 // Define our debug printf statements
 #ifdef DEBUG
@@ -126,14 +127,6 @@ enum freespace_discoveryStatus {
     FREESPACE_DISCOVERY_STATUS_REMOVED
 };
 
-/*
- * Define the maximum number of handles (interfaces) per device that
- * can be joined together as a single virtual device.
- * Changing this value requires changing the deviceAPITable definition 
- * in freespace_discoveryDetail.c
- */
-#define FREESPACE_HANDLE_COUNT_MAX 2
-
 // The information used to uniquely identify a device interface (handle).
 struct FreespaceDeviceInterfaceInfo {
     // The device vendor ID.
@@ -209,6 +202,9 @@ struct FreespaceDeviceStruct {
     // The user-meaningful name for the device.
     const char*					name_; // Uses constant value.
 
+	// The HID message protocol used by this device
+	int                         hVer_;
+
     // The discovery status for the device which is used to detect when
     // devices are removed from the system.
     enum freespace_discoveryStatus   status_;
@@ -232,6 +228,11 @@ struct FreespaceDeviceStruct {
     freespace_receiveCallback   receiveCallback_;
     // The cookie passed to the receive callback.
     void*                       receiveCookie_;
+
+    // The callback used for each received and decoded message.
+    freespace_receiveStructCallback   receiveStructCallback_;
+    // The cookie passed to the receive struct callback.
+    void*                             receiveStructCookie_;
 
     // Send events outstanding
     struct FreespaceSendStruct  send_[FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT];

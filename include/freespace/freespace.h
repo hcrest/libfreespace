@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,8 @@
 
 #ifndef FREESPACE_H_
 #define FREESPACE_H_
+
+#include "freespace_codecs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,32 +69,17 @@ extern "C" {
  * with Freespace(r) devices.
  */
 
-/* Define the types */
-#ifdef _WIN32
-#include "win32_stdint.h"
-typedef void* FreespaceFileHandleType;
-
-// All files within this DLL are compiled with the LIBFREESPACE_EXPORTS
-// symbol defined on the command line. This symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see
-// LIBFREESPACE_API functions as being imported from a DLL, whereas this DLL sees symbols
-// defined with this macro as being exported.
-#ifdef LIBFREESPACE_EXPORTS
-#define LIBFREESPACE_API __declspec(dllexport)
-#else
-#define LIBFREESPACE_API
-#endif
-
-#else
-#include <stdint.h>
-typedef int FreespaceFileHandleType;
-#define LIBFREESPACE_API
-#endif
-
 /**
  * Handle to a Freespace device.
  */
 typedef int FreespaceDeviceId;
+
+/**
+ * Address of the Freespace device to which the message will be sent.
+ * These are reserved for now and must be set to 0 when calling into
+ * libfreespace.
+ */
+typedef uint8_t FreespaceAddress;
 
 struct FreespaceDeviceInfo {
     /** The user-meaningful name for the device. */
@@ -103,66 +90,9 @@ struct FreespaceDeviceInfo {
 
     /** Product ID */
     uint16_t product;
-};
 
-/** \ingroup initialization
- * Error codes.
- */
-enum freespace_error {
-    /** Success (no error) */
-    FREESPACE_SUCCESS = 0,
-
-    /** Input/output error */
-    FREESPACE_ERROR_IO = -1,
-
-    /** Access denied (insufficient permissions) */
-    FREESPACE_ERROR_ACCESS = -3,
-
-    /** No such device (it may have been disconnected) */
-    FREESPACE_ERROR_NO_DEVICE = -4,
-
-    /** Entity not found */
-    FREESPACE_ERROR_NOT_FOUND = -5,
-
-    /** Resource busy */
-    FREESPACE_ERROR_BUSY = -6,
-
-    /** Operation timed out */
-    FREESPACE_ERROR_TIMEOUT = -7,
-
-    /** Pipe error */
-    FREESPACE_ERROR_PIPE = -9,
-
-    /** System call interrupted (perhaps due to signal) */
-    FREESPACE_ERROR_INTERRUPTED = -10,
-
-    /** Out of memory */
-    FREESPACE_ERROR_OUT_OF_MEMORY = -11,
-
-    /** Amount to send was larger than the max */
-    FREESPACE_ERROR_SEND_TOO_LARGE = -20,
-
-    /** Invalid or uninitialized device handle */
-    FREESPACE_ERROR_INVALID_DEVICE = -21,
-
-    /** Receive buffer was too small */
-    FREESPACE_ERROR_RECEIVE_BUFFER_TOO_SMALL = -22,
-
-    /** Unknown error when trying to create or start a thread */
-    FREESPACE_ERROR_COULD_NOT_CREATE_THREAD = -23,
-
-    /** Buffer was too small */
-    FREESPACE_ERROR_BUFFER_TOO_SMALL = -24,
-
-    /** No data was received */
-    FREESPACE_ERROR_NO_DATA = -25,
-
-    /** No data was received */
-    FREESPACE_ERROR_MALFORMED_MESSAGE = -26,
-
-
-    /** Any uncategorized or unplanned error */
-    FREESPACE_ERROR_UNEXPECTED = -98
+	/** HID message protocol verson */
+	int hVer;
 };
 
 /** @ingroup discovery
@@ -210,6 +140,19 @@ typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
                                           int length,
                                           void* cookie,
                                           int result);
+
+/** @ingroup async
+ * Callback for received Freespace events.
+ *
+ * @param id The device that generated the message
+ * @param message the decoded HID message
+ * @param cookie the data passed to freespace_setReceiveCallback().
+ * @param result FREESPACE_SUCCESS if a packet was received; else error code
+ */
+typedef void (*freespace_receiveStructCallback)(FreespaceDeviceId id,
+                                                struct freespace_message* message,
+                                                void* cookie,
+                                                int result);
 
 /** @ingroup async
  * Callback for when file descriptors should be added to the
@@ -324,6 +267,19 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 
 /** @ingroup synchronous
  *
+ * Send a message to the specified Freespace device synchronously.
+ *
+ * @param id the FreespaceDeviceId of the device to send message to
+ * @param message the message to send
+ * @param address is reserved and must be set to 0.
+ * @return FREESPACE_SUCCESS or an error
+ */
+LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
+                                                 struct freespace_message* message,
+                                                 FreespaceAddress address);
+
+/** @ingroup synchronous
+ *
  * Read a message from the specified device.  This function blocks
  * until a message is received, there's a timeout or an error.
  *
@@ -339,6 +295,20 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
                                     int maxLength,
                                     unsigned int timeoutMs,
                                     int* actualLength);
+
+/** @ingroup synchronous
+ *
+ * Read a message struct from the specified device.  This function blocks
+ * until a message is received, there's a timeout or an error.
+ *
+ * @param id the FreespaceDeviceId of the device to read from
+ * @param message where to put the received message
+ * @param timeoutMs the timeout in milliseconds or 0 to wait forever
+ * @return FREESPACE_SUCCESS or an error
+ */
+LIBFREESPACE_API int freespace_readMessageStruct(FreespaceDeviceId id,
+                                           struct freespace_message* message,
+                                           unsigned int timeoutMs);
 
 /** @ingroup synchronous
  *
@@ -359,13 +329,26 @@ LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id);
  * Register a callback function to handle received HID messages.
  *
  * @param id the FreespaceDeviceId of the device
- * @param callback the cllback function
+ * @param callback the callback function
  * @param cookie any user data
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
                                                   freespace_receiveCallback callback,
                                                   void* cookie);
+
+/** @ingroup async
+ *
+ * Register a callback function to handle decoded received HID messages.
+ *
+ * @param id the FreespaceDeviceId of the device
+ * @param callback the callback function
+ * @param cookie any user data
+ * @return FREESPACE_SUCCESS or an error
+ */
+LIBFREESPACE_API int freespace_setReceiveStructCallback(FreespaceDeviceId id,
+                                                        freespace_receiveStructCallback callback,
+                                                        void* cookie);
 
 /** @ingroup async
  *
@@ -385,6 +368,25 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
                                          unsigned int timeoutMs,
                                          freespace_sendCallback callback,
                                          void* cookie);
+
+/** @ingroup async
+ *
+ * Send a message struct to the specified Freespace device, but do not block.
+ *
+ * @param id the FreespaceDeviceId of the device to send message to
+ * @param message the HID message struct to send
+ * @param address is reserved and must be set to 0.
+ * @param timeoutMs the number of milliseconds to wait before timing out
+ * @param callback the function to call when the send completes
+ * @param cookie data passed to the callback function
+ * @return FREESPACE_SUCCESS or an error
+ */
+LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
+                                                      struct freespace_message* message,
+                                                      FreespaceAddress address,
+                                                      unsigned int timeoutMs,
+                                                      freespace_sendCallback callback,
+                                                      void* cookie);
 
 /** @ingroup async
  *

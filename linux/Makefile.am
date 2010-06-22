@@ -31,8 +31,8 @@ if OS_DARWIN
 HOTPLUG_SRCS = $(DARWIN_HOTPLUG_SRC)
 endif
 
-libfreespace_la_SOURCES = ../common/freespace_codecs.c ../common/freespace_printers.c freespace.c hotplug.h $(HOTPLUG_SRCS)
-include_HEADERS = ../include/freespace/freespace_codecs.h ../include/freespace/freespace_printers.h ../include/freespace/freespace.h
+libfreespace_la_SOURCES = ../common/freespace_codecs.c ../common/freespace_printers.c ../common/freespace_deviceTable.c freespace.c hotplug.h $(HOTPLUG_SRCS)
+include_HEADERS = ../include/freespace/freespace_codecs.h ../include/freespace/freespace_printers.h ../include/freespace/freespace.h ../include/freespace/freespace_common.h ../include/freespace/freespace_deviceTable.h
 
 includedir = $(prefix)/include/freespace
 
@@ -41,9 +41,5 @@ BUILT_SOURCES = ../common/freespace_printers.c ../common/freespace_codecs.c ../i
 ../common/freespace_codecs.c: ../common/freespace_printers.c
 ../common/freespace_printers.c: ../common/messageCodeGenerator.py ../common/setupMessages.py
 	../common/messageCodeGenerator.py ../common/setupMessages.py
-	mv freespace_printers.h ../include/freespace
-	mv freespace_codecs.h ../include/freespace
-	mv freespace_printers.c ../common
-	mv freespace_codecs.c ../common
 
-AM_CFLAGS = -Wall -I../include
+AM_CFLAGS = -Wall -I../include -lm

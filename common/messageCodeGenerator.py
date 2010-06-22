@@ -2,7 +2,7 @@
 #
 # This file is part of libfreespace.
 #  
-# Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+# Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
 # 
 # libfreespace is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -23,17 +23,45 @@ import getopt
 import os
 
 def compareMessages(a, b):
-    return cmp(a.ID['constID'], b.ID['constID'])
+    # Sort ID[0] before ID[1] before ID[2]
+    if len(a.ID[0]) != 0:
+        if len(b.ID[0]) != 0:
+            return cmp(a.ID[0]['constID'], b.ID[0]['constID'])
+        else:
+            return -1
+    else:
+        if len(a.ID[1]) !=0:
+            if len(b.ID[0]) != 0:
+                return 1
+            elif len(b.ID[1]) != 0:
+                return cmp(a.ID[1]['constID'], b.ID[1]['constID'])
+            else:
+                return -1
+        else:
+            if len(a.ID[2]) != 0:
+                if len(b.ID[0]) != 0:
+                    return 1
+                elif len(b.ID[1]) != 0:
+                    return 1
+                elif len(b.ID[2]) != 0:
+                    return cmp(a.ID[2]['constID'], b.ID[2]['constID'])
+                else:
+                    return -1
+            else:
+                if len(b.ID[2]) != 0:
+                    return 1
+                else:
+                    return 0
 
 class MessageCodeGenerator:
     def writeMessages(self, messages):
         messages.sort(compareMessages)
         
-        codecsHFile = open("freespace_codecs.h", "w")
+        codecsHFile = open("../include/freespace/freespace_codecs.h", "w")
         self.writeHFileHeader(codecsHFile, 'freespace_codecs')
         self.writeDoxygenModuleDef(codecsHFile)
         
-        printersHFile = open("freespace_printers.h", "w")
+        printersHFile = open("../include/freespace/freespace_printers.h", "w")
         self.writeHFileHeader(printersHFile, 'freespace_printers')
         printersHFile.write('#include "freespace_codecs.h"\n')
         printersHFile.write('#include <stdio.h>\n\n')
@@ -42,10 +70,18 @@ class MessageCodeGenerator:
         codecsCFile = open("freespace_codecs.c", "w")
         self.writeCFileHeader(codecsCFile, 'freespace_codecs')
         codecsCFile.write('#include <stdio.h>\n')
+        codecsCFile.write('#include <math.h>\n')
         codecsCFile.write('\n#ifdef _WIN32\n')
         codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
         codecsCFile.write('#else\n')
-        codecsCFile.write('#define STRICT_DECODE_LENGTH -1\n')
+        codecsCFile.write('#define STRICT_DECODE_LENGTH 0\n')
+        codecsCFile.write('#endif\n\n')
+        codecsCFile.write('#undef CODECS_PRINTF\n')
+        codecsCFile.write('//#define CODECS_DEBUG\n')
+        codecsCFile.write('#ifdef CODECS_DEBUG\n')
+        codecsCFile.write('#define CODECS_PRINTF printf\n')
+        codecsCFile.write('#else\n')
+        codecsCFile.write('#define CODECS_PRINTF(...)\n')
         codecsCFile.write('#endif\n\n')
         self.writeBitHelper(codecsCFile)
         
@@ -71,20 +107,44 @@ class MessageCodeGenerator:
     
     def writeBitHelper(self, outHeader):
         outHeader.write('''
-static uint32_t toUInt32(uint8_t a, uint8_t b, uint8_t c, uint8_t d) {
+static uint32_t toUint32(const uint8_t * a) {
 #ifdef FREESPACE_LITTLE_ENDIAN
-    return (((uint32_t) ((uint8_t) d)) << 24) | (((uint32_t) ((uint8_t) c)) << 16) | (((uint32_t) ((uint8_t) b)) << 8) | (uint32_t) a;
+    return ((((uint32_t) a[3])) << 24) | ((((uint32_t) a[2])) << 16) | ((((uint32_t) a[1])) << 8) | (uint32_t) a[0];
 #else
-    return (((uint32_t) ((uint8_t) a)) << 24) | (((uint32_t) ((uint8_t) b)) << 16) | (((uint32_t) ((uint8_t) c)) << 8) | (uint32_t) d;
+    return ((((uint32_t) a[0])) << 24) | ((((uint32_t) a[1])) << 16) | ((((uint32_t) a[2])) << 8) | (uint32_t) a[3];
 #endif
 }
 
-static int16_t toInt(uint8_t a, uint8_t b) {
+static uint16_t toUint16(const uint8_t * a) {
 #ifdef FREESPACE_LITTLE_ENDIAN
-    return (((int16_t) b) << 8) | a;
+    return ((((uint16_t) a[1])) << 8) | (uint16_t) a[0];
 #else
-    return (((int16_t) a) << 8) | b;
+    return ((((uint16_t) a[0])) << 8) | (uint16_t) a[1];
 #endif
+}
+
+static uint8_t toUint8(const uint8_t * a) {
+    return (uint8_t) *a;
+}
+
+static int32_t toInt32(const uint8_t * a) {
+#ifdef FREESPACE_LITTLE_ENDIAN
+    return (int32_t) (((((int32_t) a[3])) << 24) | ((((uint32_t) a[2])) << 16) | ((((uint32_t) a[1])) << 8) | (uint32_t) a[0]);
+#else
+    return (int32_t) (((((int32_t) a[0])) << 24) | ((((uint32_t) a[1])) << 16) | ((((uint32_t) a[2])) << 8) | (uint32_t) a[3]);
+#endif
+}
+
+static int16_t toInt16(const uint8_t * a) {
+#ifdef FREESPACE_LITTLE_ENDIAN
+    return (((int16_t) a[1]) << 8) | a[0];
+#else
+    return (((int16_t) a[0]) << 8) | a[1];
+#endif
+}
+
+static int8_t toInt8(const uint8_t * a) {
+    return (int8_t) *a;
 }
 
 static uint8_t getBit(uint8_t a, uint16_t whichBit) {
@@ -114,7 +174,7 @@ static uint8_t byteFromBits(uint8_t lsb,
         outHeader.write("\n")
         writeIfndef(outHeader, name)
         outHeader.write("\n")
-        outHeader.write('#include "freespace/freespace.h"\n')
+        outHeader.write('#include "freespace/freespace_common.h"\n')
         outHeader.write("\n")
         writeExternC(outHeader)
         outHeader.write('\n')
@@ -142,9 +202,9 @@ static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     printf(")\\n");
 }
 
-void freespace_printMessage(FILE* fp, const uint8_t* message, int length) {
+void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver) {
     struct freespace_message s;
-    int rc = freespace_decode_message(message, length, &s);
+    int rc = freespace_decode_message(message, length, &s, ver);
     if (rc != 0) {
         printUnknown("unknown", message, length);
     }
@@ -154,7 +214,7 @@ void freespace_printMessage(FILE* fp, const uint8_t* message, int length) {
 void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
     switch(s->messageType) {''')
         for message in messages:
-            if (not message.decode) or not message.hasUnReservedFields():
+            if (not message.decode):
                 continue
             outFile.write('''
     case %(enumName)s:
@@ -176,8 +236,9 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
  * @param fp the file pointer to print into
  * @param message the HID message
  * @param length the length of the message
+ * @param ver the HID protocol version
  */
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver);
 
 LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_message* s);
 
@@ -202,10 +263,9 @@ LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_me
 enum MessageTypes {''')
         i = 0
         for message in messages:
-            if message.hasUnReservedFields() and message.shouldGenerate:
-                file.write('''
+            file.write('''
     %s = %d,'''%(message.enumName, i))
-                i = i+1
+            i = i+1
         file.write('''
 };
 ''')
@@ -219,8 +279,7 @@ struct freespace_message {
     int messageType;
     union {''')
         for message in messages:
-            if message.hasUnReservedFields() and message.shouldGenerate:
-                file.write("\n\t\tstruct freespace_%(name)s %(varName)s;"%{'name':message.name, 'varName':message.structName})
+            file.write("\n\t\tstruct freespace_%(name)s %(varName)s;"%{'name':message.name, 'varName':message.structName})
         file.write('''
     };
 };
@@ -231,93 +290,102 @@ struct freespace_message {
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_message struct to decode into
+ * @param ver the HID protocol version to use to decode the message
  * @return FREESPACE_SUCESS or an error code
  */
-LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s);
+LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s, uint8_t ver);
 
 /** @ingroup messages
  * Encode an arbitrary message.
  *
- * @param s the freespace_message struct
- * @param message the string to put the encoded message into
- * @param maxlength the maximum length of the message
+ * @param hVer the HID protocol version to use to encode the message
+ * @param message the freespace_message struct
+ * @param msgBuf the buffer to put the encoded message into
+ * @param maxLength the maximum length of the encoded message (i.e sizeof(*msgBuf))
+ * @param dest the HCOMM destination address to send the message to
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxLength, uint8_t dest);
 
 ''')
         
     def writeUnionDecodeEncodeBodies(self, file, messages):
         file.write('''
-LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s) {
+LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s, uint8_t ver) {
     if (length == 0) {
         return -1;
     }
 
-    switch ((uint8_t) message[0]) {\n''')
-        usedIDs = []
-        for message in messages:
-            if (not message.decode) or (message.ID['constID'] in usedIDs) or (not message.hasUnReservedFields()) or (not message.shouldGenerate):
-                continue
-            file.write("\tcase %d:"%message.ID['constID'])
-            if message.ID.has_key('subId'):
-                file.write('''
-        switch ((uint8_t) message[1]) {''')
-                for subMessage in messages:
-                    if subMessage.hasUnReservedFields() and message.shouldGenerate:
-                        if subMessage.ID['constID'] == message.ID['constID']:
+    switch (ver) {\n''')
+        subIdMap = [1, 1, 4] # A lookup table that tells where in the message to find the sub ID. The HID version is the index to the table.
+        for v in range(3):
+            usedIDs = []
+            file.write("\t\tcase %d:\n" % v)
+            file.write("\t\t\tswitch(message[0]) {\n")
+            for message in messages:
+                if (not message.decode) or len(message.ID[v]) == 0:
+                    continue
+                if message.ID[v]['constID'] in usedIDs:
+                    continue
+                file.write("\t\t\t\tcase %d:"%message.ID[v]['constID'])
+                if message.ID[v].has_key('subId'):
+                    file.write('''
+                    switch (message[%d]) {''' % subIdMap[v])
+                    for subMessage in messages:
+                        if (not subMessage.decode) or len(subMessage.ID[v]) == 0:
+                            continue
+                        if subMessage.ID[v]['constID'] == message.ID[v]['constID']:
                             file.write('''
-        case %(subId)d:
-            {
-                s->messageType = %(messageType)s;
-                return freespace_decode%(subName)s(message, length, &(s->%(unionStruct)s));
-            }
-            break;'''%{'subId':subMessage.ID['subId']['id'],
-                       'subName':subMessage.name,
-                       'unionStruct':subMessage.structName,
-                       'messageType':subMessage.enumName})                
-        
-                file.write('''
-        default:
-            return -1;
-''')
-            else:
-                file.write('''
-        {
-            s->messageType = %(messageType)s;
-            return freespace_decode%(name)s(message, length, &(s->%(unionStruct)s));
-            '''%{'messageType':message.enumName,
-                 'name':message.name,
-                 'unionStruct':message.structName})
-                
-            file.write('''
-        }
-        break;
-''')
-            usedIDs.append(message.ID['constID'])
+                        case %(subId)d:
+                            s->messageType = %(messageType)s;
+                            return freespace_decode%(subName)s(message, length, &(s->%(unionStruct)s), ver);'''
+                            %{'subId':subMessage.ID[v]['subId']['id'],
+                           'subName':subMessage.name,
+                           'unionStruct':subMessage.structName,
+                           'messageType':subMessage.enumName})                
             
+                    file.write('''
+                        default:
+                            return FREESPACE_ERROR_MALFORMED_MESSAGE;
+                    }\n''')
+                else:
+                    file.write('''
+                    s->messageType = %(messageType)s;
+                    return freespace_decode%(name)s(message, length, &(s->%(unionStruct)s), ver);
+'''%{'messageType':message.enumName,
+                     'name':message.name,
+                     'unionStruct':message.structName})
+                    
+                usedIDs.append(message.ID[v]['constID'])
+            file.write('''                default:
+                    return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }\n''')
         file.write('''
     default:
-        return -1;
+        return FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
     }
 }
 ''')
         
         file.write('''
-LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s, uint8_t* message, int maxlength) {
-    switch (s->messageType) {''')
+LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxlength, uint8_t dest) {
+    switch (message->messageType) {''')
         for message in messages:
-            if (not message.encode) or (not message.hasUnReservedFields()) or (not message.shouldGenerate):
+            if (not message.encode):
                 continue
             file.write('''
-    case %(enumName)s:
-        return freespace_encode%(messageName)s(&(s->%(structName)s), message, maxlength);'''%{'enumName':message.enumName, 
-                                                                                            'messageName':message.name, 
-                                                                                            'structName':message.structName})
+        case %(enumName)s:
+            message->%(structName)s.ver = hVer;
+            message->%(structName)s.dest = dest;
+            message->%(structName)s.src = 0;
+            return freespace_encode%(messageName)s(&(message->%(structName)s), msgBuf, maxlength);'''%{'structName':message.structName,
+                                                                                                       'enumName':message.enumName, 
+                                                                                                       'messageName':message.name, 
+                                                                                                       'structName':message.structName})
         file.write('''
-    default:
-        return -1;
-    }
+        default:
+            return -1;
+        }
 }''')
 
 
@@ -325,103 +393,171 @@ LIBFREESPACE_API int freespace_encode_message(const struct freespace_message* s,
 # --------------------------  Individual Message ------------------------------------
     
 def writeCodecs(message, outHFile, outCFile):
-    writeCodecHeader(message, outHFile)
-    writeCodecCFile(message, outCFile)
+    fields = extractFields(message)
+    writeCodecHeader(message, fields, outHFile)
+    writeCodecCFile(message, fields, outCFile)
             
 def writePrinter(message, outHFile, outCFile):
     writePrinterHeader(message, outHFile)
     writePrinterBody(message, outCFile)
     
 def writePrinterHeader(message, outHeader):
-    if message.hasUnReservedFields() and message.shouldGenerate:
-        writePrintDecl(message, outHeader)
+    writePrintDecl(message, outHeader)
     
 def writePrinterBody(message, outFile):
-    if message.hasUnReservedFields() and message.shouldGenerate:
-        writePrintBody(message, outFile)
-        outFile.write('\n')
+    writePrintBody(message, outFile)
+    outFile.write('\n')
     
-def writeCodecHeader(message, outHeader):
-    if message.hasUnReservedFields() and message.shouldGenerate:
-        writeStruct(message, outHeader)
+# Add an entry to the codec header file for one message
+def writeCodecHeader(message, fields, outHeader):
+    # Data structure to hold the message
+    writeStruct(message, fields, outHeader)
+    outHeader.write('\n')
+    # Decode function declaration
+    if message.decode:
+        writeDecodeDecl(message, outHeader)
         outHeader.write('\n')
-        
-        if message.decode:
-            writeDecodeDecl(message, outHeader)
-            outHeader.write('\n')
-    
-    if message.encode and message.shouldGenerate:
+    # Encode function declaration
+    if message.encode:
         writeEncodeDecl(message, outHeader)
         outHeader.write('\n')
 
-def writeCodecCFile(message, outFile):
-    if message.hasUnReservedFields() and message.shouldGenerate:
-        if message.decode:
-            writeDecodeBody(message, outFile)
-            outFile.write('\n')
-
-    if message.encode and message.shouldGenerate:
-        writeEncodeBody(message, outFile)
+# Add an entry to the codec file to encode or decode one message
+def writeCodecCFile(message, fields, outFile):
+    if message.decode:
+        writeDecodeBody(message, fields, outFile)
         outFile.write('\n')
 
-def writeStruct(message, outHeader):
+    if message.encode:
+        writeEncodeBody(message, fields, outFile)
+        outFile.write('\n')
+
+def writeStruct(message, fields, outHeader):
     if message.Documentation != None:
-        outHeader.write("/**   @ingroup messages \n * " + message.Documentation + "\n */\n")
+        outHeader.write("/** @ingroup messages \n * " + message.Documentation + "\n */\n")
     outHeader.write("struct freespace_" + message.name + " {\n")
-    outHeader.write("\t// ID = %d\n"%message.ID['constID'])
-    if message.ID.has_key('subId'):
-        outHeader.write('\t// subID = 0x%02X\n'%((message.ID['subId'])['id']))
-    for field in message.Fields:
-        if field.has_key('comment'):
-            outHeader.write("\n\t/** " + field['comment'] + " */\n")
-        if (field['name'] == 'RESERVED'):
-            continue
-        if (field.has_key('cType')):
-            outHeader.write("\t")
-            outHeader.write(field['cType'])
-            outHeader.write(" " + field['name'] + ";\n")
-        elif (field.has_key('bits')):
-            for bitField in field['bits']:
-                if bitField['name'] != 'RESERVED':
-                    if bitField.has_key('comment'):
-                        outHeader.write("\n\t/** " + bitField['comment'] + " */\n")
-                    outHeader.write("\t")
-                    outHeader.write("uint8_t")
-                    outHeader.write(" " + bitField['name'] + ";\n")
-        elif (field.has_key('nibbles')):
-            for nibble in field['nibbles']:
-                if nibble['name'] != 'RESERVED':
-                    if nibble.has_key('comment'):
-                        outHeader.write("\n\t/** " + nibble['comment'] + " */\n")
-                    outHeader.write("\t")
-                    outHeader.write("uint8_t")
-                    outHeader.write(" " + nibble['name'] + ";\n")
-        else:
-            # Assume it's just some arbitrary amount of data, use the size for allocation
-            outHeader.write('\tuint8_t %s[%d];\n'%(field['name'], field['size']))
+    outHeader.write("\tuint8_t ver; /**< HID protocol version */\n")
+    outHeader.write("\tuint8_t len; /**< Length, used in version 2 only */\n")
+    outHeader.write("\tuint8_t dest; /**< Destination, used in version 2 only */\n")
+    outHeader.write("\tuint8_t src; /**< Source, used in version 2 only */\n\n")
+    for field in fields:
+        if len(field['Doc']):
+            outHeader.write("\n\t/** " + field['Doc'] + " */\n")
+        outHeader.write("\t")
+        outHeader.write(field['type'])
+        outHeader.write(" " + field['name'])
+        if field['count'] != 1:
+            outHeader.write("[%d]"%field['count'])
+        outHeader.write(";\n")
     outHeader.write("};\n")
+        
+def extractFields(message):
+    fields = {}
+    fieldsList = []
+    for version in message.Fields:
+        for field in version:
+            if field['name'] == 'RESERVED':
+                continue
+            if field.has_key('cType'):
+                if not fields.has_key(field['name']):
+                    item = cTypeToTypeInfo(field['cType'], field['size'])
+                    if field.has_key('comment'):
+                        item['Doc'] = field['comment']
+                    else:
+                        item['Doc'] = ""
+                    if item['warning'] == 'yes':
+                        print ("Type problem found in message=>%s, field=>%s"%(message.name, field['name']))
+                    item['name'] = field['name']
+                    field['typeDecode'] = item
+                    fields[field['name']] = item
+                    fieldsList.append(item)
+                else:
+                    field['typeDecode'] = fields[field['name']]
+            elif field.has_key('bits'):
+                for bit in field['bits']:
+                    if bit['name'] == 'RESERVED':
+                        continue
+                    if not fields.has_key(bit['name']):
+                        item = bitToTypeInfo(bit)
+                        if bit.has_key('comment'):
+                            item['Doc'] = bit['comment']
+                        else:
+                            item['Doc'] = ""
+                        item['name'] = bit['name']
+                        bit['typeDecode'] = item
+                        fields[bit['name']] = item
+                        fieldsList.append(item)
+                    else:
+                        bit['typeDecode'] = fields[bit['name']]
+            elif field.has_key('nibbles'):
+                for nibble in field['nibbles']:
+                    if nibble['name'] == 'RESERVED':
+                        continue
+                    if not fields.has_key(nibble['name']):
+                        item = {'type':'int', 'signed':False, 'length':4, 'count':1, 'warning':'no'}
+                        if nibble.has_key('comment'):
+                            item['Doc'] = nibble['comment']
+                        else:
+                            item['Doc'] = ""
+                        item['name'] = nibble['name']
+                        nibble['typeDecode'] = item
+                        fields[nibble['name']] = item
+                        fieldsList.append(item)
+                    else:
+                        nibble['typeDecode'] = fields[nibble['name']]
+    return fieldsList
+    
+def cTypeToTypeInfo(ct, sizeInBytes):
+    typeInfo = {'type':ct, 'warning':'no'}
+    if ct == 'uint32_t':
+        typeInfo['signed'] = False
+        typeInfo['count'] = sizeInBytes / 4
+        typeInfo['width'] = 4
+    elif ct == 'uint16_t':
+        typeInfo['signed'] = False
+        typeInfo['count'] = sizeInBytes / 2
+        typeInfo['width'] = 2
+    elif ct == 'uint8_t':
+        typeInfo['signed'] = False
+        typeInfo['count'] = sizeInBytes / 1
+        typeInfo['width'] = 1
+    elif ct == 'int32_t':
+        typeInfo['signed'] = True
+        typeInfo['count'] = sizeInBytes / 4
+        typeInfo['width'] = 4
+    elif ct == 'int16_t':
+        typeInfo['signed'] = True
+        typeInfo['count'] = sizeInBytes / 2
+        typeInfo['width'] = 2
+    elif ct == 'int8_t':
+        typeInfo['signed'] = True
+        typeInfo['count'] = sizeInBytes / 1
+        typeInfo['width'] = 1
+    else:
+        print("ERROR: Unrecognized cType: %s"%ct)
+        sys.exit(1)
+    if sizeInBytes != typeInfo['count'] * typeInfo['width']:
+        print("WARNING: Size(%d) is not a multiple of the size of cType(%s)"%(sizeInBytes, ct))
+        typeInfo['warning'] = 'yes'
+    return typeInfo
+    
+def bitToTypeInfo(bt):
+    if not bt.has_key('size'):
+        return {'type':'uint8_t', 'signed':False, 'length':1, 'count':1, 'warning':'no'}
+    elif bt['size'] == 1:
+        return {'type':'uint8_t', 'signed':False, 'length':1, 'count':1, 'warning':'no'}
+    else:
+        return {'type':'int', 'signed':False, 'length':bt['size'], 'count':1, 'warning':'no'}
     
 def writeEncodeDecl(message, outHeader):
-    if not message.hasUnReservedFields():
-        outHeader.write('''
-/** @ingroup messages
- * Encode a %(name)s message.
- *
- * @param message the string to put the encoded message into
- * @param maxlength the maximum length of the message
- * @returns the actual size of the encoded message or an error code
- */
-LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength);
-'''%{'name':message.name})
-    else:
-        outHeader.write('''
+    outHeader.write('''
 /** @ingroup messages
  * Encode a %(name)s message.
  *
  * @param s the freespace_%(name)s struct
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
- * @returns the actual size of the encoded message or an error code
+ * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_%(name)s* s, uint8_t* message, int maxlength);
 '''%{'name':message.name})
@@ -434,9 +570,10 @@ def writeDecodeDecl(message, outHeader):
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
  * @param s the preallocated freespace_%(name)s struct to decode into
+ * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s);
+LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s, uint8_t ver);
 '''%{'name':message.name})
 
 def writePrintDecl(message, outHeader):
@@ -459,41 +596,46 @@ LIBFREESPACE_API int freespace_print%(name)s(FILE* fp, const struct freespace_%(
 
 '''%{'name':message.name})
     
-def writeEncodeBody(message, outFile):
-    if not message.hasUnReservedFields():
-        outFile.write('''
-LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength) {
-    if (maxlength < %(size)d) {
-        printf("freespace_%(name)s encode(<INVALID LENGTH>)\\n");
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    message[0] = (uint8_t) %(id)d;'''%{'name':message.name, 'size':message.getMessageSize(), 'id':message.ID['constID']})
-        if message.ID.has_key('subId'):
-            outFile.write('''
-    message[1] = (uint8_t) %d;'''%message.ID['subId']['id'])
-        outFile.write('''
-    return %(size)d;
-}
-'''%{'size':message.getMessageSize()})
-    else:
-        outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_%s* s, uint8_t* message, int maxlength) {\n"%(message.name, message.name))
-        outFile.write("\tif (maxlength < %d) {\n"%message.getMessageSize())
-        outFile.write('\t\tprintf("freespace_%s encode(<INVALID LENGTH>)\\n");\n'%message.name)
-        outFile.write('\t\treturn -1;\n')
-        outFile.write("\t}\n")
-        outFile.write('\tmessage[0] = (uint8_t) %d;\n'%message.ID['constID'])
-        byteCounter = 1
-        if (message.ID.has_key('subId')):
-            outFile.write('\tmessage[%d] = (uint8_t) %d;\n'%(byteCounter,message.ID['subId']['id']))
-            byteCounter += 1
-        for field in message.Fields:
-            elementSize = field['size']
-            if field['name'] == 'RESERVED':
-                byteCounter += elementSize
-                continue
-            if (elementSize == 1):
+def writeEncodeBody(message, fields, outFile):
+    
+    outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_%s* s, uint8_t* message, int maxlength) {\n"%(message.name, message.name))
+        
+    outFile.write("\n\tuint8_t offset = 1;\n\n")
+    
+    # Encode switch statement
+    outFile.write("\tswitch(s->ver) {\n")
+    for v in range(3):
+        byteCounter = 0
+        if len(message.ID[v]):
+            # Create one case per version of message
+            outFile.write("\t\tcase %d:\n"%v)
+            # Check message buffer length
+            outFile.write("\t\t\tif (maxlength < %d) {\n"%message.getMessageSize(v))
+            outFile.write('\t\t\t\tCODECS_PRINTF("freespace_%s encode(<INVALID LENGTH>)\\n");\n'%message.name)
+            outFile.write('\t\t\t\treturn FREESPACE_ERROR_BUFFER_TOO_SMALL;\n')
+            outFile.write("\t\t\t}\n")
+            # Message ID
+            outFile.write("\t\t\tmessage[0] = (uint8_t) %d;\n"%message.ID[v]['constID'])
+            # dest and src fields in version 2 messages
+            if v == 2:
+                outFile.write("\t\t\tmessage[2] = s->dest;\n")
+                outFile.write("\t\t\tmessage[3] = 0;\n")
+                outFile.write("\t\t\toffset = 4;\n")
+            # Message sub ID, if defined
+            if message.ID[v].has_key('subId'):
+                outFile.write("\t\t\tmessage[%d + offset] = (uint8_t) %d;\n" % (byteCounter, message.ID[v]['subId']['id']))
+                byteCounter += 1
+                
+            # Message fields
+            for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    continue
+                elementSize = field['size']
+                if field['name'] == 'RESERVED':
+                    byteCounter += elementSize
+                    continue
                 if field.has_key('bits'):
-                    outFile.write('\tmessage[%d] = byteFromBits('%byteCounter)
+                    outFile.write('\t\t\tmessage[%d + offset] = byteFromBits('%byteCounter)
                     firstLoop = True
                     for bit in field['bits']:
                         if not firstLoop:
@@ -508,6 +650,7 @@ LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength) {
                                 for i in range(1, bit['size']):
                                     outFile.write(', s->%s >> %d'%(bit['name'],i))
                     outFile.write(');\n')
+                    byteCounter += 1
                 elif field.has_key('nibbles'):
                     outFile.write('\tmessage[%d] = byteFromNibbles('%byteCounter)
                     firstLoop = True
@@ -521,99 +664,124 @@ LIBFREESPACE_API int freespace_encode%(name)s(uint8_t* message, int maxlength) {
                         else:
                             outFile.write('s->%s'%nibble['name']);
                     outFile.write(');\n')
+                    byteCounter += 1
+                elif field.has_key('cType'):
+                    if field['typeDecode']['count'] == 1:
+                        for j in range (field['typeDecode']['width']):
+                            outFile.write('\t\t\tmessage[%d + offset] = s->%s >> %d;\n'%(byteCounter, field['name'], 8 * j))
+                            byteCounter += 1
+                    else:
+                        for i in range (field['typeDecode']['count']):
+                            for j in range (field['typeDecode']['width']):
+                                outFile.write('\t\t\tmessage[%d + offset] = s->%s[%d] >> %d;\n'%(byteCounter, field['name'], i, 8 * j))
+                                byteCounter += 1
                 else:
-                    outFile.write('\tmessage[%d] = (uint8_t) s->%s;\n'%(byteCounter,field['name']))
-            else:
-                if field.has_key('cType'):
-                    for i in range(0,elementSize):
-                        outFile.write('\tmessage[%d] = (uint8_t) (s->%s >> %d);\n'%(byteCounter+i,field['name'], 8*i))
-                else:
-                    outFile.write('\tmemcpy(message + %d, s->%s, %d);\n'%(byteCounter, field['name'], elementSize))
-            byteCounter += elementSize
-        outFile.write('\treturn %d;\n' % message.getMessageSize())
-        outFile.write('}\n')
+                    print ("Unrecognized field type in %s\n" % message.name)
+            if v == 2:
+                outFile.write("\t\t\tmessage[1] = %d + offset;\n" % byteCounter)
+            outFile.write("\t\t\treturn %d + offset;\n" % byteCounter)
+    # Default case
+    outFile.write("\t\tdefault:\n")
+    outFile.write("\t\t\treturn  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;\n")
+    outFile.write("\t}")
+        
+    # End of function
+    outFile.write('\r}\n')
 
-def writeDecodeBody(message, outFile):
-    outFile.write('''
-LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s) {
-    if ((STRICT_DECODE_LENGTH && length != %(size)d) || (!STRICT_DECODE_LENGTH && length < %(size)d)) {
-        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
-    }
-    if ((uint8_t) message[0] != %(id)d) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-'''%{'name':message.name, 'size':message.getMessageSize(), 'id':message.ID['constID']})
-    byteCounter = 1
-    if message.ID.has_key('subId'):
-        outFile.write('''
-    if ((uint8_t) message[1] != %(subId)d) {
-        return FREESPACE_ERROR_MALFORMED_MESSAGE;
-    }
-'''%{'subId':message.ID['subId']['id']})
-        byteCounter += 1
-    for field in message.Fields:
-        elementSize = field['size']
-        if field['name'] == 'RESERVED':
-            byteCounter += elementSize
-            continue
-        if elementSize == 1:
-            if field.has_key('cType'):
-                #straight cast
-                outFile.write('    s->%s = (%s) message[%d];\n'%(field['name'],field['cType'], byteCounter))
-            elif field.has_key('bits'):
-                bitCounter = 0
-                for bit in field['bits']:
-                    if bit['name'] != 'RESERVED':
-                        if bit.has_key('size'):
-                            outFile.write('    s->%s = (uint8_t) ((message[%d] >> %d) & 0x%02X);\n'%(bit['name'], byteCounter, bitCounter, 2**bit['size']-1))
-                            bitCounter += bit['size']-1
-                        else:
-                            outFile.write('    s->%s = getBit(message[%d], %d);\n'%(bit['name'], byteCounter, bitCounter))
-                    bitCounter += 1
-            elif field.has_key('nibbles'):
-                nibbleCounter = 0
-                for nibble in field['nibbles']:
-                    if nibble['name'] != 'RESERVED':
-                        outFile.write('    s->%s = getNibble(message[%d], %d);\n'%(nibble['name'], byteCounter, nibbleCounter))
-                    nibbleCounter += 1
-        else:
-            if field.has_key('cType'):
-                outFile.write('\ts->%s = %s('%(field['name'], IntConversionHelper(elementSize)))
-                outFile.write('message[%d]'%byteCounter)
-                for i in range(1,elementSize):
-                    outFile.write(', message[%d]'%(byteCounter+i))
-                outFile.write(');\n')
-            else:
-                outFile.write('\tmemcpy(s->%s, &message[%d], %d);\n'%(field['name'],byteCounter,field['size']))
-        byteCounter += elementSize
-    outFile.write('\treturn FREESPACE_SUCCESS;\n')
+def writeDecodeBody(message, fields, outFile):
+    outFile.write("LIBFREESPACE_API int freespace_decode%s(const uint8_t* message, int length, struct freespace_%s* s, uint8_t ver) {" %(message.name, message.name))
+    outFile.write("\n\tuint8_t offset = 1;\n\n")
+    outFile.write("\ts->ver = ver;\n\n")
+    # Encode switch statement
+    outFile.write("\tswitch(ver) {\n")
+    byteCounter = 0
+    for v in range(3):
+        if len(message.ID[v]):
+            # Create one case per version of message
+            byteCounter = 0
+            outFile.write("\t\tcase %d:\n"%v)
+            # Code to check message buffer length and report ID
+            if len(message.ID[v]):
+                outFile.write('''            if ((STRICT_DECODE_LENGTH && length != %(size)d) || (!STRICT_DECODE_LENGTH && length < %(size)d)) {
+                CODECS_PRINTF(\"Length mismatch for %%s.  Expected %%d.  Got %%d.\\n\", \"%(name)s\", %(size)d, length);
+                return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+            }
+            if ((uint8_t) message[0] != %(id)d) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+'''%{'size':message.getMessageSize(v), 'id':message.ID[v]['constID'], 'name':message.name})
+            if v == 2:
+                outFile.write("\t\t\toffset = 4;\n")
+                outFile.write("\t\t\ts->len = message[1];\n")
+                outFile.write("\t\t\ts->dest = message[2];\n")
+                outFile.write("\t\t\ts->src = message[3];\n")
+
+            if message.ID[v].has_key('subId'):
+                outFile.write('''
+            if ((uint8_t) message[offset] != %d) {
+                return FREESPACE_ERROR_MALFORMED_MESSAGE;
+            }
+'''%message.ID[v]['subId']['id'])
+                byteCounter += 1
+            for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    continue
+                elementSize = field['size']
+                if field['name'] == 'RESERVED':
+                    byteCounter += elementSize
+                    continue
+                if field.has_key('cType'):
+                    if field['typeDecode']['count'] == 1:
+                        outFile.write("\t\t\ts->%s = %s(&message[%d + offset]);\n" % (field['name'], IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                        byteCounter += field['typeDecode']['width']
+                    else:
+                        for i in range (field['typeDecode']['count']):
+                            outFile.write("\t\t\ts->%s[%d] = %s(&message[%d + offset]);\n" % (field['name'], i, IntConversionHelper(field['typeDecode']['type']), byteCounter))
+                            byteCounter += field['typeDecode']['width']
+                elif field.has_key('bits'):
+                    bitCounter = 0
+                    for bit in field['bits']:
+                        if bit['name'] != 'RESERVED':
+                            if bit.has_key('size'):
+                                outFile.write("\t\t\ts->%s = (uint8_t) ((message[%d + offset] >> %d) & 0x%02X);\n"%(bit['name'], byteCounter, bitCounter, 2**bit['size']-1))
+                                bitCounter += bit['size']-1
+                            else:
+                                outFile.write("\t\t\ts->%s = getBit(message[%d + offset], %d);\n"%(bit['name'], byteCounter, bitCounter))
+                        bitCounter += 1
+                    byteCounter += 1
+                elif field.has_key('nibbles'):
+                    nibbleCounter = 0
+                    for nibble in field['nibbles']:
+                        if nibble['name'] != 'RESERVED':
+                            outFile.write('    s->%s = getNibble(message[%d + offset], %d);\n'%(nibble['name'], byteCounter, nibbleCounter))
+                        nibbleCounter += 1
+                    byteCounter += 1
+                else:
+                    print ("Unrecognized field type in %s\n" % message.name)
+            for field in message.Fields[v]:
+                if field.has_key('synthesized'):
+                    outFile.write(specialCaseCode(field['synthesized']))
+            outFile.write("\t\t\treturn FREESPACE_SUCCESS;\n")
+    # Default case
+    outFile.write("\t\tdefault:\n")
+    outFile.write("\t\t\treturn  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;\n")
+    outFile.write('\t}\n')
     outFile.write('}\n')
 
 def printStrHelper(message, outFile):
-    fieldNames = []
-    for field in message.Fields:
-        if field['name'] == 'RESERVED':
-            continue
-        if field.has_key('cType'):
-            fieldNames.append(field['name'])
-        elif field.has_key('bits'):
-            for bit in field['bits']:
-                if bit['name'] != 'RESERVED':
-                    fieldNames.append(bit['name'])
-        elif field.has_key('nibbles'):
-            for nibble in field['nibbles']:
-                if nibble['name'] != 'RESERVED':
-                    fieldNames.append(nibble['name'])
+    fields = extractFields(message)
     first = True
-    for field in fieldNames:
+    for field in fields:
         if not first:
             outFile.write(' ')
         else:
             first = False
-        outFile.write("%s=%%d"%field)
+        if field['count'] == 1:
+            outFile.write("%s=%%d"%field['name'])
     outFile.write(')"')
-    for field in fieldNames:
-        outFile.write(', s->%s'%field)
+    for field in fields:
+        if field['count'] == 1:
+            outFile.write(', s->%s'%field['name'])
     outFile.write(');')
 
 def writePrintBody(message, outFile):
@@ -661,12 +829,14 @@ LIBFREESPACE_API int freespace_print%(name)s(FILE* fp, const struct freespace_%(
 def fieldToPrintFormat(field):
     return '%d'
 
-def IntConversionHelper(elementSize):
-    if elementSize == 2:
-        return "toInt"
-    if elementSize == 4:
-        return "toUInt32"
-    raise "Unknown toIntXX size"
+def IntConversionHelper(type):
+    intConverters = {'uint32_t':"toUint32",
+    'uint16_t':"toUint16",
+    'uint8_t':"toUint8",
+    'int32_t':"toInt32",
+    'int16_t':"toInt16",
+    'int8_t':"toInt8"}
+    return intConverters[type]
     
 # ---------------------- Output printing helpers --------------------------------
 
@@ -674,7 +844,7 @@ def writeCopyright(outHeader):
     outHeader.write('''/*
  * This file is part of libfreespace.
  * 
- * Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+ * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -709,6 +879,17 @@ def writeCloseExternC(outHeader):
     outHeader.write('}\n')
     outHeader.write('#endif\n')
 
+#----------------------- Special Case Code ----------------------------
+def specialCaseCode(case):
+    if case == 'case_A':
+        # Calculate the A value of the quaternion
+        # A = sqrt(16384**2 - (B**2 + C**2 + D**2))
+        specialCode = "\t\t\ts->angularPosA = (int16_t) sqrt(268435456 - ((s->angularPosB * s->angularPosB) + (s->angularPosC * s->angularPosC) + (s->angularPosD * s->angularPosD)));\n"
+    else:
+        print ("Unrecognized special case: %s" % case)
+        specialCode =  "Unknown code goes here."
+        
+    return specialCode
 # ---------------------- Main function --------------------------------
 # Courtesy of Guido: http://www.artima.com/weblogs/viewpost.jsp?thread=4829
 class Usage(Exception):

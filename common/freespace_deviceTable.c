@@ -1,0 +1,77 @@
+/*
+ * This file is part of libfreespace.
+ *
+ * Copyright (c) 2010 Hillcrest Laboratories, Inc.
+ *
+ * libfreespace is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#include "freespace/freespace_deviceTable.h"
+
+/*
+ * Define the devices recognized by libfreespace.
+ * Naming convention:
+ *   UserMeaningfulName vN (XXXX)
+ *   N = USB interface version number
+ *   XXXX = Advertised interfaces:
+ *      M = Mouse
+ *      K = Keyboard
+ *      C = Consumer page
+ *      V = Joined multi-axis and vendor-specific
+ *      A = Separate multi-axis and vendor-specific (deprecated)
+ */
+const struct FreespaceDeviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT] = {
+    { 0x1d5a, 0xc001, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha"},
+    { 0x1d5a, 0xc002, 0, 1, 0, {{0, 0},      {0, 0}}, "Piranha bootloader"},
+    { 0x1d5a, 0xc003, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
+    { 0x1d5a, 0xc004, 0, 1, 1, {{0, 0},      {0, 0}}, "Piranha sniffer dongle"},
+    { 0x1d5a, 0xc005, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "FSRK STM32F10x eval board (E)"},
+    { 0x1d5a, 0xc006, 0, 1, 0, {{0, 0},      {0, 0}}, "Cortex Bootloader"},
+    { 0x1d5a, 0xc007, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "FSRK Gen4 Dongle"},
+    { 0x1d5a, 0xc008, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter board v0"},
+    { 0x1d5a, 0xc009, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v0"},
+    { 0x1d5a, 0xc00a, 1, 2, 1, {{4, 0xff01}, {8, 1}}, "Coprocessor to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc00b, 1, 2, 1, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v1 (MKCA)"},
+    { 0x1d5a, 0xc00c, 1, 2, 1, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter v1 (MA)"},
+    { 0x1d5a, 0xc010, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MV)"},
+    { 0x1d5a, 0xc011, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MCV)"},
+    { 0x1d5a, 0xc012, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKV)"},
+    { 0x1d5a, 0xc013, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKCV)"},
+    { 0x1d5a, 0xc020, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc021, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc030, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (MV)"},
+    { 0x1d5a, 0xc031, 1, 1, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
+    { 0x1d5a, 0xc040, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MV)"},
+    { 0x1d5a, 0xc041, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MCV)"},
+    { 0x1d5a, 0xc042, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKV)"},
+    { 0x1d5a, 0xc043, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKCV)"},
+    { 0x1d5a, 0xc050, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MV)"},
+    { 0x1d5a, 0xc051, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (V)"},
+    { 0x1d5a, 0xc052, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MKCV)"},
+    { 0x1d5a, 0xc060, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (MV)"},
+    { 0x1d5a, 0xc061, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (V)"},
+    { 0x1d5a, 0xc070, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MV)"},
+    { 0x1d5a, 0xc071, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MCV)"},
+    { 0x1d5a, 0xc022, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKV)"},
+    { 0x1d5a, 0xc073, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MKCV)"},
+    { 0x1d5a, 0xc080, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB Freespace Module (MV)"},
+    { 0x1d5a, 0xc100, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP160"},
+    { 0x1d5a, 0xc101, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP260"},
+    { 0x1d5a, 0xc102, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U160"},
+    { 0x1d5a, 0xc103, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U260"},
+    { 0x1d5a, 0xc104, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP160"},
+    { 0x1d5a, 0xc105, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP260"},
+    { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
+};

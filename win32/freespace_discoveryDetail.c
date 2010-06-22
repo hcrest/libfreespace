@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,63 +22,6 @@
 #include "freespace_deviceMgr.h"
 #include <strsafe.h>
 #include <malloc.h>
-
-/**
- * A specific usage available for a given FreespaceDeviceAPI.
- */
-struct FreespaceDeviceUsageAPI {
-    USAGE    usage_;
-    USAGE    usagePage_;
-};
-
-/**
- * Figure out which API to use depending on the reported
- * Freespace version.
- */
-struct FreespaceDeviceAPI {
-    // Set of devices with this version.
-    uint16_t idVendor_;
-    uint16_t idProduct_;
-    int      usageCount_;
-    struct FreespaceDeviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
-    const char* name_;
-};
-
-/*
- * Define the devices recognized by libfreespace.
- * Naming convention:
- *   UserMeaningfulName vN (XXXX)
- *   N = USB interface version number
- *   XXXX = Advertised interfaces:
- *      M = Mouse
- *      K = Keyboard
- *      C = Consumer page
- *      V = Joined multi-axis and vendor-specific
- *      A = Separate multi-axis and vendor-specific (deprecated)
- */
-static const struct FreespaceDeviceAPI deviceAPITable[] = {
-    { 0x1d5a, 0xc001, 2, {{4, 0xff01}, {8, 1}}, "Piranha"},
-    { 0x1d5a, 0xc002, 1, {{0, 0},      {0, 0}}, "Piranha bootloader"},
-    { 0x1d5a, 0xc003, 2, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
-    { 0x1d5a, 0xc004, 1, {{0, 0},      {0, 0}}, "Piranha sniffer dongle"},
-    { 0x1d5a, 0xc005, 2, {{4, 0xff01}, {8, 1}}, "FSRK STM32F10x eval board (E)"},
-    { 0x1d5a, 0xc006, 1, {{0, 0},      {0, 0}}, "Cortex Bootloader"},
-    { 0x1d5a, 0xc007, 2, {{4, 0xff01}, {8, 1}}, "FSRK Gen4 Dongle"},
-    { 0x1d5a, 0xc008, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter board v0"},
-    { 0x1d5a, 0xc009, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v0"},
-    { 0x1d5a, 0xc00a, 2, {{4, 0xff01}, {8, 1}}, "Coprocessor to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc00b, 2, {{4, 0xff01}, {8, 1}}, "USB RF Transceiver v1 (MKCA)"},
-    { 0x1d5a, 0xc00c, 2, {{4, 0xff01}, {8, 1}}, "SPI to USB adapter v1 (MA)"},
-    { 0x1d5a, 0xc010, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MV)"},
-    { 0x1d5a, 0xc011, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MCV)"},
-    { 0x1d5a, 0xc012, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKV)"},
-    { 0x1d5a, 0xc013, 1, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v1 (MKCV)"},
-    { 0x1d5a, 0xc020, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc021, 1, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v1 (V)"},
-    { 0x1d5a, 0xc030, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (MV)"},
-    { 0x1d5a, 0xc031, 1, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v1 (V)"},
-};
-
 
 /*
  * Copy a wchar string.
@@ -204,8 +147,8 @@ int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct Freespa
 static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
     int i;
     int index;
-    for (i = 0; i < (sizeof(deviceAPITable) / sizeof(struct FreespaceDeviceAPI)); i++) {
-        const struct FreespaceDeviceAPI* api = &deviceAPITable[i];
+    for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
+        const struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
         if (info->idVendor_ == api->idVendor_ && info->idProduct_ == api->idProduct_) {
             index = getDeviceAPIIndex(api, info);
             if (index >= 0) {
@@ -244,7 +187,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
     device = freespace_private_getDeviceByRef(ref);
     if (device == NULL) {
         // Create the device
-        device = freespace_private_createDevice(api->name_);
+		device = freespace_private_createDevice(api->name_, api->hVer_);
         if (device == NULL) {
             return FREESPACE_ERROR_OUT_OF_MEMORY;
         }
