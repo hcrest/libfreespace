@@ -67,7 +67,7 @@ class MessageCodeGenerator:
         printersHFile.write('#include <stdio.h>\n\n')
         self.writePrintMessageHeader(printersHFile)
         
-        codecsCFile = open("freespace_codecs.c", "w")
+        codecsCFile = open("../common/freespace_codecs.c", "w")
         self.writeCFileHeader(codecsCFile, 'freespace_codecs')
         codecsCFile.write('#include <stdio.h>\n')
         codecsCFile.write('#include <math.h>\n')
@@ -85,7 +85,7 @@ class MessageCodeGenerator:
         codecsCFile.write('#endif\n\n')
         self.writeBitHelper(codecsCFile)
         
-        printersCFile = open("freespace_printers.c", "w")
+        printersCFile = open("../common/freespace_printers.c", "w")
         self.writeCFileHeader(printersCFile, 'freespace_printers')
         self.writePrintMessageBody(messages, printersCFile)
         
