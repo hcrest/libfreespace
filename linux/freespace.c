@@ -83,7 +83,7 @@ struct FreespaceDevice {
     uint16_t idProduct_;
     int kernelDriverDetached_;
 
-    struct freespace_deviceAPI* api_;
+    struct FreespaceDeviceAPI* api_;
     int writeEndpointAddress_;
     int readEndpointAddress_;
     int maxWriteSize_;
@@ -181,10 +181,10 @@ void freespace_exit() {
     freespace_hotplug_exit();
 }
 
-static struct freespace_deviceAPI* lookupDevice(struct libusb_device_descriptor* desc) {
+static struct FreespaceDeviceAPI* lookupDevice(struct libusb_device_descriptor* desc) {
     int i;
     for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
-        struct freespace_deviceAPI* api = &freespace_deviceAPITable[i];
+        struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
         if (desc->idVendor == api->idVendor_ &&
             desc->idProduct == api->idProduct_) {
             return api;
@@ -262,7 +262,7 @@ static int scanDevices() {
     for (i = 0; i < count; i++) {
         struct libusb_device_descriptor desc;
         struct libusb_device* dev = devs[i];
-        struct freespace_deviceAPI* api;
+        struct FreespaceDeviceAPI* api;
 
         rc = libusb_get_device_descriptor(dev, &desc);
         if (rc < 0) {
@@ -623,7 +623,7 @@ int freespace_send(FreespaceDeviceId id,
 
 int freespace_sendMessageStruct(FreespaceDeviceId id,
                                 struct freespace_message* message,
-                                freespace_address address) {
+                                FreespaceAddress address) {
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
@@ -857,7 +857,7 @@ int freespace_sendAsync(FreespaceDeviceId id,
 
 int freespace_sendMessageStructAsync(FreespaceDeviceId id,
                                      struct freespace_message* message,
-                                     freespace_address address,
+                                     FreespaceAddress address,
                                      unsigned int timeoutMs,
                                      freespace_sendCallback callback,
                                      void* cookie) {

@@ -697,7 +697,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
 
 LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
                                                  struct freespace_message* message,
-                                                 freespace_address address) {
+                                                 FreespaceAddress address) {
 
     int retVal;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
@@ -749,7 +749,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
 
 LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
                                                       struct freespace_message* message,
-                                                      freespace_address address,
+                                                      FreespaceAddress address,
                                                       unsigned int timeoutMs,
                                                       freespace_sendCallback callback,
                                                       void* cookie) {

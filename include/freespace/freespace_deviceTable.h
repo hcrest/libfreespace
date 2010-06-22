@@ -56,7 +56,7 @@ extern "C" {
  * @ingroup device
  * A specific usage available for a given freespace_deviceAPI.
  */
-struct freespace_deviceUsageAPI {
+struct FreespaceDeviceUsageAPI {
     USAGE    usage_;
     USAGE    usagePage_;
 };
@@ -65,14 +65,14 @@ struct freespace_deviceUsageAPI {
  * @ingroup device
  * Figure out which API to use depending on the reported Freespace version.
  */
-struct freespace_deviceAPI {
+struct FreespaceDeviceAPI {
     // Set of devices with this version.
     uint16_t    idVendor_;
     uint16_t    idProduct_;
     int         controlInterfaceNumber_;
     int         usageCount_;
 	int         hVer_; // HID messaging protocol used for a particular product ID
-    struct      freespace_deviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
+    struct      FreespaceDeviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
     const char* name_;
 };
 
@@ -80,7 +80,7 @@ struct freespace_deviceAPI {
  * @ingroup device
  * Stores information for all Freespace devices.
  */
-extern const struct freespace_deviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT];
+extern const struct FreespaceDeviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT];
 
 #ifdef __cplusplus
 }

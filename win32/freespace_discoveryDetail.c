@@ -125,7 +125,7 @@ WCHAR* freespace_private_generateUniqueId(FreespaceDeviceRef devicePath) {
  * @param info The information (device) used for matching.
  * @return The API index, or -1 if no match was found.
  */
-int getDeviceAPIIndex(const struct freespace_deviceAPI* api, const struct FreespaceDeviceInterfaceInfo* info) {
+int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct FreespaceDeviceInterfaceInfo* info) {
     int j;
     for (j = 0; j < api->usageCount_; j++) {
         if (api->usages_[j].usage_ != 0 && api->usages_[j].usage_ != info->usage_) {
@@ -144,11 +144,11 @@ int getDeviceAPIIndex(const struct freespace_deviceAPI* api, const struct Freesp
  * @param info The information (device) used for matching.
  * @return The API structure, or NULL if no match was found.
  */
-static const struct freespace_deviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
+static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
     int i;
     int index;
     for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
-        const struct freespace_deviceAPI* api = &freespace_deviceAPITable[i];
+        const struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
         if (info->idVendor_ == api->idVendor_ && info->idProduct_ == api->idProduct_) {
             index = getDeviceAPIIndex(api, info);
             if (index >= 0) {
@@ -171,7 +171,7 @@ static const struct freespace_deviceAPI* getDeviceAPI(const struct FreespaceDevi
  * @return FREESPACE_SUCCESS on success, or Freespace error code.
  */
 static int addNewDevice(FreespaceDeviceRef ref,
-                        const struct freespace_deviceAPI* api,
+                        const struct FreespaceDeviceAPI* api,
                         struct FreespaceDeviceInterfaceInfo* info,
                         struct FreespaceDeviceStruct** deviceOut) {
     struct FreespaceDeviceStruct *device;
@@ -249,7 +249,7 @@ static int addNewDevice(FreespaceDeviceRef ref,
 }
 
 int freespace_private_scanAndAddDevices() {
-    const struct freespace_deviceAPI* api;
+    const struct FreespaceDeviceAPI* api;
     int rc = FREESPACE_SUCCESS;
     struct FreespaceDeviceInterfaceInfo info;
     struct FreespaceDeviceStruct* device;

@@ -79,7 +79,7 @@ typedef int FreespaceDeviceId;
  * These are reserved for now and must be set to 0 when calling into
  * libfreespace.
  */
-typedef uint8_t freespace_address;
+typedef uint8_t FreespaceAddress;
 
 struct FreespaceDeviceInfo {
     /** The user-meaningful name for the device. */
@@ -276,7 +276,7 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
  */
 LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
                                                  struct freespace_message* message,
-                                                 freespace_address address);
+                                                 FreespaceAddress address);
 
 /** @ingroup synchronous
  *
@@ -383,7 +383,7 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
  */
 LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
                                                       struct freespace_message* message,
-                                                      freespace_address address,
+                                                      FreespaceAddress address,
                                                       unsigned int timeoutMs,
                                                       freespace_sendCallback callback,
                                                       void* cookie);
