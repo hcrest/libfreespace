@@ -41,9 +41,5 @@ BUILT_SOURCES = ../common/freespace_printers.c ../common/freespace_codecs.c ../i
 ../common/freespace_codecs.c: ../common/freespace_printers.c
 ../common/freespace_printers.c: ../common/messageCodeGenerator.py ../common/setupMessages.py
 	../common/messageCodeGenerator.py ../common/setupMessages.py
-	mv freespace_printers.h ../include/freespace
-	mv freespace_codecs.h ../include/freespace
-	mv freespace_printers.c ../common
-	mv freespace_codecs.c ../common
 
 AM_CFLAGS = -Wall -I../include -lm
