@@ -128,7 +128,8 @@ typedef void (*freespace_hotplugCallback)(enum freespace_hotplugEvent event,
 typedef void (*freespace_sendCallback)(FreespaceDeviceId id, void* cookie, int result);
 
 /** @ingroup async
- * Callback for received Freespace events.
+ * Callback for received Freespace events in byte stream form.
+ * Deprecated.
  *
  * @param id The device that generated the message
  * @param message the raw HID report
@@ -143,7 +144,7 @@ typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
                                           int result);
 
 /** @ingroup async
- * Callback for received Freespace events.
+ * Callback for received Freespace events in message form.
  *
  * @param id The device that generated the message
  * @param message the decoded HID message
@@ -259,43 +260,12 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id);
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the message to send
- * @param length the length of the message
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
-                                    const uint8_t* message,
-                                    int length);
-
-/** @ingroup synchronous
- *
- * Send a message to the specified Freespace device synchronously.
- *
- * @param id the FreespaceDeviceId of the device to send message to
- * @param message the message to send
  * @param address is reserved and must be set to 0.
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
                                            struct freespace_message* message,
                                            FreespaceAddress address);
-
-/** @ingroup synchronous
- *
- * Read a message from the specified device.  This function blocks
- * until a message is received, there's a timeout or an error.
- *
- * @param id the FreespaceDeviceId of the device to read from
- * @param message where to put the received message
- * @param maxLength the max length of the message
- * @param timeoutMs the timeout in milliseconds or 0 to wait forever
- * @param actualLength the number of bytes received
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
-                                    uint8_t* message,
-                                    int maxLength,
-                                    unsigned int timeoutMs,
-                                    int* actualLength);
 
 /** @ingroup synchronous
  *
@@ -327,19 +297,6 @@ LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id);
 
 /** @ingroup async
  *
- * Register a callback function to handle received HID messages.
- *
- * @param id the FreespaceDeviceId of the device
- * @param callback the callback function
- * @param cookie any user data
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
-                                                  freespace_receiveCallback callback,
-                                                  void* cookie);
-
-/** @ingroup async
- *
  * Register a callback function to handle decoded received HID messages.
  *
  * @param id the FreespaceDeviceId of the device
@@ -350,25 +307,6 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
 LIBFREESPACE_API int freespace_setReceiveMessageCallback(FreespaceDeviceId id,
                                                          freespace_receiveMessageCallback callback,
                                                          void* cookie);
-
-/** @ingroup async
- *
- * Send a message to the specified Freespace device, but do not block.
- *
- * @param id the FreespaceDeviceId of the device to send message to
- * @param message the HID message to send
- * @param length the length of the message
- * @param timeoutMs the number of milliseconds to wait before timing out
- * @param callback the function to call when the send completes
- * @param cookie data passed to the callback function
- * @return FREESPACE_SUCCESS or an error
- */
-LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const uint8_t* message,
-                                         int length,
-                                         unsigned int timeoutMs,
-                                         freespace_sendCallback callback,
-                                         void* cookie);
 
 /** @ingroup async
  *

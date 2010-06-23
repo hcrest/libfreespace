@@ -632,9 +632,9 @@ static int freespace_send_activate(struct FreespaceSendStruct* send) {
     return FREESPACE_ERROR_IO;
 }
 
-LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
-                                    const uint8_t* report,
-                                    int length) {
+int private_send(FreespaceDeviceId id,
+                 const uint8_t* report,
+                 int length) {
 
     struct FreespaceSendStruct* send;
     int retVal = 0;
@@ -718,15 +718,16 @@ LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
         return retVal;
     }
     
-    return freespace_send(id, msgBuf, retVal);
+    return private_send(id, msgBuf, retVal);
 }
 
-LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const uint8_t* message,
-                                         int length,
-                                         unsigned int timeoutMs,
-                                         freespace_sendCallback callback,
-                                         void* cookie) {
+int private_sendAsync(FreespaceDeviceId id,
+                      const uint8_t* message,
+                      int length,
+                      unsigned int timeoutMs,
+                      freespace_sendCallback callback,
+                      void* cookie) {
+
     struct FreespaceSendStruct* send;
     int retVal = 0;
     DWORD lastError = 0;
@@ -773,14 +774,15 @@ LIBFREESPACE_API int freespace_sendMessageAsync(FreespaceDeviceId id,
         return retVal;
     }
 
-    return freespace_sendAsync(id, msgBuf, retVal, timeoutMs, callback, cookie);
+    return private_sendAsync(id, msgBuf, retVal, timeoutMs, callback, cookie);
 }
 
-LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
-                                    uint8_t* message,
-                                    int maxLength,
-                                    unsigned int timeoutMs,
-                                    int* actualLength) {
+int private_read(FreespaceDeviceId id,
+                 uint8_t* message,
+                 int maxLength,
+                 unsigned int timeoutMs,
+                 int* actualLength) {
+
     HANDLE waitEvents[FREESPACE_HANDLE_COUNT_MAX];
     int idx;
     DWORD bResult;
@@ -869,7 +871,7 @@ LIBFREESPACE_API int freespace_readMessage(FreespaceDeviceId id,
         return retVal;
     }
     
-    retVal = freespace_read(id, buffer, sizeof(buffer), timeoutMs, &actLen);
+    retVal = private_read(id, buffer, sizeof(buffer), timeoutMs, &actLen);
     
     if (retVal == FREESPACE_SUCCESS) {
         return freespace_decode_message(buffer, actLen, message, info.hVer);
@@ -894,9 +896,9 @@ LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id) {
     return FREESPACE_SUCCESS;
 }
 
-LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
-                                                  freespace_receiveCallback callback,
-                                                  void* cookie) {
+int private_setReceiveCallback(FreespaceDeviceId id,
+                               freespace_receiveCallback callback,
+                               void* cookie) {
     struct FreespaceDeviceStruct* device = freespace_private_getDeviceById(id);
     if (device == NULL) {
         return FREESPACE_ERROR_NO_DEVICE;
