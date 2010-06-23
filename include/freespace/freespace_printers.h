@@ -39,9 +39,8 @@ extern "C" {
  * @param length the length of the message
  * @param ver the HID protocol version
  */
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver);
 
-LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_message* s);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, struct freespace_message* s);
 
 
 /**

@@ -150,10 +150,10 @@ typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
  * @param cookie the data passed to freespace_setReceiveCallback().
  * @param result FREESPACE_SUCCESS if a packet was received; else error code
  */
-typedef void (*freespace_receiveStructCallback)(FreespaceDeviceId id,
-                                                struct freespace_message* message,
-                                                void* cookie,
-                                                int result);
+typedef void (*freespace_receiveMessageCallback)(FreespaceDeviceId id,
+                                                 struct freespace_message* message,
+                                                 void* cookie,
+                                                 int result);
 
 /** @ingroup async
  * Callback for when file descriptors should be added to the
@@ -275,9 +275,9 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
  * @param address is reserved and must be set to 0.
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
-                                                 struct freespace_message* message,
-                                                 FreespaceAddress address);
+LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
+                                           struct freespace_message* message,
+                                           FreespaceAddress address);
 
 /** @ingroup synchronous
  *
@@ -307,7 +307,7 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
  * @param timeoutMs the timeout in milliseconds or 0 to wait forever
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_readMessageStruct(FreespaceDeviceId id,
+LIBFREESPACE_API int freespace_readMessage(FreespaceDeviceId id,
                                            struct freespace_message* message,
                                            unsigned int timeoutMs);
 
@@ -347,9 +347,9 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
  * @param cookie any user data
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_setReceiveStructCallback(FreespaceDeviceId id,
-                                                        freespace_receiveStructCallback callback,
-                                                        void* cookie);
+LIBFREESPACE_API int freespace_setReceiveMessageCallback(FreespaceDeviceId id,
+                                                         freespace_receiveMessageCallback callback,
+                                                         void* cookie);
 
 /** @ingroup async
  *
@@ -382,12 +382,12 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
  * @param cookie data passed to the callback function
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
-                                                      struct freespace_message* message,
-                                                      FreespaceAddress address,
-                                                      unsigned int timeoutMs,
-                                                      freespace_sendCallback callback,
-                                                      void* cookie);
+LIBFREESPACE_API int freespace_sendMessageAsync(FreespaceDeviceId id,
+                                                struct freespace_message* message,
+                                                FreespaceAddress address,
+                                                unsigned int timeoutMs,
+                                                freespace_sendCallback callback,
+                                                void* cookie);
 
 /** @ingroup async
  *
