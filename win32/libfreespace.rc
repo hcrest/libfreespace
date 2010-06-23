@@ -61,7 +61,7 @@ BEGIN
             VALUE "FileDescription", "libfreespace DLL" 
             VALUE "FileVersion", "0, 4, 0, 0" 
             VALUE "InternalName", "libfreespace" 
-            VALUE "LegalCopyright", "Copyright (C) Hillcrest Labs 2009" 
+            VALUE "LegalCopyright", "Copyright (C) Hillcrest Laboratories, Inc. 2009-2010" 
             VALUE "OriginalFilename", "libfreespace.dll" 
             VALUE "ProductName", "libfreespace" 
             VALUE "ProductVersion", "0, 4, 0, 0" 

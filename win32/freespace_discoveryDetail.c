@@ -147,7 +147,7 @@ int getDeviceAPIIndex(const struct FreespaceDeviceAPI* api, const struct Freespa
 static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDeviceInterfaceInfo* info) {
     int i;
     int index;
-    for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
+    for (i = 0; i < freespace_deviceAPITableNum; i++) {
         const struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
         if (info->idVendor_ == api->idVendor_ && info->idProduct_ == api->idProduct_) {
             index = getDeviceAPIIndex(api, info);

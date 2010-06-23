@@ -32,7 +32,7 @@
  *      V = Joined multi-axis and vendor-specific
  *      A = Separate multi-axis and vendor-specific (deprecated)
  */
-const struct FreespaceDeviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT] = {
+const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc001, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha"},
     { 0x1d5a, 0xc002, 0, 1, 0, {{0, 0},      {0, 0}}, "Piranha bootloader"},
     { 0x1d5a, 0xc003, 0, 2, 1, {{4, 0xff01}, {8, 1}}, "Piranha factory test dongle"},
@@ -75,3 +75,6 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT
     { 0x1d5a, 0xc105, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP260"},
     { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
 };
+
+const int freespace_deviceAPITableNum = sizeof(freespace_deviceAPITable) / sizeof(struct FreespaceDeviceAPI);
+

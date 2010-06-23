@@ -705,7 +705,7 @@ LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (address == 0) {
-        address = 4;
+        address = FREESPACE_RESERVED_ADDRESS;
     }
 
     retVal = freespace_getDeviceInfo(id, &info);
@@ -760,7 +760,7 @@ LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (address == 0) {
-        address = 4;
+        address = FREESPACE_RESERVED_ADDRESS;
     }
     
     retVal = freespace_getDeviceInfo(id, &info);
@@ -904,22 +904,34 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
 
     if (device->isOpened_) {
         if (device->receiveCallback_ != NULL && callback == NULL) {
-            // Deregistering callback, so stop any pending receives.
+            // Deregistering callback, so stop any pending receives if no callbacks.
             device->receiveCallback_ = NULL;
             device->receiveCookie_ = NULL;
 
-            return terminateAsyncReceives(device);
+            if (device->receiveStructCallback_ == NULL) {
+                return terminateAsyncReceives(device);
+            } else {
+                return FREESPACE_SUCCESS;
+            }
         } else if (device->receiveCallback_ == NULL && callback != NULL) {
-            // Registering a callback, so initiate a receive
+            // Registering a callback, so initiate a receive if there were no callbacks.
             device->receiveCookie_ = cookie;
             device->receiveCallback_ = callback;
 
-            return initiateAsyncReceives(device);
+            if (device->receiveStructCallback_ == NULL) {
+                return initiateAsyncReceives(device);
+            } else {
+                return FREESPACE_SUCCESS;
+            }
         }
     }
     // Just update the cookie and callback.
-    device->receiveCookie_ = cookie;
     device->receiveCallback_ = callback;
+    if (callback != NULL) {
+        device->receiveCookie_ = cookie;
+    } else {
+        device->receiveCookie_ = NULL;
+    }
 
     return FREESPACE_SUCCESS;
 }
@@ -934,22 +946,34 @@ LIBFREESPACE_API int freespace_setReceiveStructCallback(FreespaceDeviceId id,
 
     if (device->isOpened_) {
         if (device->receiveStructCallback_ != NULL && callback == NULL) {
-            // Deregistering callback, so stop any pending receives.
+            // Deregistering callback, so stop any pending receives if no callbacks.
             device->receiveStructCallback_ = NULL;
             device->receiveStructCookie_ = NULL;
 
-            return terminateAsyncReceives(device);
+            if (device->receiveCallback_ == NULL) {
+                return terminateAsyncReceives(device);
+            } else {
+                return FREESPACE_SUCCESS;
+            }
         } else if (device->receiveStructCallback_ == NULL && callback != NULL) {
-            // Registering a callback, so initiate a receive
+            // Registering a callback, so initiate a receive if there were no callbacks.
             device->receiveStructCookie_ = cookie;
             device->receiveStructCallback_ = callback;
 
-            return initiateAsyncReceives(device);
+            if (device->receiveCallback_ == NULL) {
+                return initiateAsyncReceives(device);
+            } else {
+                return FREESPACE_SUCCESS;
+            }
         }
     }
     // Just update the cookie and callback.
-    device->receiveStructCookie_ = cookie;
     device->receiveStructCallback_ = callback;
+    if (device->receiveStructCallback_ != NULL) {
+        device->receiveStructCookie_ = cookie;
+    } else {
+        device->receiveStructCookie_ = NULL;
+    }
 
     return FREESPACE_SUCCESS;
 }

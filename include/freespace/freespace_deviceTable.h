@@ -47,12 +47,6 @@ extern "C" {
 #define FREESPACE_HANDLE_COUNT_MAX 2
 
 /**
- * This must be updated when devices are added or subtraced from the device
- * table.
- */
-#define FREESPACE_DEVICES_COUNT 41
-
-/**
  * @ingroup device
  * A specific usage available for a given freespace_deviceAPI.
  */
@@ -80,7 +74,13 @@ struct FreespaceDeviceAPI {
  * @ingroup device
  * Stores information for all Freespace devices.
  */
-extern const struct FreespaceDeviceAPI freespace_deviceAPITable[FREESPACE_DEVICES_COUNT];
+extern const struct FreespaceDeviceAPI freespace_deviceAPITable[];
+
+/**
+ * Defines the number of devices in the API table.  This can't be done as a sizeof the array
+ * because the externed definition of the array is not dimensioned.
+ */
+extern const int freespace_deviceAPITableNum;
 
 #ifdef __cplusplus
 }

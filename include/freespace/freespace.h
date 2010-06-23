@@ -34,6 +34,7 @@ extern "C" {
 #define FREESPACE_MAX_INPUT_MESSAGE_SIZE 96
 #define FREESPACE_MAX_OUTPUT_MESSAGE_SIZE 96
 #define FREESPACE_MAXIMUM_DEVICE_COUNT 128
+#define FREESPACE_RESERVED_ADDRESS 4
 
 /**
  * @defgroup initialization Initialization

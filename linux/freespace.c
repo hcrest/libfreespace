@@ -83,7 +83,7 @@ struct FreespaceDevice {
     uint16_t idProduct_;
     int kernelDriverDetached_;
 
-    struct FreespaceDeviceAPI* api_;
+    struct FreespaceDeviceAPI const * api_;
     int writeEndpointAddress_;
     int readEndpointAddress_;
     int maxWriteSize_;
@@ -181,10 +181,10 @@ void freespace_exit() {
     freespace_hotplug_exit();
 }
 
-static struct FreespaceDeviceAPI* lookupDevice(struct libusb_device_descriptor* desc) {
+static struct FreespaceDeviceAPI const * lookupDevice(struct libusb_device_descriptor* desc) {
     int i;
-    for (i = 0; i < FREESPACE_DEVICES_COUNT; i++) {
-        struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
+    for (i = 0; i < freespace_deviceAPITableNum; i++) {
+        struct FreespaceDeviceAPI const * api = &freespace_deviceAPITable[i];
         if (desc->idVendor == api->idVendor_ &&
             desc->idProduct == api->idProduct_) {
             return api;
@@ -262,7 +262,7 @@ static int scanDevices() {
     for (i = 0; i < count; i++) {
         struct libusb_device_descriptor desc;
         struct libusb_device* dev = devs[i];
-        struct FreespaceDeviceAPI* api;
+        struct FreespaceDeviceAPI const * api;
 
         rc = libusb_get_device_descriptor(dev, &desc);
         if (rc < 0) {
@@ -630,7 +630,7 @@ int freespace_sendMessageStruct(FreespaceDeviceId id,
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (address == 0) {
-        address = 4;
+        address = FREESPACE_RESERVED_ADDRESS;
     }
 
     rc = freespace_getDeviceInfo(id, &info);
@@ -868,7 +868,7 @@ int freespace_sendMessageStructAsync(FreespaceDeviceId id,
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (address == 0) {
-        address = 4;
+        address = FREESPACE_RESERVED_ADDRESS;
     }
     
     rc = freespace_getDeviceInfo(id, &info);
@@ -968,7 +968,7 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
         return FREESPACE_ERROR_NOT_FOUND;
     }
 
-    wereInSyncMode = (device->receiveCallback_ == NULL);
+    wereInSyncMode = (device->receiveCallback_ == NULL && device->receiveStructCallback_ == NULL);
     device->receiveCallback_ = callback;
     device->receiveCookie_ = cookie;
 
@@ -1009,7 +1009,7 @@ int freespace_setReceiveStructCallback(FreespaceDeviceId id,
         return FREESPACE_ERROR_NOT_FOUND;
     }
 
-    wereInSyncMode = (device->receiveStructCallback_ == NULL);
+    wereInSyncMode = (device->receiveStructCallback_ == NULL && device->receiveCallback_ == NULL);
     device->receiveStructCallback_ = callback;
     device->receiveStructCookie_ = cookie;
 
