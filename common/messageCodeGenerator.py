@@ -90,12 +90,18 @@ class MessageCodeGenerator:
         self.writePrintMessageBody(messages, printersCFile)
         
         for message in messages:
+            fields = extractFields(message)
+            # Data structure to hold the message
+            writeStruct(message, fields, codecsHFile)
+
+        self.writeUnionStruct(codecsHFile, messages)
+
+        for message in messages:
             writeCodecs(message, codecsHFile, codecsCFile)
-            
+
         for message in messages:
             writePrinter(message, printersHFile, printersCFile)
             
-        self.writeUnionStruct(codecsHFile, messages)
         self.writeUnionDecodeEncodeBodies(codecsCFile, messages)
             
         self.writeHFileTrailer(codecsHFile, 'freespace_codecs')
@@ -398,9 +404,6 @@ def writePrinterBody(message, outFile):
     
 # Add an entry to the codec header file for one message
 def writeCodecHeader(message, fields, outHeader):
-    # Data structure to hold the message
-    writeStruct(message, fields, outHeader)
-    outHeader.write('\n')
     # Decode function declaration
     if message.decode:
         writeDecodeDecl(message, outHeader)
@@ -421,6 +424,7 @@ def writeCodecCFile(message, fields, outFile):
         outFile.write('\n')
 
 def writeStruct(message, fields, outHeader):
+    outHeader.write("\n")
     if message.Documentation != None:
         outHeader.write("/** @ingroup messages \n * " + message.Documentation + "\n */\n")
     outHeader.write("struct freespace_" + message.name + " {\n")
@@ -588,7 +592,9 @@ def writeEncodeBody(message, fields, outFile):
     outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_message* m, uint8_t* message, int maxlength) {\n"%message.name)
         
     outFile.write("\n\tuint8_t offset = 1;\n")
-    outFile.write("\tconst struct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
+    
+    if len(fields) > 0:
+        outFile.write("\tconst struct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
     
     # Encode switch statement
     outFile.write("\tswitch(m->ver) {\n")
@@ -679,7 +685,8 @@ def writeEncodeBody(message, fields, outFile):
 def writeDecodeBody(message, fields, outFile):
     outFile.write("LIBFREESPACE_API int freespace_decode%s(const uint8_t* message, int length, struct freespace_message* m, uint8_t ver) {" %message.name)
     outFile.write("\n\tuint8_t offset = 1;\n")
-    outFile.write("\tstruct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
+    if len(fields) > 0:
+        outFile.write("\tstruct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
     outFile.write("\tm->ver = ver;\n\n")
     # Encode switch statement
     outFile.write("\tswitch(ver) {\n")

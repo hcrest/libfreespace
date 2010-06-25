@@ -622,15 +622,14 @@ int freespace_private_send(FreespaceDeviceId id,
 }
 
 int freespace_sendMessage(FreespaceDeviceId id,
-                          struct freespace_message* message,
-                          FreespaceAddress address) {
+                          struct freespace_message* message) {
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
     
     // Address is reserved for now and must be set to 0 by the caller.
-    if (address == 0) {
-        address = FREESPACE_RESERVED_ADDRESS;
+    if (message->dest == 0) {
+        message->dest = FREESPACE_RESERVED_ADDRESS;
     }
 
     rc = freespace_getDeviceInfo(id, &info);
@@ -638,7 +637,8 @@ int freespace_sendMessage(FreespaceDeviceId id,
         return rc;
     }
     
-    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    message->ver = info.hVer;
+    rc = freespace_encode_message(message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
     if (rc <= FREESPACE_SUCCESS) {
         return rc;
     }
@@ -857,7 +857,6 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
 
 int freespace_sendMessageAsync(FreespaceDeviceId id,
                                struct freespace_message* message,
-                               FreespaceAddress address,
                                unsigned int timeoutMs,
                                freespace_sendCallback callback,
                                void* cookie) {
@@ -867,8 +866,8 @@ int freespace_sendMessageAsync(FreespaceDeviceId id,
     struct FreespaceDeviceInfo info;
     
     // Address is reserved for now and must be set to 0 by the caller.
-    if (address == 0) {
-        address = FREESPACE_RESERVED_ADDRESS;
+    if (message->dest == 0) {
+        message->dest = FREESPACE_RESERVED_ADDRESS;
     }
     
     rc = freespace_getDeviceInfo(id, &info);
@@ -876,7 +875,8 @@ int freespace_sendMessageAsync(FreespaceDeviceId id,
         return rc;
     }
     
-    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    message->ver = info.hVer;
+    rc = freespace_encode_message(message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
     if (rc <= FREESPACE_SUCCESS) {
         return rc;
     }

@@ -168,8 +168,6 @@ LIBFREESPACE_API int freespace_decodeCoprocessorInReport(const uint8_t* message,
 LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_PairingMessage* s = &(m->pairingMessage);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 8) {
@@ -198,8 +196,6 @@ LIBFREESPACE_API int freespace_encodePairingMessage(const struct freespace_messa
 LIBFREESPACE_API int freespace_encodeProductIDRequest(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_ProductIDRequest* s = &(m->productIDRequest);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 8) {
@@ -294,8 +290,6 @@ LIBFREESPACE_API int freespace_encodeLinkQualityRequest(const struct freespace_m
 LIBFREESPACE_API int freespace_encodeAlwaysOnRequest(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_AlwaysOnRequest* s = &(m->alwaysOnRequest);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 8) {
@@ -372,8 +366,6 @@ LIBFREESPACE_API int freespace_encodeSoftwareResetMessage(const struct freespace
 LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_DongleRFDisableMessage* s = &(m->dongleRFDisableMessage);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 8) {
@@ -402,8 +394,6 @@ LIBFREESPACE_API int freespace_encodeDongleRFDisableMessage(const struct freespa
 LIBFREESPACE_API int freespace_encodeTxDisableMessage(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_TxDisableMessage* s = &(m->txDisableMessage);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 2) {
@@ -676,8 +666,6 @@ LIBFREESPACE_API int freespace_encodeFRSEFlashWriteData(const struct freespace_m
 LIBFREESPACE_API int freespace_encodeDongleRFEnableMessage(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_DongleRFEnableMessage* s = &(m->dongleRFEnableMessage);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 8) {
@@ -926,8 +914,6 @@ LIBFREESPACE_API int freespace_decodeLinkStatus(const uint8_t* message, int leng
 
 LIBFREESPACE_API int freespace_decodeAlwaysOnResponse(const uint8_t* message, int length, struct freespace_message* m, uint8_t ver) {
 	uint8_t offset = 1;
-	struct freespace_AlwaysOnResponse* s = &(m->alwaysOnResponse);
-
 	m->ver = ver;
 
 	switch(ver) {
@@ -1238,8 +1224,6 @@ LIBFREESPACE_API int freespace_decodeButtonTestModeResponse(const uint8_t* messa
 LIBFREESPACE_API int freespace_encodeBatteryLevelRequest(const struct freespace_message* m, uint8_t* message, int maxlength) {
 
 	uint8_t offset = 1;
-	const struct freespace_BatteryLevelRequest* s = &(m->batteryLevelRequest);
-
 	switch(m->ver) {
 		case 1:
 			if (maxlength < 2) {
