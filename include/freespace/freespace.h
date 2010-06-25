@@ -75,13 +75,6 @@ extern "C" {
  */
 typedef int FreespaceDeviceId;
 
-/**
- * Address of the Freespace device to which the message will be sent.
- * These are reserved for now and must be set to 0 when calling into
- * libfreespace.
- */
-typedef uint8_t FreespaceAddress;
-
 struct FreespaceDeviceInfo {
     /** The user-meaningful name for the device. */
     const char* name;
@@ -276,12 +269,10 @@ LIBFREESPACE_API int freespace_private_send(FreespaceDeviceId id,
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the message to send
- * @param address is reserved and must be set to 0.
  * @return FREESPACE_SUCCESS or an error
  */
 LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
-                                           struct freespace_message* message,
-                                           FreespaceAddress address);
+                                           struct freespace_message* message);
 
 /** @ingroup synchronous
  *
@@ -386,7 +377,6 @@ LIBFREESPACE_API int freespace_private_sendAsync(FreespaceDeviceId id,
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the HID message struct to send
- * @param address is reserved and must be set to 0.
  * @param timeoutMs the number of milliseconds to wait before timing out
  * @param callback the function to call when the send completes
  * @param cookie data passed to the callback function
@@ -394,7 +384,6 @@ LIBFREESPACE_API int freespace_private_sendAsync(FreespaceDeviceId id,
  */
 LIBFREESPACE_API int freespace_sendMessageAsync(FreespaceDeviceId id,
                                                 struct freespace_message* message,
-                                                FreespaceAddress address,
                                                 unsigned int timeoutMs,
                                                 freespace_sendCallback callback,
                                                 void* cookie);
