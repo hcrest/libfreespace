@@ -3,8 +3,8 @@ README.win32
 The tools required to fully build libfreespace on MS Windows are:
     MS Visual Studio 2005 or 2008
     bazaar  http://bazaar-vcs.org/WindowsDownloads
-    Doxygen http://www.doxygen.org/
     Windows Driver Kit (WDK) 7.0.0
+    TODO enable doxygen generation on MS Windows
 
 The WDK can be obtained from Microsoft by following the instructions at:
     http://www.microsoft.com/whdc/DevTools/WDK/WDKpkg.mspx
@@ -42,5 +42,4 @@ Several different MS Visual Studio solutions exist:
         Build the libfreespace project only.
     <base>/libfreespace-examples/win/vs200x/examples.sln
         Build libfreespace and all of the examples.
-    <base>/jfreespace/native/jfreespace.sln
-        Build the jfreespace Java native interface library. (FUTURE)
+

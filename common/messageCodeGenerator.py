@@ -231,9 +231,7 @@ void freespace_printMessage(FILE* fp, struct freespace_message* s) {
  * Pretty print a Freespace message to the terminal.
  *
  * @param fp the file pointer to print into
- * @param message the HID message
- * @param length the length of the message
- * @param ver the HID protocol version
+ * @param s the HID message
  */
 
 LIBFREESPACE_API void freespace_printMessage(FILE* fp, struct freespace_message* s);

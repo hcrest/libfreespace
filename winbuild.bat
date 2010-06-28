@@ -3,7 +3,7 @@
 SET MAJOR_NUM=0
 SET MINOR_NUM=5
 SET REVISION_NUM=0
-SET IS_RC=yes
+SET IS_RC=no
 
 IF "%IS_RC%"=="yes" (
 SET RELEASE_VERSION=%MAJOR_NUM%.%MINOR_NUM%rc%REVISION_NUM%
@@ -74,11 +74,11 @@ echo     BLOCK "StringFileInfo" >> win32\libfreespace.rc
 echo     BEGIN >> win32\libfreespace.rc
 echo         BLOCK "040904b0" >> win32\libfreespace.rc
 echo         BEGIN >> win32\libfreespace.rc
-echo             VALUE "CompanyName", "Hillcrest Labs, Inc." >> win32\libfreespace.rc
+echo             VALUE "CompanyName", "Hillcrest Laboratories, Inc." >> win32\libfreespace.rc
 echo             VALUE "FileDescription", "libfreespace DLL" >> win32\libfreespace.rc
 echo             VALUE "FileVersion", "%MAJOR_NUM%, %MINOR_NUM%, %REVISION_NUM%, 0" >> win32\libfreespace.rc
 echo             VALUE "InternalName", "libfreespace" >> win32\libfreespace.rc
-echo             VALUE "LegalCopyright", "Copyright (C) Hillcrest Labs 2009" >> win32\libfreespace.rc
+echo             VALUE "LegalCopyright", "Copyright (C) Hillcrest Laboratories, Inc. 2009-2010" >> win32\libfreespace.rc
 echo             VALUE "OriginalFilename", "libfreespace.dll" >> win32\libfreespace.rc
 echo             VALUE "ProductName", "libfreespace" >> win32\libfreespace.rc
 echo             VALUE "ProductVersion", "%MAJOR_NUM%, %MINOR_NUM%, %REVISION_NUM%, 0" >> win32\libfreespace.rc
