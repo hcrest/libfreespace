@@ -75,13 +75,6 @@ extern "C" {
  */
 typedef int FreespaceDeviceId;
 
-/**
- * Address of the Freespace device to which the message will be sent.
- * These are reserved for now and must be set to 0 when calling into
- * libfreespace.
- */
-typedef uint8_t FreespaceAddress;
-
 struct FreespaceDeviceInfo {
     /** The user-meaningful name for the device. */
     const char* name;
@@ -128,7 +121,9 @@ typedef void (*freespace_hotplugCallback)(enum freespace_hotplugEvent event,
 typedef void (*freespace_sendCallback)(FreespaceDeviceId id, void* cookie, int result);
 
 /** @ingroup async
- * Callback for received Freespace events.
+ * Callback for received Freespace events in byte stream form.
+ * Deprecated for external use.  For use with other language bindings, such as
+ * Python and Java, only.
  *
  * @param id The device that generated the message
  * @param message the raw HID report
@@ -143,17 +138,17 @@ typedef void (*freespace_receiveCallback)(FreespaceDeviceId id,
                                           int result);
 
 /** @ingroup async
- * Callback for received Freespace events.
+ * Callback for received Freespace events in message form.
  *
  * @param id The device that generated the message
  * @param message the decoded HID message
  * @param cookie the data passed to freespace_setReceiveCallback().
  * @param result FREESPACE_SUCCESS if a packet was received; else error code
  */
-typedef void (*freespace_receiveStructCallback)(FreespaceDeviceId id,
-                                                struct freespace_message* message,
-                                                void* cookie,
-                                                int result);
+typedef void (*freespace_receiveMessageCallback)(FreespaceDeviceId id,
+                                                 struct freespace_message* message,
+                                                 void* cookie,
+                                                 int result);
 
 /** @ingroup async
  * Callback for when file descriptors should be added to the
@@ -256,15 +251,17 @@ LIBFREESPACE_API int freespace_openDevice(FreespaceDeviceId id);
 /** @ingroup synchronous
  *
  * Send a message to the specified Freespace device synchronously.
+ * Deprecated for external use.  For use with other language bindings, such as
+ * Python and Java, only.
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the message to send
  * @param length the length of the message
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
-                                    const uint8_t* message,
-                                    int length);
+LIBFREESPACE_API int freespace_private_send(FreespaceDeviceId id,
+                                            const uint8_t* message,
+                                            int length);
 
 /** @ingroup synchronous
  *
@@ -272,17 +269,17 @@ LIBFREESPACE_API int freespace_send(FreespaceDeviceId id,
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the message to send
- * @param address is reserved and must be set to 0.
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
-                                                 struct freespace_message* message,
-                                                 FreespaceAddress address);
+LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
+                                           struct freespace_message* message);
 
 /** @ingroup synchronous
  *
  * Read a message from the specified device.  This function blocks
  * until a message is received, there's a timeout or an error.
+ * Deprecated for external use.  For use with other language bindings, such as
+ * Python and Java, only.
  *
  * @param id the FreespaceDeviceId of the device to read from
  * @param message where to put the received message
@@ -291,11 +288,11 @@ LIBFREESPACE_API int freespace_sendMessageStruct(FreespaceDeviceId id,
  * @param actualLength the number of bytes received
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
-                                    uint8_t* message,
-                                    int maxLength,
-                                    unsigned int timeoutMs,
-                                    int* actualLength);
+LIBFREESPACE_API int freespace_private_read(FreespaceDeviceId id,
+                                            uint8_t* message,
+                                            int maxLength,
+                                            unsigned int timeoutMs,
+                                            int* actualLength);
 
 /** @ingroup synchronous
  *
@@ -307,7 +304,7 @@ LIBFREESPACE_API int freespace_read(FreespaceDeviceId id,
  * @param timeoutMs the timeout in milliseconds or 0 to wait forever
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_readMessageStruct(FreespaceDeviceId id,
+LIBFREESPACE_API int freespace_readMessage(FreespaceDeviceId id,
                                            struct freespace_message* message,
                                            unsigned int timeoutMs);
 
@@ -328,15 +325,17 @@ LIBFREESPACE_API int freespace_flush(FreespaceDeviceId id);
 /** @ingroup async
  *
  * Register a callback function to handle received HID messages.
+ * Deprecated for external use.  For use with other language bindings, such as
+ * Python and Java, only.
  *
  * @param id the FreespaceDeviceId of the device
  * @param callback the callback function
  * @param cookie any user data
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
-                                                  freespace_receiveCallback callback,
-                                                  void* cookie);
+LIBFREESPACE_API int freespace_private_setReceiveCallback(FreespaceDeviceId id,
+                                                          freespace_receiveCallback callback,
+                                                          void* cookie);
 
 /** @ingroup async
  *
@@ -347,13 +346,15 @@ LIBFREESPACE_API int freespace_setReceiveCallback(FreespaceDeviceId id,
  * @param cookie any user data
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_setReceiveStructCallback(FreespaceDeviceId id,
-                                                        freespace_receiveStructCallback callback,
-                                                        void* cookie);
+LIBFREESPACE_API int freespace_setReceiveMessageCallback(FreespaceDeviceId id,
+                                                         freespace_receiveMessageCallback callback,
+                                                         void* cookie);
 
 /** @ingroup async
  *
  * Send a message to the specified Freespace device, but do not block.
+ * Deprecated for external use.  For use with other language bindings, such as
+ * Python and Java, only.
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the HID message to send
@@ -363,12 +364,12 @@ LIBFREESPACE_API int freespace_setReceiveStructCallback(FreespaceDeviceId id,
  * @param cookie data passed to the callback function
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
-                                         const uint8_t* message,
-                                         int length,
-                                         unsigned int timeoutMs,
-                                         freespace_sendCallback callback,
-                                         void* cookie);
+LIBFREESPACE_API int freespace_private_sendAsync(FreespaceDeviceId id,
+                                                 const uint8_t* message,
+                                                 int length,
+                                                 unsigned int timeoutMs,
+                                                 freespace_sendCallback callback,
+                                                 void* cookie);
 
 /** @ingroup async
  *
@@ -376,18 +377,16 @@ LIBFREESPACE_API int freespace_sendAsync(FreespaceDeviceId id,
  *
  * @param id the FreespaceDeviceId of the device to send message to
  * @param message the HID message struct to send
- * @param address is reserved and must be set to 0.
  * @param timeoutMs the number of milliseconds to wait before timing out
  * @param callback the function to call when the send completes
  * @param cookie data passed to the callback function
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_sendMessageStructAsync(FreespaceDeviceId id,
-                                                      struct freespace_message* message,
-                                                      FreespaceAddress address,
-                                                      unsigned int timeoutMs,
-                                                      freespace_sendCallback callback,
-                                                      void* cookie);
+LIBFREESPACE_API int freespace_sendMessageAsync(FreespaceDeviceId id,
+                                                struct freespace_message* message,
+                                                unsigned int timeoutMs,
+                                                freespace_sendCallback callback,
+                                                void* cookie);
 
 /** @ingroup async
  *

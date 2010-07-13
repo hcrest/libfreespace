@@ -109,6 +109,13 @@ enum freespace_error {
     FREESPACE_ERROR_UNEXPECTED = -98
 };
 
+/**
+ * Address of the Freespace device to which the message will be sent.
+ * These are reserved for now and must be set to 0 when calling into
+ * libfreespace to send a message.
+ */
+typedef uint8_t FreespaceAddress;
+
 #ifdef __cplusplus
 }
 #endif

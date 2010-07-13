@@ -3,6 +3,7 @@
  *
  * See @PACKAGE@ website for more information and FAQ
  *
+ * \version 0.5 - API refactor to send messages, FSP2xx support
  * \version 0.4 - Windows robustness updates, minor API cleanup
  * \version 0.3 - Windows support, device discovery, and bug fixes
  * \version 0.2 - libusb 1.0

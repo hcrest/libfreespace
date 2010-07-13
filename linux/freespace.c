@@ -90,9 +90,9 @@ struct FreespaceDevice {
     int maxReadSize_;
 
     freespace_receiveCallback receiveCallback_;
-    freespace_receiveStructCallback receiveStructCallback_;
+    freespace_receiveMessageCallback receiveMessageCallback_;
     void* receiveCookie_;
-    void* receiveStructCookie_;
+    void* receiveMessageCookie_;
 
     int receiveQueueHead_;
     struct FreespaceReceiveTransfer receiveQueue_[FREESPACE_RECEIVE_QUEUE_SIZE];
@@ -374,20 +374,20 @@ static void receiveCallback(struct libusb_transfer* transfer) {
         return;
     }
 
-    if (device->receiveCallback_ != NULL || device->receiveStructCallback_ != NULL) {
+    if (device->receiveCallback_ != NULL || device->receiveMessageCallback_ != NULL) {
         // Using async interface, so call user back immediately.
         int rc = libusb_transfer_status_to_freespace_error(transfer->status);
         if (device->receiveCallback_ != NULL) {
             device->receiveCallback_(device->id_, (const uint8_t*) transfer->buffer, transfer->actual_length, device->receiveCookie_, rc);
         }
-        if (device->receiveStructCallback_ != NULL) {
+        if (device->receiveMessageCallback_ != NULL) {
             struct freespace_message m;
             
             rc = freespace_decode_message((const uint8_t*) transfer->buffer, transfer->actual_length, &m, device->api_->hVer_);
             if (rc == FREESPACE_SUCCESS) {
-                device->receiveStructCallback_(device->id_, &m, device->receiveStructCookie_, FREESPACE_SUCCESS);
+                device->receiveMessageCallback_(device->id_, &m, device->receiveMessageCookie_, FREESPACE_SUCCESS);
             } else {
-                device->receiveStructCallback_(device->id_, NULL, device->receiveStructCookie_, rc);
+                device->receiveMessageCallback_(device->id_, NULL, device->receiveMessageCookie_, rc);
             }
         }
 
@@ -592,9 +592,9 @@ void freespace_closeDevice(FreespaceDeviceId id) {
     }
 }
 
-int freespace_send(FreespaceDeviceId id,
-                   const uint8_t* message,
-                   int length) {
+int freespace_private_send(FreespaceDeviceId id,
+                           const uint8_t* message,
+                           int length) {
     int rc;
     int count;
     struct FreespaceDevice* device;
@@ -621,16 +621,15 @@ int freespace_send(FreespaceDeviceId id,
     return FREESPACE_SUCCESS;
 }
 
-int freespace_sendMessageStruct(FreespaceDeviceId id,
-                                struct freespace_message* message,
-                                FreespaceAddress address) {
+int freespace_sendMessage(FreespaceDeviceId id,
+                          struct freespace_message* message) {
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
     
     // Address is reserved for now and must be set to 0 by the caller.
-    if (address == 0) {
-        address = FREESPACE_RESERVED_ADDRESS;
+    if (message->dest == 0) {
+        message->dest = FREESPACE_RESERVED_ADDRESS;
     }
 
     rc = freespace_getDeviceInfo(id, &info);
@@ -638,19 +637,20 @@ int freespace_sendMessageStruct(FreespaceDeviceId id,
         return rc;
     }
     
-    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    message->ver = info.hVer;
+    rc = freespace_encode_message(message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
     if (rc <= FREESPACE_SUCCESS) {
         return rc;
     }
     
-    return freespace_send(id, msgBuf, rc);
+    return freespace_private_send(id, msgBuf, rc);
 }
 
-int freespace_read(FreespaceDeviceId id,
-                   uint8_t* message,
-                   int maxLength,
-                   unsigned int timeoutMs,
-                   int* actualLength) {
+int freespace_private_read(FreespaceDeviceId id,
+                           uint8_t* message,
+                           int maxLength,
+                           unsigned int timeoutMs,
+                           int* actualLength) {
     struct FreespaceDevice* device = findDeviceById(id);
     struct FreespaceReceiveTransfer* rt;
     int rc;
@@ -712,9 +712,9 @@ int freespace_read(FreespaceDeviceId id,
     return rc;
 }
 
-int freespace_readMessageStruct(FreespaceDeviceId id,
-                                struct freespace_message* message,
-                                unsigned int timeoutMs) {
+int freespace_readMessage(FreespaceDeviceId id,
+                          struct freespace_message* message,
+                          unsigned int timeoutMs) {
     int rc;
     uint8_t buffer[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
     int actLen;
@@ -725,7 +725,7 @@ int freespace_readMessageStruct(FreespaceDeviceId id,
         return rc;
     }
     
-    rc = freespace_read(id, buffer, sizeof(buffer), timeoutMs, &actLen);
+    rc = freespace_private_read(id, buffer, sizeof(buffer), timeoutMs, &actLen);
     
     if (rc == FREESPACE_SUCCESS) {
         return freespace_decode_message(buffer, actLen, message, info.hVer);
@@ -790,17 +790,17 @@ static void sendCallback(struct libusb_transfer* transfer) {
     free(info);
 }
 
-int freespace_sendAsync(FreespaceDeviceId id,
-                        const uint8_t* message,
-                        int length,
-                        unsigned int timeoutMs,
-                        freespace_sendCallback callback,
-                        void* cookie) {
+int freespace_private_sendAsync(FreespaceDeviceId id,
+                                const uint8_t* message,
+                                int length,
+                                unsigned int timeoutMs,
+                                freespace_sendCallback callback,
+                                void* cookie) {
 #ifdef __APPLE__
     // @TODO: Figure out why libusb on darwin doesn't seem to work with asynchronous messages
     int rc;
 
-    rc = freespace_send(id, message, length);
+    rc = private_send(id, message, length);
     if (callback != NULL) {
         callback(id, cookie, rc);
     }
@@ -855,20 +855,19 @@ int freespace_sendAsync(FreespaceDeviceId id,
 #endif
 }
 
-int freespace_sendMessageStructAsync(FreespaceDeviceId id,
-                                     struct freespace_message* message,
-                                     FreespaceAddress address,
-                                     unsigned int timeoutMs,
-                                     freespace_sendCallback callback,
-                                     void* cookie) {
+int freespace_sendMessageAsync(FreespaceDeviceId id,
+                               struct freespace_message* message,
+                               unsigned int timeoutMs,
+                               freespace_sendCallback callback,
+                               void* cookie) {
 
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
     
     // Address is reserved for now and must be set to 0 by the caller.
-    if (address == 0) {
-        address = FREESPACE_RESERVED_ADDRESS;
+    if (message->dest == 0) {
+        message->dest = FREESPACE_RESERVED_ADDRESS;
     }
     
     rc = freespace_getDeviceInfo(id, &info);
@@ -876,12 +875,13 @@ int freespace_sendMessageStructAsync(FreespaceDeviceId id,
         return rc;
     }
     
-    rc = freespace_encode_message(info.hVer, message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE, address);
+    message->ver = info.hVer;
+    rc = freespace_encode_message(message, msgBuf, FREESPACE_MAX_OUTPUT_MESSAGE_SIZE);
     if (rc <= FREESPACE_SUCCESS) {
         return rc;
     }
 
-    return freespace_sendAsync(id, msgBuf, rc, timeoutMs, callback, cookie);
+    return freespace_private_sendAsync(id, msgBuf, rc, timeoutMs, callback, cookie);
 }
 
 int freespace_getNextTimeout(int* timeoutMsOut) {
@@ -958,9 +958,9 @@ int freespace_syncFileDescriptors() {
     return FREESPACE_SUCCESS;
 }
 
-int freespace_setReceiveCallback(FreespaceDeviceId id,
-                                 freespace_receiveCallback callback,
-                                 void* cookie) {
+int freespace_private_setReceiveCallback(FreespaceDeviceId id,
+                                         freespace_receiveCallback callback,
+                                         void* cookie) {
     struct FreespaceDevice* device = findDeviceById(id);
     int wereInSyncMode;
 
@@ -968,7 +968,7 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
         return FREESPACE_ERROR_NOT_FOUND;
     }
 
-    wereInSyncMode = (device->receiveCallback_ == NULL && device->receiveStructCallback_ == NULL);
+    wereInSyncMode = (device->receiveCallback_ == NULL && device->receiveMessageCallback_ == NULL);
     device->receiveCallback_ = callback;
     device->receiveCookie_ = cookie;
 
@@ -998,9 +998,9 @@ int freespace_setReceiveCallback(FreespaceDeviceId id,
     return FREESPACE_SUCCESS;
 }
 
-int freespace_setReceiveStructCallback(FreespaceDeviceId id,
-                                       freespace_receiveStructCallback callback,
-                                       void* cookie) {
+int freespace_setReceiveMessageCallback(FreespaceDeviceId id,
+                                        freespace_receiveMessageCallback callback,
+                                        void* cookie) {
     struct FreespaceDevice* device = findDeviceById(id);
     int wereInSyncMode;
     int rc;
@@ -1009,9 +1009,9 @@ int freespace_setReceiveStructCallback(FreespaceDeviceId id,
         return FREESPACE_ERROR_NOT_FOUND;
     }
 
-    wereInSyncMode = (device->receiveStructCallback_ == NULL && device->receiveCallback_ == NULL);
-    device->receiveStructCallback_ = callback;
-    device->receiveStructCookie_ = cookie;
+    wereInSyncMode = (device->receiveMessageCallback_ == NULL && device->receiveCallback_ == NULL);
+    device->receiveMessageCallback_ = callback;
+    device->receiveMessageCookie_ = cookie;
 
     if (callback != NULL && wereInSyncMode && device->state_ == FREESPACE_OPENED) {
         struct freespace_message m;

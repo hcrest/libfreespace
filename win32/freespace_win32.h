@@ -230,9 +230,9 @@ struct FreespaceDeviceStruct {
     void*                       receiveCookie_;
 
     // The callback used for each received and decoded message.
-    freespace_receiveStructCallback   receiveStructCallback_;
+    freespace_receiveMessageCallback  receiveMessageCallback_;
     // The cookie passed to the receive struct callback.
-    void*                             receiveStructCookie_;
+    void*                             receiveMessageCookie_;
 
     // Send events outstanding
     struct FreespaceSendStruct  send_[FREESPACE_MAXIMUM_SEND_MESSAGE_COUNT];

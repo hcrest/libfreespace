@@ -35,6 +35,11 @@ make install (this action may require root privileges)
 
 The configure step will fail if the libusb headers are not found.
 
+To make the doxygen documentation:
+cd doc
+make docs
+
+Doxygen and graphviz are required to make the documentation.
 
 Linux Kernel Configuration
 ==========================

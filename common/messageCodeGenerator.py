@@ -90,12 +90,18 @@ class MessageCodeGenerator:
         self.writePrintMessageBody(messages, printersCFile)
         
         for message in messages:
+            fields = extractFields(message)
+            # Data structure to hold the message
+            writeStruct(message, fields, codecsHFile)
+
+        self.writeUnionStruct(codecsHFile, messages)
+
+        for message in messages:
             writeCodecs(message, codecsHFile, codecsCFile)
-            
+
         for message in messages:
             writePrinter(message, printersHFile, printersCFile)
             
-        self.writeUnionStruct(codecsHFile, messages)
         self.writeUnionDecodeEncodeBodies(codecsCFile, messages)
             
         self.writeHFileTrailer(codecsHFile, 'freespace_codecs')
@@ -202,16 +208,7 @@ static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     printf(")\\n");
 }
 
-void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver) {
-    struct freespace_message s;
-    int rc = freespace_decode_message(message, length, &s, ver);
-    if (rc != 0) {
-        printUnknown("unknown", message, length);
-    }
-    freespace_printMessageStruct(fp, &s);
-}
-
-void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
+void freespace_printMessage(FILE* fp, struct freespace_message* s) {
     switch(s->messageType) {''')
         for message in messages:
             if (not message.decode):
@@ -234,13 +231,10 @@ void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
  * Pretty print a Freespace message to the terminal.
  *
  * @param fp the file pointer to print into
- * @param message the HID message
- * @param length the length of the message
- * @param ver the HID protocol version
+ * @param s the HID message
  */
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver);
 
-LIBFREESPACE_API void freespace_printMessageStruct(FILE* fp, struct freespace_message* s);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, struct freespace_message* s);
 
 ''')
     
@@ -274,9 +268,15 @@ enum MessageTypes {''')
 /** @ingroup messages
  * freespace_message has an enum which defines the type of the message contained
  * and a union of all the possible message structs. 
+ * When these structs are allocated, they must be memset to all 0 before assigning any fields.
  */
 struct freespace_message {
     int messageType;
+    uint8_t ver;  /**< HID protocol version */
+    uint8_t len;  /**< Length, used in version 2 only */
+    uint8_t dest; /**< Destination, used in version 2 only */
+    uint8_t src;  /**< Source, used in version 2 only */
+
     union {''')
         for message in messages:
             file.write("\n\t\tstruct freespace_%(name)s %(varName)s;"%{'name':message.name, 'varName':message.structName})
@@ -298,14 +298,12 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 /** @ingroup messages
  * Encode an arbitrary message.
  *
- * @param hVer the HID protocol version to use to encode the message
  * @param message the freespace_message struct
  * @param msgBuf the buffer to put the encoded message into
  * @param maxLength the maximum length of the encoded message (i.e sizeof(*msgBuf))
- * @param dest the HCOMM destination address to send the message to
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxLength, uint8_t dest);
+LIBFREESPACE_API int freespace_encode_message(struct freespace_message* message, uint8_t* msgBuf, int maxLength);
 
 ''')
         
@@ -338,10 +336,9 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                             file.write('''
                         case %(subId)d:
                             s->messageType = %(messageType)s;
-                            return freespace_decode%(subName)s(message, length, &(s->%(unionStruct)s), ver);'''
+                            return freespace_decode%(subName)s(message, length, s, ver);'''
                             %{'subId':subMessage.ID[v]['subId']['id'],
                            'subName':subMessage.name,
-                           'unionStruct':subMessage.structName,
                            'messageType':subMessage.enumName})                
             
                     file.write('''
@@ -351,10 +348,9 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
                 else:
                     file.write('''
                     s->messageType = %(messageType)s;
-                    return freespace_decode%(name)s(message, length, &(s->%(unionStruct)s), ver);
+                    return freespace_decode%(name)s(message, length, s, ver);
 '''%{'messageType':message.enumName,
-                     'name':message.name,
-                     'unionStruct':message.structName})
+                     'name':message.name})
                     
                 usedIDs.append(message.ID[v]['constID'])
             file.write('''                default:
@@ -368,20 +364,16 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 ''')
         
         file.write('''
-LIBFREESPACE_API int freespace_encode_message(const uint8_t hVer, struct freespace_message* message, uint8_t* msgBuf, int maxlength, uint8_t dest) {
+LIBFREESPACE_API int freespace_encode_message(struct freespace_message* message, uint8_t* msgBuf, int maxlength) {
+    message->src = 0; // Force source to 0, since this is coming from the system host.
     switch (message->messageType) {''')
         for message in messages:
             if (not message.encode):
                 continue
             file.write('''
         case %(enumName)s:
-            message->%(structName)s.ver = hVer;
-            message->%(structName)s.dest = dest;
-            message->%(structName)s.src = 0;
-            return freespace_encode%(messageName)s(&(message->%(structName)s), msgBuf, maxlength);'''%{'structName':message.structName,
-                                                                                                       'enumName':message.enumName, 
-                                                                                                       'messageName':message.name, 
-                                                                                                       'structName':message.structName})
+            return freespace_encode%(messageName)s(message, msgBuf, maxlength);'''%{'enumName':message.enumName, 
+                                                                                    'messageName':message.name})
         file.write('''
         default:
             return -1;
@@ -410,9 +402,6 @@ def writePrinterBody(message, outFile):
     
 # Add an entry to the codec header file for one message
 def writeCodecHeader(message, fields, outHeader):
-    # Data structure to hold the message
-    writeStruct(message, fields, outHeader)
-    outHeader.write('\n')
     # Decode function declaration
     if message.decode:
         writeDecodeDecl(message, outHeader)
@@ -433,22 +422,22 @@ def writeCodecCFile(message, fields, outFile):
         outFile.write('\n')
 
 def writeStruct(message, fields, outHeader):
+    outHeader.write("\n")
     if message.Documentation != None:
         outHeader.write("/** @ingroup messages \n * " + message.Documentation + "\n */\n")
     outHeader.write("struct freespace_" + message.name + " {\n")
-    outHeader.write("\tuint8_t ver; /**< HID protocol version */\n")
-    outHeader.write("\tuint8_t len; /**< Length, used in version 2 only */\n")
-    outHeader.write("\tuint8_t dest; /**< Destination, used in version 2 only */\n")
-    outHeader.write("\tuint8_t src; /**< Source, used in version 2 only */\n\n")
-    for field in fields:
-        if len(field['Doc']):
-            outHeader.write("\n\t/** " + field['Doc'] + " */\n")
-        outHeader.write("\t")
-        outHeader.write(field['type'])
-        outHeader.write(" " + field['name'])
-        if field['count'] != 1:
-            outHeader.write("[%d]"%field['count'])
-        outHeader.write(";\n")
+    if len(fields) > 0:
+        for field in fields:
+            if len(field['Doc']):
+                outHeader.write("\n\t/** " + field['Doc'] + " */\n")
+            outHeader.write("\t")
+            outHeader.write(field['type'])
+            outHeader.write(" " + field['name'])
+            if field['count'] != 1:
+                outHeader.write("[%d]"%field['count'])
+            outHeader.write(";\n")
+    else:
+        outHeader.write("\tuint8_t nothing; // This is here to keep the compiler happy.\n")
     outHeader.write("};\n")
         
 def extractFields(message):
@@ -554,12 +543,12 @@ def writeEncodeDecl(message, outHeader):
 /** @ingroup messages
  * Encode a %(name)s message.
  *
- * @param s the freespace_%(name)s struct
+ * @param m the freespace_message struct to encode
  * @param message the string to put the encoded message into
  * @param maxlength the maximum length of the message
  * @return the actual size of the encoded message or an error code
  */
-LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_%(name)s* s, uint8_t* message, int maxlength);
+LIBFREESPACE_API int freespace_encode%(name)s(const struct freespace_message* m, uint8_t* message, int maxlength);
 '''%{'name':message.name})
     
 def writeDecodeDecl(message, outHeader):
@@ -569,11 +558,11 @@ def writeDecodeDecl(message, outHeader):
  *
  * @param message the message to decode that was received from the Freespace device
  * @param length the length of the received message
- * @param s the preallocated freespace_%(name)s struct to decode into
+ * @param m the preallocated freespace_message struct into which to decode
  * @param ver the protocol version to use for this message
  * @return FREESPACE_SUCCESS or an error
  */
-LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_%(name)s* s, uint8_t ver);
+LIBFREESPACE_API int freespace_decode%(name)s(const uint8_t* message, int length, struct freespace_message* m, uint8_t ver);
 '''%{'name':message.name})
 
 def writePrintDecl(message, outHeader):
@@ -598,12 +587,15 @@ LIBFREESPACE_API int freespace_print%(name)s(FILE* fp, const struct freespace_%(
     
 def writeEncodeBody(message, fields, outFile):
     
-    outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_%s* s, uint8_t* message, int maxlength) {\n"%(message.name, message.name))
+    outFile.write("LIBFREESPACE_API int freespace_encode%s(const struct freespace_message* m, uint8_t* message, int maxlength) {\n"%message.name)
         
-    outFile.write("\n\tuint8_t offset = 1;\n\n")
+    outFile.write("\n\tuint8_t offset = 1;\n")
+    
+    if len(fields) > 0:
+        outFile.write("\tconst struct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
     
     # Encode switch statement
-    outFile.write("\tswitch(s->ver) {\n")
+    outFile.write("\tswitch(m->ver) {\n")
     for v in range(3):
         byteCounter = 0
         if len(message.ID[v]):
@@ -618,8 +610,8 @@ def writeEncodeBody(message, fields, outFile):
             outFile.write("\t\t\tmessage[0] = (uint8_t) %d;\n"%message.ID[v]['constID'])
             # dest and src fields in version 2 messages
             if v == 2:
-                outFile.write("\t\t\tmessage[2] = s->dest;\n")
-                outFile.write("\t\t\tmessage[3] = 0;\n")
+                outFile.write("\t\t\tmessage[2] = m->dest;\n")
+                outFile.write("\t\t\tmessage[3] = m->src;\n")
                 outFile.write("\t\t\toffset = 4;\n")
             # Message sub ID, if defined
             if message.ID[v].has_key('subId'):
@@ -689,9 +681,11 @@ def writeEncodeBody(message, fields, outFile):
     outFile.write('\r}\n')
 
 def writeDecodeBody(message, fields, outFile):
-    outFile.write("LIBFREESPACE_API int freespace_decode%s(const uint8_t* message, int length, struct freespace_%s* s, uint8_t ver) {" %(message.name, message.name))
-    outFile.write("\n\tuint8_t offset = 1;\n\n")
-    outFile.write("\ts->ver = ver;\n\n")
+    outFile.write("LIBFREESPACE_API int freespace_decode%s(const uint8_t* message, int length, struct freespace_message* m, uint8_t ver) {" %message.name)
+    outFile.write("\n\tuint8_t offset = 1;\n")
+    if len(fields) > 0:
+        outFile.write("\tstruct freespace_%s* s = &(m->%s);\n\n"%(message.name, message.structName))
+    outFile.write("\tm->ver = ver;\n\n")
     # Encode switch statement
     outFile.write("\tswitch(ver) {\n")
     byteCounter = 0
@@ -712,9 +706,9 @@ def writeDecodeBody(message, fields, outFile):
 '''%{'size':message.getMessageSize(v), 'id':message.ID[v]['constID'], 'name':message.name})
             if v == 2:
                 outFile.write("\t\t\toffset = 4;\n")
-                outFile.write("\t\t\ts->len = message[1];\n")
-                outFile.write("\t\t\ts->dest = message[2];\n")
-                outFile.write("\t\t\ts->src = message[3];\n")
+                outFile.write("\t\t\tm->len = message[1];\n")
+                outFile.write("\t\t\tm->dest = message[2];\n")
+                outFile.write("\t\t\tm->src = message[3];\n")
 
             if message.ID[v].has_key('subId'):
                 outFile.write('''

@@ -30,16 +30,7 @@ static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     printf(")\n");
 }
 
-void freespace_printMessage(FILE* fp, const uint8_t* message, int length, uint8_t ver) {
-    struct freespace_message s;
-    int rc = freespace_decode_message(message, length, &s, ver);
-    if (rc != 0) {
-        printUnknown("unknown", message, length);
-    }
-    freespace_printMessageStruct(fp, &s);
-}
-
-void freespace_printMessageStruct(FILE* fp, struct freespace_message* s) {
+void freespace_printMessage(FILE* fp, struct freespace_message* s) {
     switch(s->messageType) {
     case FREESPACE_MESSAGE_COPROCESSORINREPORT:
         freespace_printCoprocessorInReport(fp, &(s->coprocessorInReport));
