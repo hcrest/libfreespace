@@ -1658,6 +1658,29 @@ LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_message* 
 			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
 	}}
 
+LIBFREESPACE_API int freespace_encodeActivityClassificationNotification(const struct freespace_message* m, uint8_t* message, int maxlength) {
+
+	uint8_t offset = 1;
+	const struct freespace_ActivityClassificationNotification* s = &(m->activityClassificationNotification);
+
+	switch(m->ver) {
+		case 2:
+			if (maxlength < 6) {
+				CODECS_PRINTF("freespace_ActivityClassificationNotification encode(<INVALID LENGTH>)\n");
+				return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+			}
+			message[0] = (uint8_t) 7;
+			message[2] = m->dest;
+			message[3] = m->src;
+			offset = 4;
+			message[0 + offset] = (uint8_t) 18;
+			message[1 + offset] = s->classification >> 0;
+			message[1] = 2 + offset;
+			return 2 + offset;
+		default:
+			return  FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION;
+	}}
+
 LIBFREESPACE_API int freespace_decodeBodyUserFrame(const uint8_t* message, int length, struct freespace_message* m, uint8_t ver) {
 	uint8_t offset = 1;
 	struct freespace_BodyUserFrame* s = &(m->bodyUserFrame);
@@ -1896,6 +1919,8 @@ LIBFREESPACE_API int freespace_encode_message(struct freespace_message* message,
             return freespace_encodeFRSReadRequest(message, msgBuf, maxlength);
         case FREESPACE_MESSAGE_PERREQUEST:
             return freespace_encodePerRequest(message, msgBuf, maxlength);
+        case FREESPACE_MESSAGE_ACTIVITYCLASSIFICATIONNOTIFICATION:
+            return freespace_encodeActivityClassificationNotification(message, msgBuf, maxlength);
         default:
             return -1;
         }

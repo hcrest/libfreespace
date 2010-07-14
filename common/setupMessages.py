@@ -883,6 +883,24 @@ ButtonTestModeRequest.Fields[2] = ButtonTestModeRequest.Fields[1]
 messages.append(ButtonTestModeRequest)
 
 # ---------------------------------------------------------------------------------------
+# Activity Classification Notification Message
+ActivityClassificationNotification = Message("ActivityClassificationNotification", encode=True)
+ActivityClassificationNotification.Documentation = "Used to communicate activity classifications from a host based algorithm to a remote."
+ActivityClassificationNotification.addedVersion = "2.0.0"
+ActivityClassificationNotification.deprecatedVersion = ""
+ActivityClassificationNotification.removedVersion = ""
+ActivityClassificationNotification.appliesTo = []
+ActivityClassificationNotification.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:18}
+}
+ActivityClassificationNotification.Fields[2] = [
+    {name:"classification",     size:1, cType:'uint8_t', Documentation:"0: stable. 1: on table."}
+]
+
+messages.append(ActivityClassificationNotification)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 

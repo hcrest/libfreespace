@@ -812,6 +812,15 @@ op == 1: Starts a PER test of duration ((payload[1] * 256 + payload[0]) * 256) W
 };
 
 /** @ingroup messages 
+ * Used to communicate activity classifications from a host based algorithm to a remote.
+ */
+struct freespace_ActivityClassificationNotification {
+
+	/** 0: stable. 1: on table. */
+	uint8_t classification;
+};
+
+/** @ingroup messages 
  * Conveys the handheld device body and user frame motion.
  */
 struct freespace_BodyUserFrame {
@@ -913,7 +922,8 @@ enum MessageTypes {
     FREESPACE_MESSAGE_FRSWRITEDATA = 45,
     FREESPACE_MESSAGE_FRSREADREQUEST = 46,
     FREESPACE_MESSAGE_PERREQUEST = 47,
-    FREESPACE_MESSAGE_BODYUSERFRAME = 48,
+    FREESPACE_MESSAGE_ACTIVITYCLASSIFICATIONNOTIFICATION = 48,
+    FREESPACE_MESSAGE_BODYUSERFRAME = 49,
 };
 
 /** @ingroup messages
@@ -977,6 +987,7 @@ struct freespace_message {
 		struct freespace_FRSWriteData fRSWriteData;
 		struct freespace_FRSReadRequest fRSReadRequest;
 		struct freespace_PerRequest perRequest;
+		struct freespace_ActivityClassificationNotification activityClassificationNotification;
 		struct freespace_BodyUserFrame bodyUserFrame;
     };
 };
@@ -1548,6 +1559,17 @@ LIBFREESPACE_API int freespace_encodeFRSReadRequest(const struct freespace_messa
  * @return the actual size of the encoded message or an error code
  */
 LIBFREESPACE_API int freespace_encodePerRequest(const struct freespace_message* m, uint8_t* message, int maxlength);
+
+
+/** @ingroup messages
+ * Encode a ActivityClassificationNotification message.
+ *
+ * @param m the freespace_message struct to encode
+ * @param message the string to put the encoded message into
+ * @param maxlength the maximum length of the message
+ * @return the actual size of the encoded message or an error code
+ */
+LIBFREESPACE_API int freespace_encodeActivityClassificationNotification(const struct freespace_message* m, uint8_t* message, int maxlength);
 
 
 /** @ingroup messages
