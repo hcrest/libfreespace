@@ -800,7 +800,7 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
     // @TODO: Figure out why libusb on darwin doesn't seem to work with asynchronous messages
     int rc;
 
-    rc = private_send(id, message, length);
+    rc = freespace_private_send(id, message, length);
     if (callback != NULL) {
         callback(id, cookie, rc);
     }

@@ -14,6 +14,12 @@ Requirements for building and running libfreespace on OS X:
        - You will need Adminstrator access for this step.
     Restart computer
 
+  Steps:
+    a. Kernel extensions in /System/Library/Extensions need to be owned by root:wheel.
+       > sudo chown -R root:wheel osx/FreespaceLoopDriver.kext
+    b. > sudo cp -R osx/FreespaceLoopDriver.kext /System/Library/Extensions
+    c. Reboot computer.
+
 5. Install macports (http://www.macports.org/) and make sure it is up
    to date
 
