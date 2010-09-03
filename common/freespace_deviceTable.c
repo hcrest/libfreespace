@@ -74,6 +74,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc104, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP160"},
     { 0x1d5a, 0xc105, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP260"},
     { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
+    { 0x1d5a, 0xc201, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP276"},
 };
 
 const int freespace_deviceAPITableNum = sizeof(freespace_deviceAPITable) / sizeof(struct FreespaceDeviceAPI);
