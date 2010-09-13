@@ -161,6 +161,10 @@ static uint8_t getNibble(uint8_t a, uint16_t whichNibble) {
     return (uint8_t) (a >> (whichNibble*4)) & 0x0F;
 }
 
+static uint8_t byteFromNibbles(uint8_t lsn, uint8_t msn) {
+    return lsn | (msn << 4);
+}
+
 static uint8_t byteFromBits(uint8_t lsb, 
                             uint8_t b,
                             uint8_t c,
@@ -171,6 +175,8 @@ static uint8_t byteFromBits(uint8_t lsb,
                             uint8_t msb) {
     return (uint8_t) (((msb & 0x01) << 7) | ((g & 0x01) << 6) | ((f & 0x01) << 5) | ((e & 0x01) << 4) | ((d & 0x01) << 3) | ((c & 0x01) << 2) | ((b & 0x01) << 1) | (lsb & 0x01));
 }
+
+
 
 ''')
 
