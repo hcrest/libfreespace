@@ -1536,6 +1536,36 @@ LIBFREESPACE_API int freespace_printPerRequest(FILE* fp, const struct freespace_
 }
 
 
+LIBFREESPACE_API int freespace_printActivityClassificationNotificationStr(char* dest, int maxlen, const struct freespace_ActivityClassificationNotification* s) {
+    int n;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+#ifdef _WIN32
+    n = sprintf_s(dest, maxlen, "ActivityClassificationNotification(classification=%d)", s->classification);
+#else
+    n = sprintf(dest, "ActivityClassificationNotification(classification=%d)", s->classification);
+#endif
+    if (n < 0) {
+        return FREESPACE_ERROR_BUFFER_TOO_SMALL;
+    }
+    return n;
+}
+
+LIBFREESPACE_API int freespace_printActivityClassificationNotification(FILE* fp, const struct freespace_ActivityClassificationNotification* s) {
+    char str[1024];
+    int rc;
+    if (s == NULL) {
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
+    rc = freespace_printActivityClassificationNotificationStr(str, sizeof(str), s);
+    if (rc < 0) {
+        return rc;
+    }
+    return fprintf(fp, "%s\n", str);
+}
+
+
 LIBFREESPACE_API int freespace_printBodyUserFrameStr(char* dest, int maxlen, const struct freespace_BodyUserFrame* s) {
     int n;
     if (s == NULL) {

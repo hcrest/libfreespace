@@ -904,13 +904,14 @@ def main(argv=None):
                 print __doc__
                 return 0
         # process arguments
+        messages = []
+        g = {}
+        d = {}
         for arg in args:
-            g = {}
-            d = {}
             execfile(arg, g, d)
-            messages = d['messages']
-            mcg = MessageCodeGenerator()
-            mcg.writeMessages(messages)
+            messages.extend(d['messages'])
+        mcg = MessageCodeGenerator()
+        mcg.writeMessages(messages)
     except Usage, err:
         print >>sys.stderr, err.msg
         print >>sys.stderr, "for help use --help"
