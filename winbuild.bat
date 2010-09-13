@@ -1,5 +1,20 @@
 @echo off
 
+rem Determine the Visual Studio version based on VCINSTALLDIR variable
+for /F "usebackq delims=\ tokens=3  " %%i in (`set VCINSTALLDIR`) do set VS_VERSION_STR=%%i
+if "%VS_VERSION_STR%"=="Microsoft Visual Studio 8" (
+set VS_VERSION=vs2005
+) else if "%VS_VERSION_STR%"=="Microsoft Visual Studio 9" (
+set VS_VERSION=vs2008
+) else if "%VS_VERSION_STR%"=="Microsoft Visual Studio 10.0" (
+set VS_VERSION=vs2010
+) else (
+echo Unable to determine Visual Studio version based on VCINSTALLDIR variable.  
+echo Try running vcvars32.bat
+exit /b 1
+)
+echo Using Visual Studio Version: %VS_VERSION%
+
 SET MAJOR_NUM=0
 SET MINOR_NUM=5
 SET REVISION_NUM=0
@@ -107,10 +122,10 @@ SET WORKDIR=libfreespace
 SET ZIPNAME=libfreespace-%RELEASE_VERSION%-win32
 
 REM This must be run from the Visual Studio 2005 Command Prompt
-devenv win32\vs2005\libfreespace.sln /clean release
-devenv win32\vs2005\libfreespace.sln /clean debug
-devenv win32\vs2005\libfreespace.sln /build release
-devenv win32\vs2005\libfreespace.sln /build debug
+devenv win32\%VS_VERSION%\libfreespace.sln /clean release
+devenv win32\%VS_VERSION%\libfreespace.sln /clean debug
+devenv win32\%VS_VERSION%\libfreespace.sln /build release
+devenv win32\%VS_VERSION%\libfreespace.sln /build debug
 
 echo Cleaning up work directory if any
 rd /S /Q %WORKDIR%
@@ -125,10 +140,10 @@ rem debugging under different compilers.
 rem mkdir %WORKDIR%\lib\Debug
 mkdir %WORKDIR%\lib\Release
 echo Copying DLLs and LIBs
-rem copy win32\vs2005\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
-rem copy win32\vs2005\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
-copy win32\vs2005\Release\libfreespace.lib %WORKDIR%\lib\Release
-copy win32\vs2005\Release\libfreespace.dll %WORKDIR%\lib\Release
+rem copy win32\%VS_VERSION%\Debug\libfreespaced.lib %WORKDIR%\lib\Debug
+rem copy win32\%VS_VERSION%\Debug\libfreespaced.dll %WORKDIR%\lib\Debug
+copy win32\%VS_VERSION%\Release\libfreespace.lib %WORKDIR%\lib\Release
+copy win32\%VS_VERSION%\Release\libfreespace.dll %WORKDIR%\lib\Release
 echo Copying header files
 copy include\freespace\*.h %WORKDIR%\include\freespace
 

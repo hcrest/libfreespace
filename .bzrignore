@@ -41,12 +41,17 @@ win32/Release
 win32/libfreespace.vcproj.*.user
 *.ncb
 *.suo
+*.sdf
+*.opensdf
 .project
 .pydevproject
 .cproject
 *.zip
 win32/vs2005/Release
 win32/vs2008/Release
+win32/vs2010/Release
+win32/vs2010/ipch
 libfreespace.vcproj.*.user
+libfreespace.vcxproj.user
 .DS_Store
 
