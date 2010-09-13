@@ -28,9 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 ///////////////////////////////////////////////////////////////////////////////
+
 #ifndef _MSC_VER // [
 #error "Use this header only with Microsoft Visual C++ compilers!"
 #endif // _MSC_VER ]
+
+// Use the included <stdint.h> in Visual Studio 2010 and greater
+#if _MSC_VER >= 1600 
+#include <stdint.h>
+#define _MSC_STDINT_H_
+#endif
+
 
 #ifndef _MSC_STDINT_H_ // [
 #define _MSC_STDINT_H_

@@ -25,7 +25,18 @@
 #ifdef _WIN32
 #include "win32_stdint.h"
 #include <windows.h>
+
+#if _MSC_VER >= 1600
+// With VC2010 and the WinDDK 7600, setting the include path to be have the 
+// WinDDK inc/api directory causes build failure.  
+// The workaround is to only have the /inc directory in the path, and add 
+// the api prefix to hidsdi.h.  
+#include <api/hidsdi.h>
+#else
 #include <hidsdi.h>
+#endif
+
+
 #else
 #include <stdint.h>
 #define USAGE uint16_t
