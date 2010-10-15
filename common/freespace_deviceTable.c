@@ -57,6 +57,10 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc041, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MCV)"},
     { 0x1d5a, 0xc042, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKV)"},
     { 0x1d5a, 0xc043, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver v2 (MKCV)"},
+    { 0x1d5a, 0xc044, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver AltRF v2 (MV)"},
+    { 0x1d5a, 0xc045, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver AltRF v2 (MCV)"},
+    { 0x1d5a, 0xc046, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver AltRF v2 (MKV)"},
+    { 0x1d5a, 0xc047, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "USB RF Transceiver AltRF v2 (MKCV)"},
     { 0x1d5a, 0xc050, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MV)"},
     { 0x1d5a, 0xc051, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (V)"},
     { 0x1d5a, 0xc052, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MKCV)"},
@@ -73,6 +77,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc103, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U260"},
     { 0x1d5a, 0xc104, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP160"},
     { 0x1d5a, 0xc105, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for CP260"},
+    { 0x1d5a, 0xc106, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP261"},
     { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
     { 0x1d5a, 0xc201, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP276"},
 };
