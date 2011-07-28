@@ -82,6 +82,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc106, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP261"},
     { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
     { 0x1d5a, 0xc201, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP276"},
+    { 0x300,  0x30,   1, 1, 2, {{1, 0xff00}, {0, 0}}, "Transceiver"},
 };
 
 const int freespace_deviceAPITableNum = sizeof(freespace_deviceAPITable) / sizeof(struct FreespaceDeviceAPI);

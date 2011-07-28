@@ -289,6 +289,27 @@ BodyUserFrameMessage.Fields[2] = [
 messages.append(BodyUserFrameMessage)
 
 # ---------------------------------------------------------------------------------------
+# MotionEngine Output Message
+MotionEngineOutput = Message("MotionEngineOutput", decode=True)
+MotionEngineOutput.Documentation = "Conveys the MotionEngine Output."
+MotionEngineOutput.addedVersion = "2.7.0"
+MotionEngineOutput.deprecatedVersion = ""
+MotionEngineOutput.removedVersion = ""
+MotionEngineOutput.appliesTo = [10002658, 10002794]
+MotionEngineOutput.ID[2] = {
+    ConstantID:38
+}
+MotionEngineOutput.Fields[2] = [
+    {name:"formatSelect",   size:1, cType:'uint8_t', Documentation:"Identifies the format of the MotionEngine Output packet"},
+    {name:"formatFlags",    size:1, bits:[{name:'ff0', Documentation:"Format flags."},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'},{name:'ff5'},{name:'ff6'},{name:'ff7'}]},
+    {name:"sequenceNumber", size:4, cType:'uint32_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"meData",         size:32, cType:'uint8_t', Documentation:"MotionEngine Output data."}
+
+]
+
+messages.append(MotionEngineOutput)
+
+# ---------------------------------------------------------------------------------------
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
@@ -901,6 +922,34 @@ ActivityClassificationNotification.Fields[2] = [
 messages.append(ActivityClassificationNotification)
 
 # ---------------------------------------------------------------------------------------
+# Data Mode Control V2 Request Message
+DataModeControlV2Request = Message("DataModeControlV2Request", encode=True)
+DataModeControlV2Request.Documentation = "This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
+DataModeControlV2Request.addedVersion = "2.7.0"
+DataModeControlV2Request.deprecatedVersion = ""
+DataModeControlV2Request.removedVersion = ""
+DataModeControlV2Request.appliesTo = [10002658, 10002794]
+DataModeControlV2Request.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:20}
+}
+DataModeControlV2Request.Fields[2] =  [
+    {name:"modeAndStatus", size:1, cType:'uint8_t', Documentation:"Controls operating mode and status changes"},
+    {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
+    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
+    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0"},
+                                         {name:'ff1', Documentation:"Set to enable section 1"},
+                                         {name:'ff2', Documentation:"Set to enable section 2"},
+                                         {name:'ff3', Documentation:"Set to enable section 3"},
+                                         {name:'ff4', Documentation:"Set to enable section 4"},
+                                         {name:'ff5', Documentation:"Set to enable section 5"},
+                                         {name:'ff6', Documentation:"Set to enable section 6"},
+                                         {name:'ff7', Documentation:"Set to enable error range for previous sections"}]}
+]
+
+messages.append(DataModeControlV2Request)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
@@ -1320,4 +1369,32 @@ ButtonTestModeResponse.Fields[1] = [
 ButtonTestModeResponse.Fields[2] = ButtonTestModeResponse.Fields[1]
 
 messages.append(ButtonTestModeResponse)
+
+# ---------------------------------------------------------------------------------------
+# Data Mode Control V2 Response Message
+DataModeControlV2Response = Message("DataModeControlV2Response", decode=True)
+DataModeControlV2Response.Documentation = "This report returns the configuration of the Freespace motion reports. The unused bits are reserved for future features."
+DataModeControlV2Response.addedVersion = "2.7.0"
+DataModeControlV2Response.deprecatedVersion = ""
+DataModeControlV2Response.removedVersion = ""
+DataModeControlV2Response.appliesTo = [10002658, 10002794]
+DataModeControlV2Response.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:20}
+}
+DataModeControlV2Response.Fields[2] =  [
+    {name:"modeAndStatus", size:1, cType:'uint8_t', Documentation:"Controls operating mode and status changes"},
+    {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
+    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
+    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0"},
+                                         {name:'ff1', Documentation:"Set to enable section 1"},
+                                         {name:'ff2', Documentation:"Set to enable section 2"},
+                                         {name:'ff3', Documentation:"Set to enable section 3"},
+                                         {name:'ff4', Documentation:"Set to enable section 4"},
+                                         {name:'ff5', Documentation:"Set to enable section 5"},
+                                         {name:'ff6', Documentation:"Set to enable section 6"},
+                                         {name:'ff7', Documentation:"Set to enable error range for previous sections"}]}
+]
+
+messages.append(DataModeControlV2Response)
 
