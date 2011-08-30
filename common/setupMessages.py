@@ -37,8 +37,8 @@ Documentation = 'comment'
 class Message:
     def __init__(self, name="", encode=False, decode=False):
         self.name=name
-        self.encode = encode
-        self.decode = decode
+        self.encode = True
+        self.decode = True
         self.Fields = [[], [], []]  # keep a separate list for each version of the HID message protocol
         self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
