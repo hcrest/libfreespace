@@ -650,7 +650,7 @@ def writeEncodeBody(message, fields, outFile):
                     outFile.write(');\n')
                     byteCounter += 1
                 elif field.has_key('nibbles'):
-                    outFile.write('\tmessage[%d] = byteFromNibbles('%byteCounter)
+                    outFile.write('\t\t\tmessage[%d + offset] = byteFromNibbles('%byteCounter)
                     firstLoop = True
                     for nibble in field['nibbles']:
                         if not firstLoop:
