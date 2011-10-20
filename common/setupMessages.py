@@ -35,10 +35,10 @@ Documentation = 'comment'
 # ---------------------------------------------------------------------------------------
 
 class Message:
-    def __init__(self, name="", encode=False, decode=False):
+    def __init__(self, name="", encode=test, decode=test):
         self.name=name
-        self.encode = True
-        self.decode = True
+        self.encode = encode
+        self.decode = decode
         self.Fields = [[], [], []]  # keep a separate list for each version of the HID message protocol
         self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
@@ -79,42 +79,6 @@ messages = []
 # ---------------------------------------------------------------------------------------
 # -------------------------------- HID Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------------------
-# Coprocessor Pass-through Out Report
-CoprocessorOutReport = Message("CoprocessorOutReport", encode=True)
-CoprocessorOutReport.Documentation = "Reserved for passing message through from the Freespace coprocessor to the USB host."
-CoprocessorOutReport.addedVersion = "1.0.0"
-CoprocessorOutReport.deprecatedVersion = ""
-CoprocessorOutReport.removedVersion = ""
-CoprocessorOutReport.appliesTo = [10001602]
-CoprocessorOutReport.ID[1] = {
-    ConstantID:5
-}
-CoprocessorOutReport.Fields[1] = [
-    {name:"payloadLength", size:1, cType:'uint8_t'},
-    {name:"payload",       size:14, cType:'uint8_t'}
-]
-
-messages.append(CoprocessorOutReport)
-
-# ---------------------------------------------------------------------------------------
-# Coprocessor Pass-through In Report
-CoprocessorInReport = Message("CoprocessorInReport", decode=True)
-CoprocessorInReport.Documentation = "Used for passing messages through from the USB host to the Freespace coprocessor interface."
-CoprocessorInReport.addedVersion = "1.0.0"
-CoprocessorInReport.deprecatedVersion = ""
-CoprocessorInReport.removedVersion = ""
-CoprocessorInReport.appliesTo = [10001602]
-CoprocessorInReport.ID[1] = {
-    ConstantID:6
-}
-CoprocessorInReport.Fields[1] = [
-    {name:"payloadLength", size:1, cType:'uint8_t'},
-    {name:"payload",       size:14, cType:'uint8_t'}
-]
-
-messages.append(CoprocessorInReport)
 
 # ---------------------------------------------------------------------------------------
 # Battery Level Request Message

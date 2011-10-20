@@ -4,6 +4,7 @@ The tools required to fully build libfreespace on MS Windows are:
     MS Visual Studio 2005 or 2008
     bazaar  http://bazaar-vcs.org/WindowsDownloads
     Windows Driver Kit (WDK) 7.0.0
+	Python v2	http://www.python.org/download/
     TODO enable doxygen generation on MS Windows
 
 The WDK can be obtained from Microsoft by following the instructions at:

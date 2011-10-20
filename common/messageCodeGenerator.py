@@ -896,23 +896,35 @@ class Usage(Exception):
     def __init__(self, msg):
         self.msg = msg
 
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv
     try:
-        try:
-            opts, args = getopt.getopt(argv[1:], "h", ["help"])
+        try:			
+            opts, args = getopt.getopt(argv[1:], ["h", "t"], ["help", "test"])
         except getopt.error, msg:
              raise Usage(msg)
-        # process options
+        except AttributeError, msg:
+             raise Usage(msg)
+			 
+        # Use test mode to build BOTH encoders and decoders for ALL message types.
+		# By default encoders are built for outgoing msgs and decoders for incoming msgs
+        test = False
+		
+        # Process options
         for o, a in opts:
-            if o in ("-h", "--help"):
+            if o in ("--h", "--help"):
                 print __doc__
                 return 0
-        # process arguments
+            elif o in ("--t", "--test"):
+                test = True		
+				
+        # Process arguments
         messages = []
-        g = {}
+        g = {'test':test}
         d = {}
+        
         for arg in args:
             execfile(arg, g, d)
             messages.extend(d['messages'])
@@ -925,5 +937,11 @@ def main(argv=None):
         
         
 if __name__ == "__main__":
+    __doc__ = "Options\n"
+    __doc__ = __doc__ + "\t--h\t--help\tHelp menu\n"
+    __doc__ = __doc__ + "\t--t\t--test\tGenerate encoders and decoders for all messages\n"
+    __doc__ = __doc__ + "\n"
+    __doc__ = __doc__ + "Arguments\n"
+    __doc__ = __doc__ + "\t<file>\t*.py\tGenerate codecs & printers for messages in file"
     sys.exit(main())
 
