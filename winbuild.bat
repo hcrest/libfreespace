@@ -7,6 +7,23 @@ python messageCodeGenerator.py setupMessages.py
 echo %ERRORLEVEL%
 cd ..
 
+rem Check if the VCINSTALLDIR variable has been set.
+rem If it has not been set... try to find the right version of Visual Studio to use.
+if "%VCINSTALLDIR%"=="" (
+echo User has not run vcvars32.bat, run automatically if available
+if not "%VS80COMNTOOLS%"=="" (
+call "%VS80COMNTOOLS%\vsvars32.bat"
+) else if not "%VS90COMNTOOLS%"=="" (
+call "%VS90COMNTOOLS%\vsvars32.bat"
+) else if not "%VS100COMNTOOLS"=="" (
+call "%VS100COMNTOOLS%\vsvars32.bat"
+) else (
+echo Unable to find appropriate Visual Studio version based on VSxxxCOMNTOOLS variable.  
+echo Try running vcvars32.bat
+exit /b 1
+)
+)
+
 rem Determine the Visual Studio version based on VCINSTALLDIR variable
 for /F "usebackq delims=\ tokens=3  " %%i in (`set VCINSTALLDIR`) do set VS_VERSION_STR=%%i
 if "%VS_VERSION_STR%"=="Microsoft Visual Studio 8" (

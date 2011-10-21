@@ -7,6 +7,8 @@ The tools required to fully build libfreespace on MS Windows are:
 	Python v2	http://www.python.org/download/
     TODO enable doxygen generation on MS Windows
 
+The build can be run for Windows using winbuild.bat.
+	
 The WDK can be obtained from Microsoft by following the instructions at:
     http://www.microsoft.com/whdc/DevTools/WDK/WDKpkg.mspx
 
