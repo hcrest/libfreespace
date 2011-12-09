@@ -40,7 +40,7 @@ exit /b 1
 echo Using Visual Studio Version: %VS_VERSION%
 
 SET MAJOR_NUM=0
-SET MINOR_NUM=5
+SET MINOR_NUM=6
 SET REVISION_NUM=0
 SET IS_RC=no
 
