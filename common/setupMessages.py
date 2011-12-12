@@ -274,6 +274,36 @@ MotionEngineOutput.Fields[2] = [
 messages.append(MotionEngineOutput)
 
 # ---------------------------------------------------------------------------------------
+# DceOutV2 Message
+DceOutV2Message = Message("DceOutV2", decode=True)
+DceOutV2Message.Documentation = "9-axis raw motion sensor data."
+DceOutV2Message.addedVersion = ""
+DceOutV2Message.deprecatedVersion = ""
+DceOutV2Message.removedVersion = ""
+DceOutV2Message.appliesTo = []
+DceOutV2Message.ID[2] = {
+    ConstantID:39
+}
+DceOutV2Message.Fields[2] = [
+    {name:"sampleBase",   size:4, cType:'uint32_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"ax",           size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+    {name:"ay",           size:2, cType:'int16_t'},
+    {name:"az",           size:2, cType:'int16_t'},
+    {name:"rx",           size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+    {name:"ry",           size:2, cType:'int16_t'},
+    {name:"rz",           size:2, cType:'int16_t'},
+    {name:"mx",           size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
+    {name:"my",           size:2, cType:'int16_t'},
+    {name:"mz",           size:2, cType:'int16_t'},
+    {name:"temperature",  size:2, cType:'int16_t', Documentation:"Temperature."},
+    {name:"flags",        size:1, cType:'int8_t', Documentation:"Flags."},
+    {name:"buttons",      size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaWheel",   size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+]
+
+messages.append(DceOutV2Message)
+
+# ---------------------------------------------------------------------------------------
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
