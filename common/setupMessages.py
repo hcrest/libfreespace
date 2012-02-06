@@ -371,7 +371,8 @@ ProductIDRequest.Fields[1] = [
     {name:RESERVED, size:6}
 ]
 ProductIDRequest.Fields[2] = [
-    {name:Format, size:1}
+    {name:'Format', size:1},
+    {name:RESERVED, size:5}
 ]
 
 messages.append(ProductIDRequest)
