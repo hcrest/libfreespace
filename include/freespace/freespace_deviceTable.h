@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2010 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2010-2012 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,8 @@
 #include <stdint.h>
 #define USAGE uint16_t
 #endif
+
+#include "freespace/freespace.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,6 +94,18 @@ extern const struct FreespaceDeviceAPI freespace_deviceAPITable[];
  * because the externed definition of the array is not dimensioned.
  */
 extern const int freespace_deviceAPITableNum;
+
+/**
+ * @ingroup device
+ * Stores product IDs for all Freespace devices that support the new API.
+ */
+extern const struct FreespaceDeviceInfo freespace_newDeviceAPITable[];
+
+/**
+ * Defines the number of devices in the API table.  This can't be done as a sizeof the array
+ * because the externed definition of the array is not dimensioned.
+ */
+extern const int freespace_newDeviceAPITableNum;
 
 #ifdef __cplusplus
 }
