@@ -1,6 +1,6 @@
 # This file is part of libfreespace.
 #  
-# Copyright (c) 2009 Hillcrest Laboratories, Inc. 
+# Copyright (c) 2009-2012 Hillcrest Laboratories, Inc. 
 # 
 # libfreespace is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
