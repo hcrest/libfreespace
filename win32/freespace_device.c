@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2012 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -108,6 +108,30 @@ LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id, struct Freesp
 	info->hVer      = device->hVer_;
 
     return FREESPACE_SUCCESS;
+}
+
+LIBFREESPACE_API int freespace_isNewDevice(FreespaceDeviceId id) {
+    struct FreespaceDeviceInfo info;
+    const struct FreespaceDeviceInfo*   pDeviceInfo = NULL;
+    int rc;
+    int idx;
+
+    rc = freespace_getDeviceInfo(id, &info);
+    if (rc != FREESPACE_SUCCESS) {
+        return rc;
+    }
+
+    // Determine if the product ID represent a new device
+    for (idx = 0; idx < freespace_newDeviceAPITableNum; ++idx)
+    {
+        pDeviceInfo = &freespace_newDeviceAPITable[idx];
+        if ( (pDeviceInfo->vendor == info.vendor) &&
+             (pDeviceInfo->product == info.product) )
+        {
+            return FREESPACE_SUCCESS;
+        }
+    }
+    return FREESPACE_ERROR_NO_DEVICE;
 }
 
 struct FreespaceDeviceStruct* freespace_private_createDevice(const char* name, const int hVer) {
