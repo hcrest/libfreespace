@@ -15,8 +15,10 @@ desired platform before building libfreespace.
 If building on the target machine, the process is as simple as
 running:
 
+./autogen.sh
 ./configure
 make
+make install (this action may require root privileges)
 
 
 Cross Compiling Example:
