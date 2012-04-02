@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2010 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2010-2012 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -76,7 +76,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
 	{ 0x1d5a, 0xc0b1, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MCV)"},
 	{ 0x1d5a, 0xc0b2, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MKV)"},
 	{ 0x1d5a, 0xc0b3, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MKCV)"},
-	{ 0x1d5a, 0xc0c0, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "RF4CE RemoTI ZID dongle (MKCV)"},
+	{ 0x1d5a, 0xc0c0, 2, 1, 2, {{4, 0xff01}, {0, 0}}, "RF4CE RemoTI ZID dongle (MKCV)"},
     { 0x1d5a, 0xc100, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP160"},
     { 0x1d5a, 0xc101, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP260"},
     { 0x1d5a, 0xc102, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U160"},
@@ -107,4 +107,10 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
 };
 
 const int freespace_deviceAPITableNum = sizeof(freespace_deviceAPITable) / sizeof(struct FreespaceDeviceAPI);
+
+const struct FreespaceDeviceInfo freespace_newDeviceAPITable[] = {
+	{ "Smart USB RF Transceiver v2 (MKCV)", 0x1d5a, 0xc0b3, 2 },
+};
+
+const int freespace_newDeviceAPITableNum = sizeof(freespace_newDeviceAPITable) / sizeof(freespace_newDeviceAPITable[0]);
 
