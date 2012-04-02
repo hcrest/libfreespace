@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2012 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -235,6 +235,15 @@ LIBFREESPACE_API int freespace_getDeviceList(FreespaceDeviceId* list,
  */
 LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id,
                                              struct FreespaceDeviceInfo* info);
+
+/** @ingroup device
+ *
+ * Return determine whether the device supports new messages.
+ *
+ * @param id which device
+ * @return FREESPACE_SUCCESS for new devices or FREESPACE_ERROR_NO_DEVICE for old device.
+ */
+LIBFREESPACE_API int freespace_isNewDevice(FreespaceDeviceId id);
 
 /** @ingroup device
  *
