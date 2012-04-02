@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;&quot;$(ProjectDir)..\..\include&quot;"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.1\inc\api;C:\WinDDK\7600.16385.1\inc\crt;&quot;$(ProjectDir)..\..\include&quot;"
 				PreprocessorDefinitions="_DEBUG;LIBFREESPACE_EXPORTS;FREESPACE_LITTLE_ENDIAN"
 				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
@@ -68,7 +68,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="hid.lib setupapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.dll"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\wxp\i386"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\common\freespace_deviceTable.c"
+				>
+			</File>
+			<File
 				RelativePath="..\freespace_discovery.c"
 				>
 			</File>
@@ -226,11 +230,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\freespace\freespace_common.h"
+				>
+			</File>
+			<File
 				RelativePath="..\freespace_device.h"
 				>
 			</File>
 			<File
 				RelativePath="..\freespace_deviceMgr.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\freespace\freespace_deviceTable.h"
 				>
 			</File>
 			<File
@@ -247,6 +259,10 @@
 			</File>
 			<File
 				RelativePath="..\freespace_win32.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\freespace\win32_stdint.h"
 				>
 			</File>
 		</Filter>
