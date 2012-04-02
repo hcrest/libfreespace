@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2009-2012 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -75,9 +75,9 @@ typedef BOOL (*freespace_deviceFilter)(struct FreespaceDeviceStruct* device);
 
 /**
  * Get the list of devices with the mark set to the specified value.
- * @param The list to populate with the available devices.
- * @param The maximum size of the list.
- * @param The number of devices populated in the list.
+ * @param list The list to populate with the available devices.
+ * @param listSize The maximum size of the list.
+ * @param listSizeOut The number of devices populated in the list.
  * @param filter The filter to use to determine matching devices.
  * @return 0 on success, error code on failure.
  */
