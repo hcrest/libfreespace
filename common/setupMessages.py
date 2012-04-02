@@ -844,7 +844,7 @@ DataModeRequest.Fields[1] = [
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
                                  {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:RESERVED},
-                                 {name:'status',              Documentation:"Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
+                                 {name:'status',              Documentation:"Report current data mode: when set to causes a data mode repsones message to be generated but does not update data mode."}]}
 ]
 DataModeRequest.Fields[2] =  [
     {name:'flags', size:1, bits:[{name:'enableBodyMotion',    Documentation:"Enable Body Motion: when set to 1 enables Body Frame Motion reports."},
@@ -854,7 +854,7 @@ DataModeRequest.Fields[2] =  [
                                  {name:'disableFreespace',    Documentation:"Disable Freespace: when set to 1 disables the Freespace motion sensing system to conserve power. No pointer or motion reports are sent regardless of the value of the other bits."},
                                  {name:'SDA',                 Documentation:"Reserved for testing,"},
                                  {name:'aggregate',           Documentation:"Aggregate: when set, if both Body Frame and User frame are enabled, send them as a BodyUser message, which combines the two. "},
-                                 {name:'status',              Documentation:"Status: Report current data mode: when set to causes a doata mode repsones message to be generated but does not update data mode."}]}
+                                 {name:'status',              Documentation:"Status: Report current data mode: when set to causes a data mode repsones message to be generated but does not update data mode."}]}
 ]
 
 messages.append(DataModeRequest)
@@ -946,6 +946,34 @@ DataModeControlV2Request.Fields[2] =  [
 ]
 
 messages.append(DataModeControlV2Request)
+
+# ---------------------------------------------------------------------------------------
+# Reorientation Request
+ReorientationRequest = Message("ReorientationRequest", encode=True)
+ReorientationRequest.Documentation = "This packet is sent from the host to a handheld to reorient the device."
+ReorientationRequest.addedVersion = "2.9.0"
+ReorientationRequest.deprecatedVersion = ""
+ReorientationRequest.removedVersion = ""
+ReorientationRequest.appliesTo = [10002658, 10002794]
+ReorientationRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:21}
+}
+ReorientationRequest.Fields[2] =  [
+    {name:'flags',   				size:1, bits:[  {name:RESERVED},
+                                                    {name:RESERVED},
+                                                    {name:RESERVED},
+                                                    {name:RESERVED},
+                                                    {name:RESERVED},
+                                                    {name:RESERVED},
+                                                    {name:'select', Documentation:"Select W & X, or Y & Z"},
+                                                    {name:'commit', Documentation:"Commit reorientation quaternion"}]},
+    {name:"quaternionParameter1",	size:2, cType:'uint16_t', Documentation:"Quaternion Parameter 1 (W or X, based on Select"},
+    {name:"quaternionParameter2",	size:2, cType:'uint16_t', Documentation:"Quaternion Parameter 2 (Y or Z, based on Select"}
+
+]
+
+messages.append(ReorientationRequest)
 
 # ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
