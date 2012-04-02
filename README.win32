@@ -1,21 +1,46 @@
-README.win32
+General Information
+===================
+
+This document describes the build process for libfreespace.
 
 The tools required to fully build libfreespace on MS Windows are:
-    MS Visual Studio 2005 or 2008
-    bazaar  http://bazaar-vcs.org/WindowsDownloads
-    Windows Driver Kit (WDK) 7.0.0
-	Python v2	http://www.python.org/download/
-    TODO enable doxygen generation on MS Windows
+
+1)  MS Visual Studio 2005, 2008, or 2010
+
+2)  Windows Driver Kit (WDK) 7.1.0
+    The WDK can be obtained from Microsoft by following the instructions at:
+    http://msdn.microsoft.com/en-us/library/windows/hardware/gg487428.aspx
+
+    The project files are currently configured to look for the DDK in the 
+    default installation location of C:\WinDDK\7600.16385.1. If you install
+    the DDK elsewhere, you will need to update the include file and library
+    paths.
+
+3)  bazaar          http://bazaar-vcs.org/WindowsDownloads/
+
+4)  Python v2       http://www.python.org/download/
+    Update the environment variable PATH to include the folder that contain 
+    python.exe.
+
+6)  7-zip           http://www.7-zip.org/
+    Update the environment variable PATH to include the folder that contain 
+    7z.exe.
+
+7)  Doxygen         http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc
+    The configuration file doc\Doxyfile_win is compatible with doxygen 1.8.0.
+
+8)  Graphviz        http://www.graphviz.org/Download_windows.php
+
+
+Building
+========
 
 The build can be run for Windows using winbuild.bat.
-	
-The WDK can be obtained from Microsoft by following the instructions at:
-    http://www.microsoft.com/whdc/DevTools/WDK/WDKpkg.mspx
 
-The project files are currently configured to look for the DDK in the 
-default installation location of C:\WinDDK\7600.16385.0. If you install
-the DDK elsewhere, you will need to update the include file and library
-paths.
+To make the doxygen documentation:
+1) cd doc
+2) doxygen Doxyfile_win
+
 
 
 The build process on MS Windows relies upon a fixed directory structure between
@@ -41,8 +66,9 @@ directory, and then run the following checkout.sh script:
     bzr branch lp:libfreespace.net # if you want the C# bindings
     
 Several different MS Visual Studio solutions exist:
-    <base>/libfreespace/win32/vs200x/libfreespace.sln
+    <base>/libfreespace/win32/vs20xx/libfreespace.sln
         Build the libfreespace project only.
-    <base>/libfreespace-examples/win/vs200x/examples.sln
+    <base>/libfreespace-examples/win/vs20xx/examples.sln
         Build libfreespace and all of the examples.
+
 
