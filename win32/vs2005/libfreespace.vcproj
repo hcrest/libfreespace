@@ -65,7 +65,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="hid.lib setupapi.lib"
-				OutputFile="$(OutDir)\$(ProjectName).dll"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\wxp\i386"
 				GenerateDebugInformation="true"
