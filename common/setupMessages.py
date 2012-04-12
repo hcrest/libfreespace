@@ -39,7 +39,7 @@ class Message:
         self.name=name
         self.encode = encode
         self.decode = decode
-        self.Fields = [[], [], []]  # keep a separate list for each version of the HID message protocol
+        self.Fields = [{}, {}, {}]  # keep a separate list for each version of the HID message protocol
         self.ID = [{}, {}, {}]      # keep a separate dictionary for each version of theHID message protocol. The Fields and ID entries must correspond.
         self.Documentation = "Undocumented Message"
         self.enumName = "FREESPACE_MESSAGE_" + self.name.upper()

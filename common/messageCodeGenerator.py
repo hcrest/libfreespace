@@ -29,46 +29,47 @@ def compareMessages(a, b):
             return cmp(a.ID[0]['constID'], b.ID[0]['constID'])
         else:
             return -1
-    else:
-        if len(a.ID[1]) !=0:
-            if len(b.ID[0]) != 0:
-                return 1
-            elif len(b.ID[1]) != 0:
-                return cmp(a.ID[1]['constID'], b.ID[1]['constID'])
-            else:
-                return -1
+    elif len(a.ID[1]) !=0:
+        if len(b.ID[0]) != 0:
+            return 1
+        elif len(b.ID[1]) != 0:
+            return cmp(a.ID[1]['constID'], b.ID[1]['constID'])
         else:
-            if len(a.ID[2]) != 0:
-                if len(b.ID[0]) != 0:
-                    return 1
-                elif len(b.ID[1]) != 0:
-                    return 1
-                elif len(b.ID[2]) != 0:
-                    return cmp(a.ID[2]['constID'], b.ID[2]['constID'])
-                else:
-                    return -1
-            else:
-                if len(b.ID[2]) != 0:
-                    return 1
-                else:
-                    return 0
+            return -1
+    elif len(a.ID[2]) != 0:
+        if len(b.ID[0]) != 0:
+            return 1
+        elif len(b.ID[1]) != 0:
+            return 1
+        elif len(b.ID[2]) != 0:
+            return cmp(a.ID[2]['constID'], b.ID[2]['constID'])
+        else:
+            return -1
+    else:
+        if len(b.ID[2]) != 0:
+            return 1
+        else:
+            return 0
 
 class MessageCodeGenerator:
     def writeMessages(self, messages):
         messages.sort(compareMessages)
-        
-        codecsHFile = open("../include/freespace/freespace_codecs.h", "w")
-        self.writeHFileHeader(codecsHFile, 'freespace_codecs')
+
+        codecsFileName = 'freespace_codecs'
+        printersFileName = 'freespace_printers'
+
+        codecsHFile = open("../include/freespace/" + codecsFileName + ".h", "w")
+        self.writeHFileHeader(codecsHFile, codecsFileName)
         self.writeDoxygenModuleDef(codecsHFile)
         
-        printersHFile = open("../include/freespace/freespace_printers.h", "w")
-        self.writeHFileHeader(printersHFile, 'freespace_printers')
-        printersHFile.write('#include "freespace_codecs.h"\n')
+        printersHFile = open("../include/freespace/" + printersFileName + ".h", "w")
+        self.writeHFileHeader(printersHFile, printersFileName)
+        printersHFile.write('#include "' + codecsFileName + '.h"\n')
         printersHFile.write('#include <stdio.h>\n\n')
         self.writePrintMessageHeader(printersHFile)
         
-        codecsCFile = open("../common/freespace_codecs.c", "w")
-        self.writeCFileHeader(codecsCFile, 'freespace_codecs')
+        codecsCFile = open("../common/" + codecsFileName + ".c", "w")
+        self.writeCFileHeader(codecsCFile, codecsFileName)
         codecsCFile.write('#include <stdio.h>\n')
         codecsCFile.write('#include <math.h>\n')
         codecsCFile.write('\n#ifdef _WIN32\n')
@@ -85,8 +86,8 @@ class MessageCodeGenerator:
         codecsCFile.write('#endif\n\n')
         self.writeBitHelper(codecsCFile)
         
-        printersCFile = open("../common/freespace_printers.c", "w")
-        self.writeCFileHeader(printersCFile, 'freespace_printers')
+        printersCFile = open("../common/" + printersFileName + ".c", "w")
+        self.writeCFileHeader(printersCFile, printersFileName)
         self.writePrintMessageBody(messages, printersCFile)
         
         for message in messages:
@@ -98,14 +99,12 @@ class MessageCodeGenerator:
 
         for message in messages:
             writeCodecs(message, codecsHFile, codecsCFile)
-
-        for message in messages:
             writePrinter(message, printersHFile, printersCFile)
-            
+
         self.writeUnionDecodeEncodeBodies(codecsCFile, messages)
             
-        self.writeHFileTrailer(codecsHFile, 'freespace_codecs')
-        self.writeHFileTrailer(printersHFile, 'freespace_printers')
+        self.writeHFileTrailer(codecsHFile, codecsFileName)
+        self.writeHFileTrailer(printersHFile, printersFileName)
         codecsHFile.close()
         codecsCFile.close()
         printersHFile.close()
@@ -220,14 +219,14 @@ void freespace_printMessage(FILE* fp, struct freespace_message* s) {
             if (not message.decode):
                 continue
             outFile.write('''
-    case %(enumName)s:
-        freespace_print%(messageName)s(fp, &(s->%(structName)s));
-        break;'''%{'enumName':message.enumName, 
-                                                                             'messageName':message.name, 
-                                                                             'structName':message.structName})
+        case %(enumName)s:
+            freespace_print%(messageName)s(fp, &(s->%(structName)s));
+            break;'''%{'enumName':message.enumName, 
+                       'messageName':message.name, 
+                       'structName':message.structName})
         outFile.write('''
-    default:
-        return;
+        default:
+            return;
     }
 }''')
     
@@ -312,7 +311,7 @@ LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length
 LIBFREESPACE_API int freespace_encode_message(struct freespace_message* message, uint8_t* msgBuf, int maxLength);
 
 ''')
-        
+
     def writeUnionDecodeEncodeBodies(self, file, messages):
         file.write('''
 LIBFREESPACE_API int freespace_decode_message(const uint8_t* message, int length, struct freespace_message* s, uint8_t ver) {
@@ -901,25 +900,25 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     try:
-        try:			
+        try:
             opts, args = getopt.getopt(argv[1:], ["h", "t"], ["help", "test"])
         except getopt.error, msg:
              raise Usage(msg)
         except AttributeError, msg:
              raise Usage(msg)
-			 
+
         # Use test mode to build BOTH encoders and decoders for ALL message types.
-		# By default encoders are built for outgoing msgs and decoders for incoming msgs
+        # By default encoders are built for outgoing msgs and decoders for incoming msgs
         test = False
-		
+
         # Process options
         for o, a in opts:
             if o in ("--h", "--help"):
                 print __doc__
                 return 0
             elif o in ("--t", "--test"):
-                test = True		
-				
+                test = True
+
         # Process arguments
         messages = []
         g = {'test':test}
