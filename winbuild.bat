@@ -12,12 +12,9 @@ if %ERRORLEVEL% neq 0 (
 )
 cd ..
 
-REM Check if the VCINSTALLDIR variable has been set.
-REM If it has not been set... try to find the right version of Visual Studio to use.
+REM Configure the right version of Visual Studio to use.
 set VS_BATCH_FILE=vsvars32.bat
 
-if "%VCINSTALLDIR%"=="" (
-echo User has not run %VS_BATCH_FILE%, run automatically if available
 if not "%VS100COMNTOOLS%"=="" (
 call "%VS100COMNTOOLS%\%VS_BATCH_FILE%"
 ) else if not "%VS90COMNTOOLS%"=="" (
@@ -28,7 +25,6 @@ call "%VS80COMNTOOLS%\%VS_BATCH_FILE%"
 echo Unable to find appropriate Visual Studio version based on VSxxxCOMNTOOLS variable.  
 echo Try running %VS_BATCH_FILE%
 exit /b 1
-)
 )
 
 REM Determine the Visual Studio version based on VCINSTALLDIR variable
