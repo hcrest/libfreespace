@@ -105,8 +105,11 @@ enum freespace_error {
 	/** Invalid HID protocol version */
 	FREESPACE_ERROR_INVALID_HID_PROTOCOL_VERSION = -27,
 
+    /** An unimplemented feature */
+    FREESPACE_ERROR_UINIMPLEMENTED = -97,
+
     /** Any uncategorized or unplanned error */
-    FREESPACE_ERROR_UNEXPECTED = -98
+    FREESPACE_ERROR_UNEXPECTED = -98,
 };
 
 /**
