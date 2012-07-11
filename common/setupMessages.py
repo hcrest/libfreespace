@@ -267,7 +267,7 @@ MotionEngineOutput.Fields[2] = [
     {name:"formatSelect",   size:1, cType:'uint8_t', Documentation:"Identifies the format of the MotionEngine Output packet"},
     {name:"formatFlags",    size:1, bits:[{name:'ff0', Documentation:"Format flags."},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'},{name:'ff5'},{name:'ff6'},{name:'ff7'}]},
     {name:"sequenceNumber", size:4, cType:'uint32_t', Documentation:"Report sequence number. Increments monotonically."},
-    {name:"meData",         size:32, cType:'uint8_t', Documentation:"MotionEngine Output data."}
+    {name:"meData",         size:44, cType:'uint8_t', Documentation:"MotionEngine Output data."}
 
 ]
 
