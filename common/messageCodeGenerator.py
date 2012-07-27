@@ -213,23 +213,35 @@ static void printUnknown(const char* name, const uint8_t* buffer, int length) {
     }
     printf(")\\n");
 }
-
-void freespace_printMessage(FILE* fp, struct freespace_message* s) {
+int freespace_printMessageStr(char* dest, int maxlen, const struct freespace_message* s) {
     switch(s->messageType) {''')
         for message in messages:
-            if (not message.decode):
-                continue
+            #if (not message.decode):
+            #    continue
             outFile.write('''
     case %(enumName)s:
-        freespace_print%(messageName)s(fp, &(s->%(structName)s));
+        return freespace_print%(messageName)sStr(dest, maxlen, &(s->%(structName)s));
         break;'''%{'enumName':message.enumName, 
                                                                              'messageName':message.name, 
                                                                              'structName':message.structName})
         outFile.write('''
     default:
+        return -1;
+    }
+}
+
+void freespace_printMessage(FILE* fp, const struct freespace_message * s) {
+    char buf[1024];
+    int rc = freespace_printMessageStr(buf, sizeof(buf), s);
+    
+    if (rc < 0) {
+        fprintf(fp, "invalid messages\\n");
         return;
     }
-}''')
+    fprintf(fp, "%s\\n", buf);
+}
+
+''')
     
     def writePrintMessageHeader(self, outFile):
         outFile.write('''
@@ -240,7 +252,16 @@ void freespace_printMessage(FILE* fp, struct freespace_message* s) {
  * @param s the HID message
  */
 
-LIBFREESPACE_API void freespace_printMessage(FILE* fp, struct freespace_message* s);
+LIBFREESPACE_API void freespace_printMessage(FILE* fp, const struct freespace_message * s);
+
+/**
+ * Pretty print message struct to string dest, with maximum length maxlen.
+ * @param dest the destination string
+ * @param maxlen the length of the passed in string
+ * @param s the struct to print
+ * @return the number of characters actually printed, or an error if it tries to print more than maxlen
+ */
+LIBFREESPACE_API int freespace_printMessageStr(char* dest, int maxlen, const struct freespace_message* s);
 
 ''')
     

@@ -40,7 +40,7 @@
 /**
  * TODO
  *    - hotplug is pretty weak. there is a case where "CONNECTED" devices will remain
- *      even if the hidraw device dissapears.
+ *      even if the hidraw device disappears.
  *    - make /dev/hidraw<num> to device id... it should make things a lot more consistent
  *      and eliminate the need to scan the device arrays to cross reference hidraw paths
  *      with device instances
@@ -48,17 +48,26 @@
  * 	  - add sync support?
  */
 
+#define _FREESPACE_WARN
 #define _FREESPACE_DEBUG
 #define _FREESPACE_TRACE
 
+#define LOGF(fmt, lvl, ...) printf("[libfreespace (freespace_hidraw.c:%d): " #lvl " " fmt "]\n", __LINE__, __VA_ARGS__);
+
 #ifdef _FREESPACE_DEBUG
-#define DEBUG(fmt, ...) printf("libfreespace: debug freespace_hidraw.c:%d " fmt "\n", __LINE__, __VA_ARGS__);
+#define WARN(fmt, ...) LOGF(fmt, WARN, __VA_ARGS__)
+#else
+#define WARN(...)
+#endif
+
+#ifdef _FREESPACE_DEBUG
+#define DEBUG(fmt, ...) LOGF(fmt, DEBUG, __VA_ARGS__)
 #else
 #define DEBUG(...)
 #endif
 
 #ifdef _FREESPACE_TRACE
-#define TRACE(fmt, ...) printf("libfreespace: trace freespace_hidraw.c:%d " fmt "\n", __LINE__, __VA_ARGS__);
+#define TRACE(fmt, ...) LOGF(fmt, TRACE, __VA_ARGS__)
 #else
 #define TRACE(...)
 #endif
@@ -84,9 +93,12 @@
  */
 
 enum FreespaceDeviceState {
+	FREESPACE_NONE,
     FREESPACE_CONNECTED,
     FREESPACE_OPENED,
-    FREESPACE_DISCONNECTED
+    FREESPACE_DISCONNECTED,
+    FREESPACE_DISCONNECTED_NOTIFY_PENDING,
+    FREESPACE_DISCONNECTED_NOTIFY_PENDING_AND_CLOSED
 };
 
 struct FreespaceDevice {
@@ -112,11 +124,19 @@ struct FreespaceDevice {
 		return FREESPACE_ERROR_NOT_FOUND; \
 	}
 
-#define GET_OPENED_DEVICE(id, device) \
+#define GET_DEVICE_IF_OPEN(id, device) \
 	GET_DEVICE(id, device) \
-	if (device->state_ != FREESPACE_OPENED) { \
-		TRACE("Attempt %s while not open", __FUNCTION__); \
-		return FREESPACE_ERROR_NOT_FOUND; \
+	switch (device->state_) { \
+		case FREESPACE_CONNECTED: \
+			return FREESPACE_ERROR_NO_DEVICE; /* no error code for "not open" ? */ \
+		case FREESPACE_OPENED: \
+			break; \
+		case FREESPACE_DISCONNECTED: \
+		case FREESPACE_DISCONNECTED_NOTIFY_PENDING: \
+		case FREESPACE_DISCONNECTED_NOTIFY_PENDING_AND_CLOSED: \
+			return FREESPACE_ERROR_NO_DEVICE; \
+		default:\
+			return FREESPACE_ERROR_UNEXPECTED;\
 	}
 
 static int numDevices = 0;
@@ -130,7 +150,7 @@ static void* hotplugCookie;
 
 static int _scanDevices();
 static int _pollDevice(struct FreespaceDevice * device);
-static int _disconnect(struct FreespaceDevice * device);
+static int _disconnect(struct FreespaceDevice * device, int inPerform);
 static void _deallocateDevice(struct FreespaceDevice* device);
 
 const char* freespace_version() {
@@ -262,9 +282,17 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 
 	if (device->state_ == FREESPACE_DISCONNECTED) {
 		// device is disconnected...
-		// we've been waiting for closeDevice to deallocate it.
+		// we've been waiting for this close() to deallocate it.
 		_deallocateDevice(device);
 		return;
+	}
+
+	if (device->state_ == FREESPACE_DISCONNECTED_NOTIFY_PENDING) {
+		// device is disconnected...
+		// we've been waiting for this close() to deallocate it
+		// but, since haven't sent a removed() message to the user yet.
+		// we'll hold off on the deallocate
+		device->state_ = FREESPACE_DISCONNECTED_NOTIFY_PENDING_AND_CLOSED;
 	}
 }
 
@@ -275,7 +303,7 @@ int freespace_private_send(FreespaceDeviceId id, const uint8_t* message, int len
 int freespace_sendMessage(FreespaceDeviceId id, struct freespace_message* message) {
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
-    GET_OPENED_DEVICE(id, device);
+    GET_DEVICE_IF_OPEN(id, device);
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (message->dest == 0) {
@@ -298,7 +326,7 @@ int freespace_private_read(FreespaceDeviceId id,
                            unsigned int timeoutMs,
                            int* actualLength) {
     int rc;
-    GET_OPENED_DEVICE(id, device);
+    GET_DEVICE_IF_OPEN(id, device);
 
 	// TODO
     return FREESPACE_ERROR_UINIMPLEMENTED;
@@ -307,7 +335,7 @@ int freespace_private_read(FreespaceDeviceId id,
 int freespace_readMessage(FreespaceDeviceId id,
                           struct freespace_message* message,
                           unsigned int timeoutMs) {
-	GET_OPENED_DEVICE(id, device);
+	GET_DEVICE_IF_OPEN(id, device);
     return FREESPACE_ERROR_UINIMPLEMENTED;
 
 }
@@ -325,13 +353,17 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
                                 freespace_sendCallback callback,
                                 void* cookie) {
     ssize_t rc;
-    GET_OPENED_DEVICE(id, device);
+    GET_DEVICE_IF_OPEN(id, device);
 
-    TRACE(" write >> ", "" );
+    TRACE(" Write >> ", "" );
     rc = write(device->fd_, message, length);
-    TRACE(" write << ", "" );
+    TRACE(" Write << ", "" );
 
     if (rc < 0) {
+    	if (errno == ENOENT || errno == ENODEV) { // disconnected..
+    		_disconnect(device, 0);
+    		return FREESPACE_ERROR_NO_DEVICE;
+    	}
     	DEBUG("Failed writing to %s: %s", device->hidrawPath_, strerror(errno));
     	return FREESPACE_ERROR_IO;
     }
@@ -346,8 +378,7 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
     	return FREESPACE_ERROR_IO;
     }
 
-    TRACE("success, wrote %d bytes to %s", length, device->hidrawPath_);
-
+    TRACE("Wrote %d bytes to %s", length, device->hidrawPath_);
     return FREESPACE_SUCCESS;
 }
 
@@ -359,7 +390,7 @@ int freespace_sendMessageAsync(FreespaceDeviceId id,
 
     int rc;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
-	GET_OPENED_DEVICE(id, device);
+	GET_DEVICE_IF_OPEN(id, device);
 
     // Address is reserved for now and must be set to 0 by the caller.
     if (message->dest == 0) {
@@ -387,6 +418,8 @@ int freespace_perform() {
 
 	_scanDevices();
 
+	TRACE("perform.... ", "");
+
 	i = 0;
 	n = 0;
 	for (; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
@@ -396,8 +429,42 @@ int freespace_perform() {
 		}
 		n++;
 
-		if (device->state_ == FREESPACE_OPENED) {
-			_pollDevice(device);
+		switch (device->state_) {
+			case FREESPACE_CONNECTED:
+				// no-op
+				break;
+
+			case FREESPACE_OPENED:
+				_pollDevice(device);
+				break;
+
+			case FREESPACE_DISCONNECTED:
+				// no-op
+				break;
+
+			case FREESPACE_DISCONNECTED_NOTIFY_PENDING:
+				// Send the notification and transition to the disconnected case
+				// We can't deallocate because the device is still open
+				DEBUG("Sending delayed notification of removal", "");
+				device->state_ = FREESPACE_DISCONNECTED;
+				if (hotplugCallback) {
+					hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
+				}
+				break;
+
+			case FREESPACE_DISCONNECTED_NOTIFY_PENDING_AND_CLOSED: {
+				// this device, is closed, but we haven't had a chance to notify of its removal.
+				// we can deallacote it and send notification of it's removal
+				DEBUG("Sending delayed notification of closed device's removal", "");
+				FreespaceDeviceId id = device->id_;
+				_deallocateDevice(device);
+				device = NULL;
+				if (hotplugCallback) {
+					hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
+				}
+				break;
+
+			}
 		}
 	}
 
@@ -471,12 +538,20 @@ static int _pollDevice(struct FreespaceDevice * device) {
 				// no more data
 				break;
 			}
-			DEBUG("Failed reading %s: %s", device->hidrawPath_, strerror(errno));
+
+			if (errno == ENOENT || errno == ENODEV) { // disconnected..
+				DEBUG("Device %d disconnected while polling.", device->id_);
+				_disconnect(device, 1);
+				device = NULL;
+				break;
+			}
+
+			WARN("Failed reading %s: %s", device->hidrawPath_, strerror(errno));
 			return FREESPACE_ERROR_IO;
 		}
 
 		if (rc == 0) { // EOF
-			_disconnect(device);
+			_disconnect(device, 1);
 			device = NULL;
 			break;
 		}
@@ -500,8 +575,8 @@ static int _pollDevice(struct FreespaceDevice * device) {
 }
 
 
-// check is hidraw path already belongs to an existing device
-int _isNewDevice(const char * path, int * isNew) {
+// check if hidraw path already belongs to an existing device
+static int _isNewDevice(const char * path, int * isNew) {
 
 	int i = 0;
 	int n = 0;
@@ -511,6 +586,11 @@ int _isNewDevice(const char * path, int * isNew) {
 		struct FreespaceDevice * device = devices[i];
 
 		if (device == 0) {
+			continue;
+		}
+
+		if (device->state_ != FREESPACE_CONNECTED && device->state_ != FREESPACE_OPENED) {
+			// ignore devices that are disconnected, their hidraw paths could be in use by a "new" device.
 			continue;
 		}
 
@@ -526,7 +606,7 @@ int _isNewDevice(const char * path, int * isNew) {
 }
 
 // check if device at hidraw path is a Freespace device.
-int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const ** API) {
+static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const ** API) {
 
 	int i;
 	int rc;
@@ -697,6 +777,16 @@ static void _deallocateDevice(struct FreespaceDevice* device) {
                 nextFreeIndex = i;
             }
 
+#if 1 // this should not be necessary.
+        	if (device->fd_ > 0) {
+        		DEBUG("Deallocate device (%s) -- fd still open!", device->hidrawPath_)
+    			if (userRemovedCallback) {
+    				userRemovedCallback(device->fd_);
+    			}
+    			close(device->fd_);
+    			device->fd_ = -1;
+    		}
+#endif
             free(device);
             devices[i] = NULL;
             numDevices--;
@@ -705,19 +795,33 @@ static void _deallocateDevice(struct FreespaceDevice* device) {
     }
 }
 
-static int _disconnect(struct FreespaceDevice * device) {
-	TRACE("Freespace device at %s disconnected", device->hidrawPath_);
+static int _disconnect(struct FreespaceDevice * device, int canNotify) {
+	DEBUG("Freespace device (%d) at %s disconnected", device->id_, device->hidrawPath_);
 
-    if (device->state_ == FREESPACE_DISCONNECTED) {
-    	TRACE("got _disconnect() for %s while already disconnected", device->hidrawPath_);
+    if (device->state_ == FREESPACE_DISCONNECTED || device->state_ == FREESPACE_DISCONNECTED_NOTIFY_PENDING) {
+    	DEBUG("got _disconnect() for %s while already disconnected", device->hidrawPath_);
     	return FREESPACE_SUCCESS;
     }
 
+    // device is currently in use, we can't delete it outright
     if (device->state_ == FREESPACE_OPENED) {
-    	device->state_ = FREESPACE_DISCONNECTED;
-		if (hotplugCallback) {
-			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
+    	if (device->fd_ > 0) {
+			if (userRemovedCallback) {
+				userRemovedCallback(device->fd_);
+			}
+			close(device->fd_);
+			device->fd_ = -1;
 		}
+
+    	if (canNotify) {
+			device->state_ = FREESPACE_DISCONNECTED;
+			if (hotplugCallback) {
+				hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
+			}
+    	} else {
+    		DEBUG("Delaying notification  of hotplug/removal until next perform", "");
+    		device->state_ = FREESPACE_DISCONNECTED_NOTIFY_PENDING;
+    	}
 
 		// we have to wait for closeDevice() to deallocate this device.
 		return FREESPACE_SUCCESS;
@@ -725,11 +829,18 @@ static int _disconnect(struct FreespaceDevice * device) {
 
     if (device->state_ == FREESPACE_CONNECTED) {
     	int id = device->id_;
+    	if (device->fd_ > 0) {
+			if (userRemovedCallback) {
+				userRemovedCallback(device->fd_);
+			}
+			close(device->fd_);
+			device->fd_ = -1;
+		}
     	_deallocateDevice(device);
     	device = NULL;
 
 		if (hotplugCallback) {
-			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
+			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
 		}
 
     	return FREESPACE_SUCCESS;
