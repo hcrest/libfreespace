@@ -304,6 +304,57 @@ DceOutV2Message.Fields[2] = [
 messages.append(DceOutV2Message)
 
 # ---------------------------------------------------------------------------------------
+# DceOutV3 Message
+DceOutV3Message = Message("DceOutV3", decode=True)
+DceOutV3Message.Documentation = "Compact 6-axis raw motion sensor data."
+DceOutV3Message.addedVersion = ""
+DceOutV3Message.deprecatedVersion = ""
+DceOutV3Message.removedVersion = ""
+DceOutV3Message.appliesTo = []
+DceOutV3Message.ID[2] = {
+    ConstantID:40
+}
+DceOutV3Message.Fields[2] = [
+    {name:"sequenceNumber", size:1, cType:'uint8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"flgBtn",         size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+    {name:"ay",             size:2, cType:'int16_t'},
+    {name:"az",             size:2, cType:'int16_t'},
+    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+    {name:"ry",             size:2, cType:'int16_t'},
+    {name:"rz",             size:2, cType:'int16_t'},
+    {name:"temperature",    size:2, cType:'int16_t', Documentation:"Temperature."},
+]
+
+messages.append(DceOutV3Message)
+
+# ---------------------------------------------------------------------------------------
+# DceOutV4 Message
+DceOutV4Message = Message("DceOutV4", decode=True)
+DceOutV4Message.Documentation = "Compact 9-axis raw motion sensor data."
+DceOutV4Message.addedVersion = ""
+DceOutV4Message.deprecatedVersion = ""
+DceOutV4Message.removedVersion = ""
+DceOutV4Message.appliesTo = []
+DceOutV4Message.ID[2] = {
+    ConstantID:41
+}
+DceOutV4Message.Fields[2] = [
+    {name:"tempSeq",        size:1, cType:'uint8_t', Documentation:"Temperature and sequence number."},
+    {name:"flgBtn",         size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+    {name:"ay",             size:2, cType:'int16_t'},
+    {name:"az",             size:2, cType:'int16_t'},
+    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+    {name:"ry",             size:2, cType:'int16_t'},
+    {name:"rz",             size:2, cType:'int16_t'},
+    {name:"data0",          size:1, cType:'int8_t', Documentation:"TBD."},
+    {name:"data1",          size:1, cType:'int8_t', Documentation:"TBD."},
+]
+
+messages.append(DceOutV4Message)
+
+# ---------------------------------------------------------------------------------------
 # Data Motion Control Message
 DataMotion = Message("DataMotionControl", encode=True)
 DataMotion.Documentation = "DEPRECATED: This report controls the behavior of the Freespace motion reports. The unused bits are reserved for future features."
