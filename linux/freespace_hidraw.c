@@ -43,9 +43,9 @@
  * 	  - add sync support?
  */
 
-#define _FREESPACE_WARN
-#define _FREESPACE_DEBUG
-#define _FREESPACE_TRACE
+//#define _FREESPACE_WARN
+//#define _FREESPACE_DEBUG
+//#define _FREESPACE_TRACE
 
 #define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (freespace_hidraw.c:%d): " #lvl " " fmt "\n", __LINE__, __VA_ARGS__);
 
