@@ -20,7 +20,7 @@
 
 #include "../include/freespace/freespace.h"
 #include "../include/freespace/freespace_deviceTable.h"
-#include "../config.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -142,6 +142,8 @@ static freespace_pollfdRemovedCallback userRemovedCallback = NULL;
 static freespace_hotplugCallback hotplugCallback = NULL;
 static void* hotplugCookie;
 
+/* local functions */
+static int _init_inotify();
 static int _scanDevices();
 static int _pollDevice(struct FreespaceDevice * device);
 static int _disconnect(struct FreespaceDevice * device);
@@ -163,16 +165,12 @@ static struct FreespaceDevice* findDeviceById(FreespaceDeviceId id) {
 }
 
 int freespace_init() {
-
 	int rc = 0;
-
 	memset(&devices, 0, sizeof(devices));
-
-	rc = freespace_hotplug_init();
-	if (rc < 0) {
-		return rc;
+	rc = _init_inotify();
+	if (rc != 0) {
+		return FREESPACE_ERROR_IO;
 	}
-
     return FREESPACE_SUCCESS;
 }
 
@@ -263,6 +261,10 @@ int freespace_openDevice(FreespaceDeviceId id) {
     	WARN("Failed opening %s: %s", device->hidrawPath_, strerror(errno));
     	return FREESPACE_ERROR_IO;
     }
+
+    // flush the device
+    uint8_t buf[1024 * 16];
+    while (read(device->fd_, buf, sizeof(buf)) > 0);
 
     if (userAddedCallback) {
     	userAddedCallback(device->fd_, POLLIN);
@@ -450,6 +452,9 @@ int freespace_perform() {
 
 			case FREESPACE_DISCONNECTED:
 				// no-op
+				break;
+
+			case FREESPACE_NONE:
 				break;
 		}
 	}
@@ -829,19 +834,12 @@ static struct FreespaceDevice * _findDeviceByHidrawNum(int num) {
 }
 
 static int _scanDevices() {
-	int needToRescan = 0;
+	static int needToRescan = 1;
 	int rc;
-	if (inotify_fd_ == -1) {
-		rc = _init_inotify();
-		if (rc != 0) {
-			return rc;
-		}
-
-		needToRescan = 1;
-	}
 
 	if (needToRescan) {
 		_scanAllDevices();
+		needToRescan = 0;
 	}
 
 	// process inotify events
@@ -872,7 +870,7 @@ static int _scanDevices() {
 		while (offset < length) {
 
 			struct inotify_event * event = (struct inotify_event *) (buf + offset);
-			size_t remainder = length - offset;
+			ssize_t remainder = length - offset;
 			ssize_t expectedSize = sizeof(struct inotify_event);
 			int num;
 
