@@ -20,7 +20,7 @@
 
 #include "../include/freespace/freespace.h"
 #include "../include/freespace/freespace_deviceTable.h"
-#include "config.h"
+#include "../config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,7 +43,7 @@
  * 	  - add sync support?
  */
 
-//#define _FREESPACE_WARN
+#define _FREESPACE_WARN
 //#define _FREESPACE_DEBUG
 //#define _FREESPACE_TRACE
 
@@ -107,7 +107,6 @@ struct FreespaceDevice {
     void* receiveMessageCookie_;
 };
 
-
 #define DEV_DIR "/dev/"
 #define HIDRAW_PREFIX  "hidraw"
 
@@ -148,6 +147,44 @@ static int _scanDevices();
 static int _pollDevice(struct FreespaceDevice * device);
 static int _disconnect(struct FreespaceDevice * device);
 static void _deallocateDevice(struct FreespaceDevice* device);
+static int _write(int fd, const uint8_t* message, int length);
+
+#ifdef LIBFRESPACE_THREADED_WRITES
+#include <pthread.h>
+
+pthread_t writeThread_;
+pthread_mutex_t writeMutex_ = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t  writeCond_ = PTHREAD_COND_INITIALIZER;
+
+struct WriteJob {
+	struct FreespaceDevice * dev;
+	uint8_t message[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+	int length;
+	struct WriteJob * next;
+};
+
+struct WriteJob * writeJobsHead_ = 0;
+struct WriteJob * writeJobsTail_ = 0;
+struct WriteJob * freeJobsHead_ = 0;
+static int writeThreadExit_  = 0;
+static int numWriteJobsAllocated_ = 0;
+static int numWriteJobsFree_ = 0;
+static const int MaxWriteJobs = 20;
+static const int MaxFreeWriteJobs = 5;
+
+/* Allocate a WriteJob struct. Call with lock held */
+static struct WriteJob * _allocateWriteJob();
+/* Deallocate a WriteJob struct. Call with lock held */
+static int _deallocateWriteJob(struct WriteJob *);
+/* Pop the next WriteJob from the write queue. Call with lock held */
+static struct WriteJob * _popWriteJob();
+/* Push a write job to the write_queue. Call with lock held */
+static int _pushWriteJob(struct WriteJob *);
+/* Flush all write jobs associated with *devCall with lock held */
+static void _flushWriteJobs(struct FreespaceDevice * dev);
+/* pthread function for write queue */
+static void * _writeThread_fn(void * ptr);
+#endif
 
 const char* freespace_version() {
     return VERSION;
@@ -171,6 +208,17 @@ int freespace_init() {
 	if (rc != 0) {
 		return FREESPACE_ERROR_IO;
 	}
+
+#ifdef LIBFRESPACE_THREADED_WRITES
+	rc = pthread_create( &writeThread_, NULL, &_writeThread_fn, NULL);
+//	pthread_setname_np(writeThread_, "libfreespace-write");
+
+	if (rc < 0) {
+		WARN("pthread_create failed: %s", strerror(errno));
+		return FREESPACE_ERROR_COULD_NOT_CREATE_THREAD;
+	}
+#endif
+
     return FREESPACE_SUCCESS;
 }
 
@@ -282,13 +330,18 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 	}
 
 	if (device->state_ == FREESPACE_CONNECTED) {
-		DEBUG("close closed device?", "");
+		DEBUG("Close closed device?", "");
 		// not open
 		return;
 	}
 
 	if (device->state_ == FREESPACE_OPENED) {
-		DEBUG("close opened device", "");
+		DEBUG("Close opened device", "");
+#ifdef LIBFRESPACE_THREADED_WRITES
+		pthread_mutex_lock(&writeMutex_ );
+		_flushWriteJobs(device);
+		pthread_mutex_unlock(&writeMutex_);
+#endif
 		// return the device to the "connected" state
 		if (device->fd_ > 0) {
 			if (userRemovedCallback) {
@@ -301,7 +354,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 	}
 
 	if (device->state_ == FREESPACE_DISCONNECTED) {
-		DEBUG("close disconnected", "");
+		DEBUG("Close disconnected", "");
 		// device is disconnected...
 		// we've been waiting for this close() to deallocate it.
 		_deallocateDevice(device);
@@ -360,6 +413,35 @@ int freespace_flush(FreespaceDeviceId id) {
 
 }
 
+int _write(int fd, const uint8_t* message, int length) {
+	int rc;
+    TRACE(" Write >> ", "" );
+    rc = write(fd, message, length);
+    TRACE(" Write << ", "" );
+
+    if (rc < 0) {
+    	if (errno == ENOENT || errno == ENODEV) {
+    		// disconnected.... hotplug will catch this later
+    		return FREESPACE_ERROR_NO_DEVICE;
+    	}
+    	WARN("Failed writing to %s: %s", "<>", strerror(errno));
+    	return FREESPACE_ERROR_IO;
+    }
+
+    if (rc == 0) {
+    	WARN("Failed writing to %s. Wrote 0 bytes... busy?", "<>", rc, length);
+    	return FREESPACE_ERROR_BUSY;
+    }
+
+    if (rc != length) {
+    	WARN("Failed writing to %s. Wrote %d bytes of %d", "<>", rc, length);
+    	return FREESPACE_ERROR_IO;
+    }
+
+    TRACE("Wrote %d bytes to %s", length, "<>");
+    return FREESPACE_SUCCESS;
+}
+
 int freespace_private_sendAsync(FreespaceDeviceId id,
                                 const uint8_t* message,
                                 int length,
@@ -369,31 +451,25 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
     ssize_t rc;
     GET_DEVICE_IF_OPEN(id, device);
 
-    TRACE(" Write >> ", "" );
-    rc = write(device->fd_, message, length);
-    TRACE(" Write << ", "" );
+#ifndef LIBFRESPACE_THREADED_WRITES
+    return _write(device->fd_, message, length);
+#else
+	pthread_mutex_lock(&writeMutex_ );
+    struct WriteJob * job = _allocateWriteJob();
+    if (!job) {
+    	rc = FREESPACE_ERROR_OUT_OF_MEMORY;
+    } else {
+		job->dev = device;
+		memcpy(job->message, message, length);
+		job->length = length;
 
-    if (rc < 0) {
-    	if (errno == ENOENT || errno == ENODEV) {
-    		// disconnected.... hotplug will catch this later
-    		return FREESPACE_ERROR_NO_DEVICE;
-    	}
-    	WARN("Failed writing to %s: %s", device->hidrawPath_, strerror(errno));
-    	return FREESPACE_ERROR_IO;
+		rc = _pushWriteJob(job);
     }
 
-    if (rc == 0) {
-    	WARN("Failed writing to %s. Wrote 0 bytes... busy?", device->hidrawPath_, rc, length);
-    	return FREESPACE_ERROR_BUSY;
-    }
-
-    if (rc != length) {
-    	WARN("Failed writing to %s. Wrote %d bytes of %d", device->hidrawPath_, rc, length);
-    	return FREESPACE_ERROR_IO;
-    }
-
-    TRACE("Wrote %d bytes to %s", length, device->hidrawPath_);
-    return FREESPACE_SUCCESS;
+	pthread_mutex_unlock(&writeMutex_);
+	pthread_cond_signal(&writeCond_);
+    return rc;
+#endif
 }
 
 int freespace_sendMessageAsync(FreespaceDeviceId id,
@@ -956,6 +1032,10 @@ static void _deallocateDevice(struct FreespaceDevice* device) {
 static int _disconnect(struct FreespaceDevice * device) {
 	DEBUG("Freespace device (%d) at %s disconnected", device->id_, device->hidrawPath_);
 
+	pthread_mutex_lock(&writeMutex_ );
+	_flushWriteJobs(device);
+	pthread_mutex_unlock(&writeMutex_);
+
     // device is currently in use, we can't delete it outright
     if (device->state_ == FREESPACE_OPENED) {
     	if (device->fd_ > 0) {
@@ -968,7 +1048,7 @@ static int _disconnect(struct FreespaceDevice * device) {
 
 
 		device->state_ = FREESPACE_DISCONNECTED;
-		DEBUG("*** Sending removal notification (Opened)**", "");
+		TRACE("*** Sending removal notification (Opened)**", "");
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
 		}
@@ -989,7 +1069,7 @@ static int _disconnect(struct FreespaceDevice * device) {
     	_deallocateDevice(device);
     	device = NULL;
 
-		DEBUG("*** Sending removal notification (connected)**", "");
+		TRACE("*** Sending removal notification (connected)**", "");
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
 		}
@@ -999,4 +1079,126 @@ static int _disconnect(struct FreespaceDevice * device) {
 
 	return FREESPACE_ERROR_UNEXPECTED;
 }
+
+#ifdef LIBFRESPACE_THREADED_WRITES
+
+static struct WriteJob * _allocateWriteJob() {
+	struct WriteJob * j;
+	if (freeJobsHead_ != NULL) {
+		j = freeJobsHead_;
+		freeJobsHead_ = freeJobsHead_->next;
+		j->next = NULL;
+		return j;
+	}
+
+	if (numWriteJobsAllocated_ + 1 > MaxWriteJobs) {
+		return NULL;
+	}
+
+	j = malloc(sizeof(struct WriteJob));
+	if (j) {
+		memset(j, 0, sizeof(*j));
+		numWriteJobsAllocated_++;
+		return j;
+	}
+	WARN("malloc failed", "");
+	return NULL;
+}
+
+static int _deallocateWriteJob(struct WriteJob * j) {
+	if (numWriteJobsFree_ + 1 > MaxFreeWriteJobs) {
+		free(j);
+		numWriteJobsAllocated_--;
+		return 0;
+	}
+
+	numWriteJobsFree_++;
+	if (freeJobsHead_) {
+		j->next = freeJobsHead_;
+	}
+	freeJobsHead_ = j;
+	return FREESPACE_SUCCESS;
+}
+
+
+static struct WriteJob * _popWriteJob() {
+	struct WriteJob * j = NULL;
+
+	if (writeJobsHead_ != NULL) {
+		j = writeJobsHead_;
+		writeJobsHead_ = j->next;
+		if (writeJobsHead_ == NULL) {
+			writeJobsTail_ = NULL;
+		}
+	}
+
+//	TRACE("Pop: %p Head: %p Tail: %p. Allocated: %d", j, writeJobsHead_, writeJobsTail_, numWriteJobsAllocated_);
+	return j;
+}
+
+static int _pushWriteJob(struct WriteJob * j) {
+	if (writeJobsTail_ == NULL) {
+		writeJobsHead_ = j;
+		writeJobsTail_ = j;
+	} else {
+		writeJobsTail_->next = j;
+		writeJobsTail_ = j;
+	}
+
+//	TRACE("Pop: %p Head: %p Tail: %p. Allocated: %d", j, writeJobsHead_, writeJobsTail_, numWriteJobsAllocated_);
+	return FREESPACE_SUCCESS;
+}
+
+static void _flushWriteJobs(struct FreespaceDevice * dev) {
+	struct WriteJob * j = writeJobsHead_;
+	struct WriteJob * prev = NULL;
+	struct WriteJob * t = NULL;
+
+	if (j == NULL) {
+		return;
+	}
+
+	while (j) {
+		if (j->dev != dev) {
+			// keep this job
+			prev = j;
+			j = j->next;
+		}
+
+		// we have to remove j from the linked list
+		if (prev == NULL) {
+			writeJobsHead_ = j->next;
+		}
+
+		t = j->next;
+		_deallocateWriteJob(j);
+		if (prev) {
+			prev->next = t;
+		}
+		j = t;
+	}
+}
+
+static void * _writeThread_fn(void * ptr) {
+	while (writeThreadExit_ == 0) {
+		  struct WriteJob * j;
+
+		 // Lock mutex and then wait for signal to relase mutex
+		  pthread_mutex_lock(&writeMutex_ );
+		  // wait for signal..
+		  pthread_cond_wait(&writeCond_, &writeMutex_ );
+		  while ((j = _popWriteJob()) != NULL) {
+			  pthread_mutex_unlock(&writeMutex_);
+			  _write(j->dev->fd_, j->message, j->length);
+			  pthread_mutex_lock(&writeMutex_ );
+			  _deallocateWriteJob(j);
+		  }
+
+		  pthread_mutex_unlock(&writeMutex_);
+	}
+
+	return 0;
+}
+
+#endif
 
