@@ -29,10 +29,6 @@
 #include <poll.h>
 #include <string.h>
 
-#define _FREESPACE_DEBUG
-
-#define DEBUG(fmt, ...) printf("libfreespace: debug freespace.c:%d " fmt "\n", __LINE__, __VA_ARGS__);
-
 #define FREESPACE_RECEIVE_QUEUE_SIZE 8 // Could be tuned better. 3-4 might be good enough
 
 /**
@@ -542,30 +538,7 @@ int freespace_openDevice(FreespaceDeviceId id) {
         return libusb_to_freespace_error(rc);
     }
 
-    DEBUG("Number of interfaces: %d", config->bNumInterfaces);
-
-    for (i = 0; i < config->bNumInterfaces; i++) {
-    	int j = 0;
-    	DEBUG("  Interface %d - Interface (%p). Num alt settings: %d", i, config->interface[i].altsetting, config->interface[i].num_altsetting);
-    	intd = config->interface[controlInterfaceNumber].altsetting;
-    	for (j = 0; j < 1; j++) {
-    		int z = 0;
-    		DEBUG("    Alt Interface - %d bNumEndpoints: %2d. Class: %02x.%02x Protocol: %02x iInterface:%d", j, intd[j].bNumEndpoints, intd[j].bInterfaceClass, intd[j].bInterfaceSubClass, intd[j].bInterfaceProtocol, intd[j].iInterface);
-    		for (z = 0; z < intd[j].bNumEndpoints; ++z) {
-    			const struct libusb_endpoint_descriptor* endpoint = &intd[j].endpoint[z];
-    			DEBUG("      End Point - %d Addr: %04x Attrs: %02x Max Pkt Size: %d Interval: %d", z,
-    							endpoint->bEndpointAddress,
-    							endpoint->bmAttributes,
-    							endpoint->wMaxPacketSize,
-    							endpoint->bInterval
-    			);
-    		}
-    	}
-    }
-
     intd = config->interface[controlInterfaceNumber].altsetting;
-
-    DEBUG("Number of endpoints at interface[%d][0]: %d\n", controlInterfaceNumber, intd[0].bNumEndpoints);
 
     for (i = 0; i < intd[0].bNumEndpoints; ++i) {
         const struct libusb_endpoint_descriptor* endpoint = &intd[0].endpoint[i];
@@ -580,7 +553,6 @@ int freespace_openDevice(FreespaceDeviceId id) {
     }
     if (device->maxReadSize_ == 0 || device->maxWriteSize_ == 0) {
         // Weird.  The device didn't have a read and write endpoint.
-    	DEBUG("Could not find end point at interface number %d.0", controlInterfaceNumber);
         return FREESPACE_ERROR_UNEXPECTED;
     }
 
