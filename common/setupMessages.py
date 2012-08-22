@@ -315,8 +315,8 @@ DceOutV3Message.ID[2] = {
     ConstantID:40
 }
 DceOutV3Message.Fields[2] = [
-    {name:"sequenceNumber", size:1, cType:'uint8_t', Documentation:"Report sequence number. Increments monotonically."},
-    {name:"flgBtn",         size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+    {name:"sampleBase",     size:1, cType:'uint8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"flags",          size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
     {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
     {name:"ay",             size:2, cType:'int16_t'},
     {name:"az",             size:2, cType:'int16_t'},
@@ -341,15 +341,21 @@ DceOutV4Message.ID[2] = {
 }
 DceOutV4Message.Fields[2] = [
     {name:"tempSeq",        size:1, cType:'uint8_t', Documentation:"Temperature and sequence number."},
-    {name:"flgBtn",         size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
-    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
-    {name:"ay",             size:2, cType:'int16_t'},
-    {name:"az",             size:2, cType:'int16_t'},
-    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
-    {name:"ry",             size:2, cType:'int16_t'},
-    {name:"rz",             size:2, cType:'int16_t'},
-    {name:"data0",          size:1, cType:'int8_t', Documentation:"TBD."},
-    {name:"data1",          size:1, cType:'int8_t', Documentation:"TBD."},
+
+    {name:"sampleBase",     size:1, nibbles:[{name:'sampleBase', Documentation:"Report sequence number. Increments monotonically."},
+                                             {name:'temperature', Documentation:"Temperature."}]},
+    {name:"flags",          size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+#    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+#    {name:"ay",             size:2, cType:'int16_t'},
+#    {name:"az",             size:2, cType:'int16_t'},
+#    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+#    {name:"ry",             size:2, cType:'int16_t'},
+#    {name:"rz",             size:2, cType:'int16_t'},
+#    {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
+#    {name:"my",             size:2, cType:'int16_t'},
+#    {name:"mz",             size:2, cType:'int16_t'},
+    {name:"data0",          size:13, cType:'int8_t', Documentation:"TBD."},
+#    {name:"data1",          size:1, cType:'int8_t', Documentation:"TBD."},
 ]
 
 messages.append(DceOutV4Message)
@@ -1107,6 +1113,32 @@ ProductIDResponse.Fields[2] = [
 messages.append(ProductIDResponse)
 
 # ---------------------------------------------------------------------------------------
+# Product ID Response Message
+ProductIDResponseBLE = Message("ProductIDResponseBLE", decode=True)
+ProductIDResponseBLE.Documentation = "This is sent from the polled device towards the host to convey the product ID information."
+ProductIDResponseBLE.addedVersion = "1.0.0"
+ProductIDResponseBLE.deprecatedVersion = ""
+ProductIDResponseBLE.removedVersion = ""
+ProductIDResponseBLE.appliesTo = [10001602, 10001853]
+ProductIDResponseBLE.ID[2] = {
+    ConstantID:0x8,
+    SubMessageID:{size:1, id:0x16}
+}
+ProductIDResponseBLE.Fields[2] = [
+    {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:6, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
+                                          {name:'startup',             Documentation:"The device has just started up. This bit self clears after the first message is sent."},
+                                          {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
+    {name:'swVersionMajor', size:1, cType:'uint8_t'},
+    {name:'swVersionMinor', size:1, cType:'uint8_t'},
+    {name:'swPartNumber',   size:4, cType:'uint32_t'},
+    {name:'swBuildNumber',  size:2, cType:'uint16_t'},
+    {name:'serialNumber',   size:4, cType:'uint32_t'},
+    {name:'swVersionPatch', size:2, cType:'uint16_t'},
+    ]
+
+messages.append(ProductIDResponseBLE)
+
+# ---------------------------------------------------------------------------------------
 # Link Quality Status Message
 LinkStatusMessage = Message("LinkStatus", decode=True)
 LinkStatusMessage.Documentation = "This message is sent from a compliance test-ready dongle to indicate the dongle's current status."
@@ -1176,6 +1208,29 @@ FRSReadResponse.Fields[2] = [
 ]
 
 messages.append(FRSReadResponse)
+
+# ---------------------------------------------------------------------------------------
+# FRS Read Response Message
+FRSReadResponseBLE = Message("FRSReadResponseBLE", decode=True)
+FRSReadResponseBLE.Documentation = "This is sent from the device to the host to convey an FRS record."
+FRSReadResponseBLE.addedVersion = ""
+FRSReadResponseBLE.deprecatedVersion = ""
+FRSReadResponseBLE.removedVersion = ""
+FRSReadResponseBLE.appliesTo = []
+FRSReadResponseBLE.ID[2] = {
+    ConstantID:8,
+    SubMessageID:{size:1, id:0x15}
+}
+FRSReadResponseBLE.Fields[2] = [
+    {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
+                                         {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
+    {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
+    {name:"data",       size:8, cType:'uint32_t'},
+    {name:"reserved",   size:2, cType:'uint16_t'},
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
+]
+
+messages.append(FRSReadResponseBLE)
 
 # ---------------------------------------------------------------------------------------
 # FRS Loop Read Response Message

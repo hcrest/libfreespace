@@ -44,7 +44,7 @@ echo Using Visual Studio Version: %VS_VERSION%
 
 SET MAJOR_NUM=0
 SET MINOR_NUM=6
-SET REVISION_NUM=0
+SET REVISION_NUM=1
 SET IS_RC=no
 
 IF "%IS_RC%"=="yes" (
