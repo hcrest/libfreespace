@@ -58,12 +58,12 @@ int freespace_hotplug_init() {
     rc = bind(sock, (struct sockaddr *)&snl, sizeof(struct sockaddr_nl));
     if (rc < 0) {
     	if (errno == EPERM) {
-	    // Running with a kernel that doesn't allow non-root users
-	    // to listen to uevents.
-	    // See http://git.kernel.org/?p=linux/kernel/git/gregkh/patches.git;a=blob;f=driver-core.current/driver-core-allow-non-root-users-to-listen-to-uevents.patch;h=ffcbd172f43c5cca6ece0294deb7c88cac8cf641;hb=b4a8f06022ecf4c5c279a61de89a1d3758e08e0e
-	    rc = FREESPACE_ERROR_ACCESS;
-	} else {
-	    rc = FREESPACE_ERROR_UNEXPECTED;
+			// Running with a kernel that doesn't allow non-root users
+			// to listen to uevents.
+			// See http://git.kernel.org/?p=linux/kernel/git/gregkh/patches.git;a=blob;f=driver-core.current/driver-core-allow-non-root-users-to-listen-to-uevents.patch;h=ffcbd172f43c5cca6ece0294deb7c88cac8cf641;hb=b4a8f06022ecf4c5c279a61de89a1d3758e08e0e
+			rc = FREESPACE_ERROR_ACCESS;
+		} else {
+			rc = FREESPACE_ERROR_UNEXPECTED;
         }
         close(sock);
         return rc;
