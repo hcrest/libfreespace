@@ -55,6 +55,7 @@ win32/libfreespace.vcproj.*.user
 .cproject
 *.zip
 win32/libfreespace.aps
+win32/libfreespace.rc
 win32/vs2005/Release
 win32/vs2008/Release
 win32/vs2010/Release
@@ -62,5 +63,6 @@ win32/vs2010/ipch
 win32/vs2010/ClassDiagram1.cd
 libfreespace.vcproj.*.user
 libfreespace.vcxproj.user
+common/freespace_codecs.c.rule
 .DS_Store
 
