@@ -35,7 +35,6 @@ doc/Doxyfile.bak
 doc/html
 doc/latex
 doc/mainpage.h
-.cdtproject
 .settings
 *.swn
 *.swo
@@ -43,6 +42,9 @@ doc/mainpage.h
 *~
 *.orig
 *.rej
+
+# Windows / Visual Studio
+config-win32.h
 win32/Debug
 win32/Release
 win32/libfreespace.vcproj.*.user
@@ -50,10 +52,6 @@ win32/libfreespace.vcproj.*.user
 *.suo
 *.sdf
 *.opensdf
-.project
-.pydevproject
-.cproject
-*.zip
 win32/libfreespace.aps
 win32/libfreespace.rc
 win32/vs2005/Release
@@ -64,5 +62,12 @@ win32/vs2010/ClassDiagram1.cd
 libfreespace.vcproj.*.user
 libfreespace.vcxproj.user
 common/freespace_codecs.c.rule
+
+# Eclipse
+.project
+.cdtproject
+.pydevproject
+.cproject
+*.zip
 .DS_Store
 

@@ -1119,7 +1119,7 @@ ProductIDResponseBLE.Documentation = "This is sent from the polled device toward
 ProductIDResponseBLE.addedVersion = "1.0.0"
 ProductIDResponseBLE.deprecatedVersion = ""
 ProductIDResponseBLE.removedVersion = ""
-ProductIDResponseBLE.appliesTo = [10001602, 10001853]
+ProductIDResponseBLE.appliesTo = []
 ProductIDResponseBLE.ID[2] = {
     ConstantID:0x8,
     SubMessageID:{size:1, id:0x16}
@@ -1131,8 +1131,8 @@ ProductIDResponseBLE.Fields[2] = [
     {name:'swVersionMajor', size:1, cType:'uint8_t'},
     {name:'swVersionMinor', size:1, cType:'uint8_t'},
     {name:'swPartNumber',   size:4, cType:'uint32_t'},
-    {name:'swBuildNumber',  size:2, cType:'uint16_t'},
     {name:'serialNumber',   size:4, cType:'uint32_t'},
+    {name:'swBuildNumber',  size:2, cType:'uint16_t'},
     {name:'swVersionPatch', size:2, cType:'uint16_t'},
     ]
 
