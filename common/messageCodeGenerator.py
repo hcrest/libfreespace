@@ -817,7 +817,7 @@ LIBFREESPACE_API int freespace_print%(name)sStr(char* dest, int maxlen, const st
     printStrHelper(message, outFile)
     outFile.write('''
 #else
-    n = sprintf(dest, "%(name)s('''%{'name':message.name})
+    n = snprintf(dest, maxlen, "%(name)s('''%{'name':message.name})
     printStrHelper(message, outFile)
     
     outFile.write('''
