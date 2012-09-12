@@ -47,22 +47,22 @@
 //#define _FREESPACE_DEBUG
 //#define _FREESPACE_TRACE
 
-#define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (freespace_hidraw.c:%d): " #lvl " " fmt "\n", __LINE__, __VA_ARGS__);
+#define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (%s:%d): " #lvl " " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 
 #ifdef _FREESPACE_WARN
-#define WARN(fmt, ...) LOGF(fmt, WARN, __VA_ARGS__)
+#define WARN(fmt, ...) LOGF(fmt,  WARN, ##__VA_ARGS__)
 #else
 #define WARN(...)
 #endif
 
 #ifdef _FREESPACE_DEBUG
-#define DEBUG(fmt, ...) LOGF(fmt, DEBUG, __VA_ARGS__)
+#define DEBUG(fmt, ...) LOGF(fmt, DEBUG, ##__VA_ARGS__)
 #else
 #define DEBUG(...)
 #endif
 
 #ifdef _FREESPACE_TRACE
-#define TRACE(fmt, ...) LOGF(fmt, TRACE, __VA_ARGS__)
+#define TRACE(fmt, ...) LOGF(fmt, TRACE, ##__VA_ARGS__)
 #else
 #define TRACE(...)
 #endif
@@ -169,8 +169,8 @@ struct WriteJob * freeJobsHead_ = 0;
 static int writeThreadExit_  = 0;
 static int numWriteJobsAllocated_ = 0;
 static int numWriteJobsFree_ = 0;
-static const int MaxWriteJobs = 20;
-static const int MaxFreeWriteJobs = 5;
+static const int MaxWriteJobs = 5;
+static const int MaxFreeWriteJobs = 3;
 
 /* Allocate a WriteJob struct. Call with lock held */
 static struct WriteJob * _allocateWriteJob();
@@ -244,6 +244,17 @@ void freespace_exit() {
 			userRemovedCallback(inotify_fd_);
 		}
     }
+
+#ifdef LIBFRESPACE_THREADED_WRITES
+    // Signal the thread to shutdown...
+    writeThreadExit_ = 1;
+    pthread_cond_signal(&writeCond_);
+
+    pthread_join(writeThread_, NULL);
+	pthread_mutex_destroy(&writeMutex_);
+    pthread_cond_destroy(&writeCond_);
+#endif
+
     return;
 }
 
@@ -330,13 +341,13 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 	}
 
 	if (device->state_ == FREESPACE_CONNECTED) {
-		DEBUG("Close closed device?", "");
+		TRACE("Close closed device");
 		// not open
 		return;
 	}
 
 	if (device->state_ == FREESPACE_OPENED) {
-		DEBUG("Close opened device", "");
+		DEBUG("Close opened device");
 #ifdef LIBFRESPACE_THREADED_WRITES
 		pthread_mutex_lock(&writeMutex_ );
 		_flushWriteJobs(device);
@@ -351,10 +362,11 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 			device->fd_ = -1;
 		}
 		device->state_ = FREESPACE_CONNECTED;
+		return;
 	}
 
 	if (device->state_ == FREESPACE_DISCONNECTED) {
-		DEBUG("Close disconnected", "");
+		DEBUG("Close device already Disconnected");
 		// device is disconnected...
 		// we've been waiting for this close() to deallocate it.
 		_deallocateDevice(device);
@@ -414,31 +426,26 @@ int freespace_flush(FreespaceDeviceId id) {
 }
 
 int _write(int fd, const uint8_t* message, int length) {
-	int rc;
-    TRACE(" Write >> ", "" );
-    rc = write(fd, message, length);
-    TRACE(" Write << ", "" );
-
+	int rc = write(fd, message, length);
     if (rc < 0) {
     	if (errno == ENOENT || errno == ENODEV) {
     		// disconnected.... hotplug will catch this later
     		return FREESPACE_ERROR_NO_DEVICE;
     	}
-    	WARN("Failed writing to %s: %s", "<>", strerror(errno));
-    	return FREESPACE_ERROR_IO;
-    }
 
-    if (rc == 0) {
-    	WARN("Failed writing to %s. Wrote 0 bytes... busy?", "<>", rc, length);
-    	return FREESPACE_ERROR_BUSY;
+		if (errno == ETIMEDOUT) {
+			FREESPACE_ERROR_TIMEOUT;
+		}
+
+    	WARN("Write failed: %s", strerror(errno));
+    	return FREESPACE_ERROR_IO;
     }
 
     if (rc != length) {
-    	WARN("Failed writing to %s. Wrote %d bytes of %d", "<>", rc, length);
+    	WARN("Write failed. Wrote %d bytes of %d", rc, length);
     	return FREESPACE_ERROR_IO;
     }
 
-    TRACE("Wrote %d bytes to %s", length, "<>");
     return FREESPACE_SUCCESS;
 }
 
@@ -694,7 +701,9 @@ static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const
 				*API = &freespace_deviceAPITable[i];
 			} else if (descriptor.size == 174) { // Roku Broadcom Remote
 				*API = &freespace_deviceAPITable[i];
-			} else if (descriptor.size == 200) { // Ozmo Remote
+			} else if (descriptor.size == 229) { // Ozmo Remote
+				*API = &freespace_deviceAPITable[i];
+			} else if (descriptor.size == 199) { // Ozmo Remote
 				*API = &freespace_deviceAPITable[i];
 			}
 
@@ -990,6 +999,11 @@ static int _scanDevices() {
 					TRACE("%s is alread added!", event->name);
 					continue;
 				}
+
+#if 1
+				// hack to allow udev some time...
+				usleep(1000 * 500);
+#endif
 				_scanDevice(DEV_DIR, event->name);
 				continue;
 			}
@@ -1032,10 +1046,11 @@ static void _deallocateDevice(struct FreespaceDevice* device) {
 static int _disconnect(struct FreespaceDevice * device) {
 	DEBUG("Freespace device (%d) at %s disconnected", device->id_, device->hidrawPath_);
 
+#ifdef LIBFRESPACE_THREADED_WRITES
 	pthread_mutex_lock(&writeMutex_ );
 	_flushWriteJobs(device);
 	pthread_mutex_unlock(&writeMutex_);
-
+#endif
     // device is currently in use, we can't delete it outright
     if (device->state_ == FREESPACE_OPENED) {
     	if (device->fd_ > 0) {
@@ -1113,9 +1128,7 @@ static int _deallocateWriteJob(struct WriteJob * j) {
 	}
 
 	numWriteJobsFree_++;
-	if (freeJobsHead_) {
-		j->next = freeJobsHead_;
-	}
+	j->next = freeJobsHead_;
 	freeJobsHead_ = j;
 	return FREESPACE_SUCCESS;
 }
@@ -1187,7 +1200,7 @@ static void * _writeThread_fn(void * ptr) {
 		  pthread_mutex_lock(&writeMutex_ );
 		  // wait for signal..
 		  pthread_cond_wait(&writeCond_, &writeMutex_ );
-		  while ((j = _popWriteJob()) != NULL) {
+		  while (writeThreadExit_ == 0 && (j = _popWriteJob()) != NULL) {
 			  pthread_mutex_unlock(&writeMutex_);
 			  _write(j->dev->fd_, j->message, j->length);
 			  pthread_mutex_lock(&writeMutex_ );
