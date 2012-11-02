@@ -76,6 +76,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
 	{ 0x1d5a, 0xc0b1, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MCV)"},
 	{ 0x1d5a, 0xc0b2, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MKV)"},
 	{ 0x1d5a, 0xc0b3, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MKCV)"},
+	{ 0x7045, 0x2860, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Nanosic Smart USB RF Transceiver"},
 	{ 0x1d5a, 0xc0c0, 2, 1, 2, {{4, 0xff01}, {0, 0}}, "RF4CE RemoTI ZID dongle (MKCV)"},
     { 0x1d5a, 0xc100, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP160"},
     { 0x1d5a, 0xc101, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP260"},

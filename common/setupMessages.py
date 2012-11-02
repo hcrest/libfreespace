@@ -1033,6 +1033,34 @@ ReorientationRequest.Fields[2] =  [
 messages.append(ReorientationRequest)
 
 # ---------------------------------------------------------------------------------------
+# Sensor Period Request
+SensorPeriodRequest = Message("SensorPeriodRequest", encode=True)
+SensorPeriodRequest.Documentation = "Used to set sensor period"
+SensorPeriodRequest.addedVersion = ""
+SensorPeriodRequest.deprecatedVersion = ""
+SensorPeriodRequest.removedVersion = ""
+SensorPeriodRequest.appliesTo = []
+SensorPeriodRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:22}
+}
+SensorPeriodRequest.Fields[2] = [
+    {name:'flags',            size:1, bits:[{name:'commit', Documentation:"0: No Action, 1: Update system with new periods"},
+                                    {name:'get',    Documentation:"0: Set the sensor period data, 1: Only read the periods."},
+                                    {name:RESERVED},
+                                    {name:RESERVED},
+                                    {name:RESERVED},
+                                    {name:RESERVED},
+                                    {name:RESERVED},
+                                    {name:RESERVED}]},
+    {name:'sensor',           size:1, cType:'uint8_t',  Documentation:"Sensor ID"},
+    {name:'period',           size:4, cType:'uint32_t', Documentation:"Sensor Period"},
+]
+
+
+messages.append(SensorPeriodRequest)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
@@ -1100,6 +1128,7 @@ ProductIDResponse.Fields[1] = [
 ]
 ProductIDResponse.Fields[2] = [
     {name:'deviceClass',    size:1, bits:[{name:'deviceClass', size:6, Documentation:"The device class represents the characteristics of the device providing the product ID. \n\t 0: device type not known.\n\t 1: non-data-generating device.\n\t 2: data-generating device."},
+                                          {name:RESERVED,              Documentation:"TODO: Dummy value to align bits properly."},
                                           {name:'startup',             Documentation:"The device has just started up. This bit self clears after the first message is sent."},
                                           {name:'invalidNS',           Documentation:"0: read serial number is valid, 1 read serial number is invalid; retry read until valid."}]},
     {name:'swVersionMajor', size:1, cType:'uint8_t'},
@@ -1530,3 +1559,21 @@ DataModeControlV2Response.Fields[2] =  [
 
 messages.append(DataModeControlV2Response)
 
+# ---------------------------------------------------------------------------------------
+# Sensor Period Response
+SensorPeriodResponse = Message("SensorPeriodResponse", decode=True)
+SensorPeriodResponse.Documentation = "Set sensor period response"
+SensorPeriodResponse.addedVersion = ""
+SensorPeriodResponse.deprecatedVersion = ""
+SensorPeriodResponse.removedVersion = ""
+SensorPeriodResponse.appliesTo = []
+SensorPeriodResponse.ID[2] = {
+    ConstantID:5,
+    SubMessageID:{size:1, id:23}
+}
+SensorPeriodResponse.Fields[2] = [
+    {name:'sensor',           size:1, cType:'uint8_t',  Documentation:"Sensor ID"},
+    {name:'period',           size:4, cType:'uint32_t', Documentation:"Sensor Period"},
+]
+
+messages.append(SensorPeriodResponse)
