@@ -42,16 +42,8 @@ exit /b 1
 )
 echo Using Visual Studio Version: %VS_VERSION%
 
-SET MAJOR_NUM=0
-SET MINOR_NUM=6
-SET REVISION_NUM=1
-SET IS_RC=no
+call release_version.bat
 
-IF "%IS_RC%"=="yes" (
-SET RELEASE_VERSION=%MAJOR_NUM%.%MINOR_NUM%rc%REVISION_NUM%
-) ELSE (
-SET RELEASE_VERSION=%MAJOR_NUM%.%MINOR_NUM%
-)
 SET WORKDIR=libfreespace
 SET ZIPNAME=libfreespace-%RELEASE_VERSION%-win32
 
@@ -140,9 +132,6 @@ echo // Generated from the TEXTINCLUDE 3 resource. >> win32\libfreespace.rc
 echo // >> win32\libfreespace.rc
 echo ///////////////////////////////////////////////////////////////////////////// >> win32\libfreespace.rc
 echo #endif    // not APSTUDIO_INVOKED >> win32\libfreespace.rc
-
-REM Generate config-win32.h and the line below when the version changes.
-echo #define VERSION "%RELEASE_VERSION%"> config-win32.h
 
 
 SET WORKDIR=libfreespace
