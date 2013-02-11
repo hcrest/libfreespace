@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 #
 # This file is part of libfreespace.
-#  
-# Copyright (c) 2009-2010 Hillcrest Laboratories, Inc. 
-# 
+#
+# Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
+#
 # libfreespace is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -53,7 +53,7 @@ class Message:
         self.deprecatedVersion = "" # when you should stop using this message
         self.removedVersion = ""    # when the message is no longer in the firmware
         self.appliesTo = []         # what firmware (i.e. software part numbers) does this message apply to
-    
+
     def getMessageSize(self, version):
         size = 1 # Add one for the opening message type byte
         if version == 2:
@@ -66,14 +66,14 @@ class Message:
                     continue
                 size += element['size']
         return size
-    
+
     def hasUnReservedFields(self):
         for version in self.Fields:
             for field in version:
                 if field['name'] != 'RESERVED':
                     return True
         return False
-        
+
 messages = []
 
 # ---------------------------------------------------------------------------------------
@@ -617,7 +617,7 @@ RFSupressMessage.ID[2] = {
 }
 RFSupressMessage.Fields[1] = [
     {name:'low',  size:1, cType:'uint8_t'},
-    {name:'high', size:1, cType:'uint8_t'},                        
+    {name:'high', size:1, cType:'uint8_t'},
     {name:RESERVED, size:4}
 ]
 RFSupressMessage.Fields[2] = RFSupressMessage.Fields[1]
@@ -1054,6 +1054,7 @@ SensorPeriodRequest.Fields[2] = [
                                     {name:RESERVED},
                                     {name:RESERVED}]},
     {name:'sensor',           size:1, cType:'uint8_t',  Documentation:"Sensor ID"},
+    {name:RESERVED,           size:1},
     {name:'period',           size:4, cType:'uint32_t', Documentation:"Sensor Period"},
 ]
 
@@ -1359,7 +1360,7 @@ FRSDongleReadResponse.Fields[1] = [
     {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
-    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
 messages.append(FRSDongleReadResponse)
@@ -1411,7 +1412,7 @@ FRSEFlashReadResponse.Fields[1] = [
     {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
                                          {name:'dataLength', Documentation:"Data Length indicates the number of data words contained within the message, typically 5 words"}]},
-    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}    
+    {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
 messages.append(FRSEFlashReadResponse)
@@ -1572,7 +1573,9 @@ SensorPeriodResponse.ID[2] = {
     SubMessageID:{size:1, id:23}
 }
 SensorPeriodResponse.Fields[2] = [
+    {name:RESERVED,           size:1},
     {name:'sensor',           size:1, cType:'uint8_t',  Documentation:"Sensor ID"},
+    {name:RESERVED,           size:1},
     {name:'period',           size:4, cType:'uint32_t', Documentation:"Sensor Period"},
 ]
 
