@@ -19,7 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import sys
-import getopt
+import argparse
 import os
 
 def compareMessages(a, b):
@@ -52,23 +52,36 @@ def compareMessages(a, b):
             return 0
 
 class MessageCodeGenerator:
+
+    inclDir = ""
+    srcDir  = ""
+
+    def __init__(self, incl, src):
+        self.inclDir = incl
+        self.srcDir = src
+
     def writeMessages(self, messages):
         messages.sort(compareMessages)
 
-        codecsFileName = 'freespace_codecs'
-        printersFileName = 'freespace_printers'
 
-        codecsHFile = open("../include/freespace/" + codecsFileName + ".h", "w")
+        codecsFileName = "freespace_codecs"
+        printersFileName = "freespace_printers"
+        codecsHdrPath = os.path.join(self.inclDir, codecsFileName + ".h")
+        printerHdrPath = os.path.join(self.inclDir, printersFileName + ".h")
+        codecsSrcPath = os.path.join(self.srcDir, codecsFileName + ".c")
+        printersSrcPath = os.path.join(self.srcDir, printersFileName + ".c")
+
+        codecsHFile = open(codecsHdrPath, "w")
         self.writeHFileHeader(codecsHFile, codecsFileName)
         self.writeDoxygenModuleDef(codecsHFile)
         
-        printersHFile = open("../include/freespace/" + printersFileName + ".h", "w")
+        printersHFile = open(printerHdrPath, "w")
         self.writeHFileHeader(printersHFile, printersFileName)
         printersHFile.write('#include "' + codecsFileName + '.h"\n')
         printersHFile.write('#include <stdio.h>\n\n')
         self.writePrintMessageHeader(printersHFile)
         
-        codecsCFile = open("../common/" + codecsFileName + ".c", "w")
+        codecsCFile = open(codecsSrcPath, "w")
         self.writeCFileHeader(codecsCFile, codecsFileName)
         codecsCFile.write('#include <stdio.h>\n')
         codecsCFile.write('#include <math.h>\n')
@@ -86,7 +99,7 @@ class MessageCodeGenerator:
         codecsCFile.write('#endif\n\n')
         self.writeBitHelper(codecsCFile)
         
-        printersCFile = open("../common/" + printersFileName + ".c", "w")
+        printersCFile = open(printersSrcPath, "w")
         self.writeCFileHeader(printersCFile, printersFileName)
         self.writePrintMessageBody(messages, printersCFile)
         
@@ -921,35 +934,42 @@ class Usage(Exception):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
+
+
+
     try:
-        try:
-            opts, args = getopt.getopt(argv[1:], ["h", "t"], ["help", "test"])
-        except getopt.error, msg:
-             raise Usage(msg)
-        except AttributeError, msg:
-             raise Usage(msg)
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-t", "--test", 
+                            default=False, 
+                            help="Use test mode to build BOTH encoders and decoders for ALL message types. " +
+                                 "By default encoders are built for outgoing msgs and decoders for incoming msgs")
+        parser.add_argument("-I", "--include", default="include", 
+                            help="Include directory to write generated freespace headers to")
+        parser.add_argument("-s", "--src", default="src",
+                            help="Source directory to write generated source files to")
+        parser.add_argument("messageFiles", nargs="+",
+                            help="List of message definition files")
+        args = parser.parse_args()
 
-        # Use test mode to build BOTH encoders and decoders for ALL message types.
-        # By default encoders are built for outgoing msgs and decoders for incoming msgs
-        test = False
-
-        # Process options
-        for o, a in opts:
-            if o in ("--h", "--help"):
-                print __doc__
-                return 0
-            elif o in ("--t", "--test"):
-                test = True
-
-        # Process arguments
         messages = []
-        g = {'test':test}
+        g = {'test': args.test}
         d = {}
         
-        for arg in args:
-            execfile(arg, g, d)
+        for f in args.messageFiles:
+            execfile(f, g, d)
             messages.extend(d['messages'])
-        mcg = MessageCodeGenerator()
+
+        includeDir = os.path.join(args.include, "freespace")
+        srcDir = args.src
+
+        for d in (includeDir, srcDir):
+            if not os.path.exists(d):
+                os.makedirs(d)
+
+        mcg = MessageCodeGenerator(
+            includeDir,
+            srcDir
+        )
         mcg.writeMessages(messages)
     except Usage, err:
         print >>sys.stderr, err.msg

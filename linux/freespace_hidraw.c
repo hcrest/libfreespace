@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "../include/freespace/freespace.h"
-#include "../include/freespace/freespace_deviceTable.h"
-#include "../config.h"
+#include "freespace/freespace.h"
+#include "freespace/freespace_deviceTable.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -187,7 +187,7 @@ static void * _writeThread_fn(void * ptr);
 #endif
 
 const char* freespace_version() {
-    return VERSION;
+    return LIBFREESPACE_VERSION;
 }
 
 static struct FreespaceDevice* findDeviceById(FreespaceDeviceId id) {
@@ -322,7 +322,7 @@ int freespace_openDevice(FreespaceDeviceId id) {
     }
 
     // flush the device
-    uint8_t buf[1024 * 16];
+    uint8_t buf[1024];
     while (read(device->fd_, buf, sizeof(buf)) > 0);
 
     if (userAddedCallback) {

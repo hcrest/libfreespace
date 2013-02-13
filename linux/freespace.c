@@ -18,10 +18,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "../include/freespace/freespace.h"
-#include "../include/freespace/freespace_deviceTable.h"
+#include "freespace/freespace.h"
+#include "freespace/freespace_deviceTable.h"
 #include "hotplug.h"
-#include "../config.h"
+#include "config.h"
 
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
@@ -147,7 +147,7 @@ static int libusb_transfer_status_to_freespace_error(enum libusb_transfer_status
 }
 
 const char* freespace_version() {
-    return VERSION;
+    return LIBFREESPACE_VERSION;
 }
 
 int freespace_init() {
