@@ -43,7 +43,7 @@
  * 	  - add sync support?
  */
 
-#define _FREESPACE_WARN
+//#define _FREESPACE_WARN
 //#define _FREESPACE_DEBUG
 //#define _FREESPACE_TRACE
 
@@ -373,6 +373,29 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 		return;
 	}
 	DEBUG("close wtf??", "");
+}
+
+int freespace_isNewDevice(FreespaceDeviceId id) {
+    const struct FreespaceDeviceInfo*   pDeviceInfo = NULL;
+    int rc;
+    int idx;
+    struct FreespaceDevice* device = findDeviceById(id);
+
+    if (device == NULL) {
+        return FREESPACE_ERROR_NO_DEVICE;
+    }
+
+    // Determine if the product ID represent a new device
+    for (idx = 0; idx < freespace_newDeviceAPITableNum; ++idx)
+    {
+        pDeviceInfo = &freespace_newDeviceAPITable[idx];
+        if ( (pDeviceInfo->vendor == device->api_->idVendor_) &&
+             (pDeviceInfo->product == device->api_->idProduct_) )
+        {
+            return FREESPACE_SUCCESS;
+        }
+    }
+    return FREESPACE_ERROR_NO_DEVICE;
 }
 
 int freespace_private_send(FreespaceDeviceId id, const uint8_t* message, int length) {
@@ -967,14 +990,14 @@ static int _scanDevices() {
 			// first, check to see if we have a complete inotify_event
 			if (remainder < expectedSize) {
 				// this event is incomplete (not aligned), break here and read again
-				TRACE("Not enough space in the buffer for inotify struct... %d/%d", remainder, expectedSize);
+				TRACE("Not enough space in the buffer for inotify struct... %ld/%ld", remainder, expectedSize);
 				break;
 			}
 
 			// now, check to see if the path following it has been completely read.
 			expectedSize += event->len;
 			if (remainder < expectedSize) {
-				TRACE("Not enough space in the buffer for inotify struct + string... %d/%d -- (%d + %d)", remainder, expectedSize, sizeof(struct inotify_event), event->len);
+				TRACE("Not enough space in the buffer for inotify struct + string... %ld/%ld -- (%ld + %d)", remainder, expectedSize, sizeof(struct inotify_event), event->len);
 				break;
 			}
 
