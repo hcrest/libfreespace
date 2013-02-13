@@ -32,7 +32,7 @@ endif()
 
 
 ### Project Configuration Options
-set(LIBFREESPACE_ADDITIONAL_message_FILE "" CACHE STRING "An additional HID message definition file")
+set(LIBFREESPACE_ADDITIONAL_MESSAGE_FILE "" CACHE STRING "An additional HID message definition file")
 set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs")
 set(LIBFREESPACE_LIB_TYPE "SHARED" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
 set(LIBFREESPACE_BACKEND "" CACHE STRING "Specify an alternate backend on some paltforms. On Linux, valid values are 'hidraw' and 'libusb'")
@@ -59,12 +59,12 @@ add_custom_command(
         "-I" "${PROJECT_BINARY_DIR}/include/"
         "-s" "${PROJECT_BINARY_DIR}/gen_src/"
         "${PROJECT_SOURCE_DIR}/common/setupMessages.py"
-        "${LIBFREESPACE_ADDITIONAL_message_FILE}"
+        "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
     ${buildMessageCommand}
     DEPENDS 
         "common/messageCodeGenerator.py"
         "common/setupMessages.py"
-        "${LIBFREESPACE_ADDITIONAL_message_FILE}"
+        "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
 )
 
 
@@ -138,7 +138,6 @@ elseif(UNIX)
     if (NOT HAVE_SYS_TIME_H)
         message(FATAL_ERROR "Could not find include file <sys/time.h>")
     endif()
-    message(STATUS "LIBFREESPACE_BACKEND = ${LIBFREESPACE_BACKEND}")
     if (LIBFREESPACE_BACKEND STREQUAL "hidraw")
         check_include_files(linux/hidraw.h HAVE_LINUX_HIDRAW_H)
         if (NOT HAVE_LINUX_HIDRAW_H)
