@@ -49,7 +49,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 }
 
 LIBFREESPACE_API const char* freespace_version() {
-	return VERSION;
+	return LIBFREESPACE_VERSION;
 }
 
 LIBFREESPACE_API int freespace_init() {

@@ -16,7 +16,7 @@
 #
 
 cmake_minimum_required (VERSION 2.6)
-project (freespace CXX C)
+project (libfreespace CXX C)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${PROJECT_SOURCE_DIR}/CMake")
 
 set (PROJECT_VERSION_MAJOR 0)
@@ -34,10 +34,16 @@ endif()
 ### Project Configuration Options
 set(LIBFREESPACE_ADDITIONAL_MESSAGE_FILE "" CACHE STRING "An additional HID message definition file")
 set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs")
-set(LIBFREESPACE_LIB_TYPE "SHARED" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
+if (WIN32)
+    set(LIBFREESPACE_LIB_TYPE_DEFAULT "STATIC")
+else()
+    set(LIBFREESPACE_LIB_TYPE_DEFAULT "SHARED")    
+endif()
+set(LIBFREESPACE_LIB_TYPE "${LIBFREESPACE_LIB_TYPE_DEFAULT}" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
 set(LIBFREESPACE_BACKEND "" CACHE STRING "Specify an alternate backend on some paltforms. On Linux, valid values are 'hidraw' and 'libusb'")
 set(LIBFREESPACE_HIDRAW_THREADED_WRITES OFF CACHE STRING "Enable writes in a backend thread when using hidraw")
 set(LIBFREESPACE_CUSTOM_INSTALL_RULES "" CACHE STRING "CMake file to customize install rules when libfreespace is built as part of a larger project")
+set(LIBFREESPACE_WINDDK_DIR "" CACHE STRING "The WINDDK path for Windows 32-bit builds")
 
 set(src_gen
     "${PROJECT_BINARY_DIR}/gen_src/freespace_codecs.c"
@@ -121,12 +127,13 @@ if (LIBFREESPACE_CODECS_ONLY)
     endif()
 else()
     if (WIN32)
-        message(STATUS "win32")
         # WINDOWS BUILD CONFIGURATION
-        set (WINDDK "${PROJECT_SOURCE_DIR}/../WinDDK/7600.16385.1")
-        message( STATUS "WinDDK in ${WINDDK}")
-        include_directories("${WINDDK}/inc")
-        set (WINDDK_LIB "${WINDDK}/lib/win7/i386")
+        if (NOT EXISTS "${LIBFREESPACE_WINDDK_DIR}")
+            message(FATAL_ERROR "Could not locate WinDDK - Specify path using the LIBFREESPACE_WINDDK_DIR variable")
+        endif()
+        message(STATUS "WinDDK in ${LIBFREESPACE_WINDDK_DIR}")
+        include_directories("${LIBFREESPACE_WINDDK_DIR}/inc")
+        set (WINDDK_LIB "${LIBFREESPACE_WINDDK_DIR}/lib/win7/i386")
         add_definitions(-DUNICODE -D_UNICODE)
         
         add_library(freespace ${LIBFREESPACE_LIB_TYPE}
@@ -184,7 +191,6 @@ else()
             message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
         endif()
     elseif(APPLE)
-        message(STATUS "apple")    
         # Mac OSX / Darwing build configuration
         add_library(freespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON}
