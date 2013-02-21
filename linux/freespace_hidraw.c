@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2009-2010 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2012-2013 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,8 +39,9 @@
 
 /**
  * TODO
- *    - bluetooth write support on Ubunutu/hidp.. wtf?
+ *    - bluetooth write support on Ubunutu/hidp
  * 	  - add sync support?
+ *    - better device suppport
  */
 
 //#define _FREESPACE_WARN
