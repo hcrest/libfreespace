@@ -24,7 +24,7 @@
 #include "freespace_discoveryDetail.h"
 #include <strsafe.h>
 #include <malloc.h>
-#include "../config-win32.h"
+#include "freespace_config.h"
 #include <cfgmgr32.h>
 
 struct LibfreespaceData* freespace_instance_ = NULL;

@@ -37,6 +37,7 @@ set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs"
 set(LIBFREESPACE_LIB_TYPE "SHARED" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
 set(LIBFREESPACE_BACKEND "" CACHE STRING "Specify an alternate backend on some paltforms. On Linux, valid values are 'hidraw' and 'libusb'")
 set(LIBFREESPACE_HIDRAW_THREADED_WRITES OFF CACHE STRING "Enable writes in a backend thread when using hidraw")
+set(LIBFREESPACE_CUSTOM_INSTALL_RULES "" CACHE STRING "CMake file to customize install rules when libfreespace is built as part of a larger project")
 
 set(src_gen
     "${PROJECT_BINARY_DIR}/gen_src/freespace_codecs.c"
@@ -65,8 +66,8 @@ add_custom_command(
         "common/messageCodeGenerator.py"
         "common/setupMessages.py"
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
+    COMMENT "Generating libfreespace Message code"
 )
-
 
 include_directories("include")
 include_directories("${PROJECT_BINARY_DIR}/include")
@@ -94,9 +95,15 @@ set (LIBFREESPACE_COMMON_SRCS
     "${LIBFREESPACE_CODEC_SRCS}"
 )
 
-# TODO : reconcile config-win32.h & config.h
-configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/include/config.h)
+#message(STATUS "LIBFREESPACE_ADDITIONAL_MESSAGE_FILE = ${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}")
+#message(STATUS "LIBFREESPACE_CODECS_ONLY             = ${LIBFREESPACE_CODECS_ONLY}")
+#message(STATUS "LIBFREESPACE_LIB_TYPE                = ${LIBFREESPACE_LIB_TYPE}")
+#message(STATUS "LIBFREESPACE_BACKEND                 = ${LIBFREESPACE_BACKEND}")
+#message(STATUS "LIBFREESPACE_HIDRAW_THREADED_WRITES  = ${LIBFREESPACE_HIDRAW_THREADED_WRITES}")
+#message(STATUS "LIBFREESPACE_CUSTOM_INSTALL_RULES    = ${LIBFREESPACE_CUSTOM_INSTALL_RULES}")
 
+# TODO : reconcile config-win32.h & config.h
+configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/include/freespace_config.h)
 
 if (LIBFREESPACE_CODECS_ONLY)
     # BUILD WITHOUT HID DEPENDENCIES
@@ -112,82 +119,95 @@ if (LIBFREESPACE_CODECS_ONLY)
             ${LIBFREESPACE_CODEC_SRCS}
         )
     endif()
-elseif (WIN32)
-    # WINDOWS BUILD CONFIGURATION
-    set (WINDDK "${PROJECT_SOURCE_DIR}/../WinDDK/7600.16385.1")
-    message( STATUS "WinDDK in ${WINDDK}")
-    include_directories("${WINDDK}/inc")
-    set (WINDDK_LIB "${WINDDK}/lib/win7/i386")
-    add_definitions(-DUNICODE -D_UNICODE)
-    
-    add_library(freespace ${LIBFREESPACE_LIB_TYPE}
-        ${LIBFREESPACE_COMMON_SRCS}
-        "win32/freespace_device.c"
-        "win32/freespace_deviceMgr.c"
-        "win32/freespace_discovery.c"
-        "win32/freespace_discoveryDetail.c"
-    )
-    
-    target_link_libraries(freespace "${WINDDK_LIB}/hid.lib")
-    target_link_libraries(freespace setupapi.lib)
-
-elseif(UNIX)
-    # Additional headers
-    include(CheckIncludeFiles)
-    check_include_files(sys/time.h HAVE_SYS_TIME_H)
-    if (NOT HAVE_SYS_TIME_H)
-        message(FATAL_ERROR "Could not find include file <sys/time.h>")
-    endif()
-    if (LIBFREESPACE_BACKEND STREQUAL "hidraw")
-        check_include_files(linux/hidraw.h HAVE_LINUX_HIDRAW_H)
-        if (NOT HAVE_LINUX_HIDRAW_H)
-            message(FATAL_ERROR "Could not find include file <linux/hidraw.h>")
-        endif()
-
-        if (LIBFREESPACE_HIDRAW_THREADED_WRITES) 
-            add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
-            list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
-        endif()
-            
-        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
-            ${LIBFREESPACE_COMMON_SRCS}
-            "linux/freespace_hidraw.c"
-            "linux/linux_hotplug.c"
-         )
-         
-    elseif (LIBFREESPACE_BACKEND STREQUAL "libusb" OR LIBFREESPACE_BACKEND STREQUAL "")
-        #set(libusb_1_FIND_QUIETLY ON)
-        set(LIBUSB1_FIND_REQUIRED ON)
-        find_package(libusb-1.0)
+else()
+    if (WIN32)
+        message(STATUS "win32")
+        # WINDOWS BUILD CONFIGURATION
+        set (WINDDK "${PROJECT_SOURCE_DIR}/../WinDDK/7600.16385.1")
+        message( STATUS "WinDDK in ${WINDDK}")
+        include_directories("${WINDDK}/inc")
+        set (WINDDK_LIB "${WINDDK}/lib/win7/i386")
+        add_definitions(-DUNICODE -D_UNICODE)
         
-        list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
-        add_definitions(-pthread)    
-           
-        include_directories(${LIBUSB_1_INCLUDE_DIRS})
-
         add_library(freespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON_SRCS}
-            "linux/freespace.c"
-            "linux/linux_hotplug.c"
-         )
+            "win32/freespace_device.c"
+            "win32/freespace_deviceMgr.c"
+            "win32/freespace_discovery.c"
+            "win32/freespace_discoveryDetail.c"
+        )
+        
+        target_link_libraries(freespace "${WINDDK_LIB}/hid.lib")
+        target_link_libraries(freespace setupapi.lib)
 
-        target_link_libraries(freespace ${LIBUSB_1_LIBRARIES})
+    elseif(UNIX) 
+        # Additional headers
+        include(CheckIncludeFiles)
+        check_include_files(sys/time.h HAVE_SYS_TIME_H)
+        if (NOT HAVE_SYS_TIME_H)
+            message(FATAL_ERROR "Could not find include file <sys/time.h>")
+        endif()
+        if (LIBFREESPACE_BACKEND STREQUAL "hidraw")
+            check_include_files(linux/hidraw.h HAVE_LINUX_HIDRAW_H)
+            if (NOT HAVE_LINUX_HIDRAW_H)
+                message(FATAL_ERROR "Could not find include file <linux/hidraw.h>")
+            endif()
+
+            if (LIBFREESPACE_HIDRAW_THREADED_WRITES) 
+                add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
+                list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
+            endif()
+            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+                ${LIBFREESPACE_COMMON_SRCS}
+                "linux/freespace_hidraw.c"
+                "linux/linux_hotplug.c"
+             )
+             
+        elseif (LIBFREESPACE_BACKEND STREQUAL "libusb" OR LIBFREESPACE_BACKEND STREQUAL "")
+            #set(libusb_1_FIND_QUIETLY ON)
+            set(LIBUSB1_FIND_REQUIRED ON)
+            find_package(libusb-1.0)
+            
+            list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
+            add_definitions(-pthread)    
+               
+            include_directories(${LIBUSB_1_INCLUDE_DIRS})
+
+            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+                ${LIBFREESPACE_COMMON_SRCS}
+                "linux/freespace.c"
+                "linux/linux_hotplug.c"
+             )
+
+            target_link_libraries(freespace ${LIBUSB_1_LIBRARIES})
+        else()
+            message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
+        endif()
+    elseif(APPLE)
+        message(STATUS "apple")    
+        # Mac OSX / Darwing build configuration
+        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+            ${LIBFREESPACE_COMMON}
+            "linux/freespace.c"
+            "linux/darwin_hotplug.c"
+        )
     else()
-        message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
+        message(FATAL_ERROR "Unsupported platform")
     endif()
-else(APPLE)
-    # Mac OSX / Darwing build configuration
-    add_library(freespace ${LIBFREESPACE_LIB_TYPE}
-        ${LIBFREESPACE_COMMON}
-        "linux/freespace.c"
-        "linux/darwin_hotplug.c"
-    )
 endif()
 
-
-install(TARGETS freespace LIBRARY DESTINATION lib)
-install(DIRECTORY include/freespace DESTINATION include)
-install(FILES ${hdr_gen} DESTINATION include/freespace)
+if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
+    if (NOT LIBFREESPACE_CODECS_ONLY)
+        install(TARGETS freespace LIBRARY DESTINATION lib)
+        set_target_properties(freespace PROPERTIES 
+            VERSION ${PROJECT_VERSION_STRING} 
+            SOVERSION ${PROJECT_VERSION_MAJOR} )        
+    endif()
+    install(DIRECTORY include/freespace DESTINATION include)
+    install(FILES ${hdr_gen} DESTINATION include/freespace)
+else()
+    include(${LIBFREESPACE_CUSTOM_INSTALL_RULES})
+endif()
 
 SET(CPACK_GENERATOR TGZ)
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CMake is a build tool")

@@ -20,7 +20,7 @@
 
 #include "freespace/freespace.h"
 #include "freespace/freespace_deviceTable.h"
-#include "config.h"
+#include "freespace_config.h"
 
 #include <stdlib.h>
 #include <stdio.h>

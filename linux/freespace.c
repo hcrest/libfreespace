@@ -21,7 +21,7 @@
 #include "freespace/freespace.h"
 #include "freespace/freespace_deviceTable.h"
 #include "hotplug.h"
-#include "config.h"
+#include "freespace_config.h"
 
 #include <libusb-1.0/libusb.h>
 #include <stdlib.h>
