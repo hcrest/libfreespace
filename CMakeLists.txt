@@ -23,7 +23,7 @@ set (PROJECT_VERSION_MAJOR 0)
 set (PROJECT_VERSION_MINOR 7)
 set (PROJECT_VERSION_PATCH 0)
 
-set (PROJECT_VERSIONSTR "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+set (PROJECT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 include(FindPythonInterp)
 if (NOT DEFINED PYTHONINTERP_FOUND)
@@ -78,7 +78,6 @@ add_custom_command(
 include_directories("include")
 include_directories("${PROJECT_BINARY_DIR}/include")
 
-
 # Determine the target endianness and set the libfreespace flag.
 if(ANDROID) 
     #TEST_BIG_ENDIAN doesn't work with Android NDK
@@ -108,10 +107,13 @@ set (LIBFREESPACE_COMMON_SRCS
 #message(STATUS "LIBFREESPACE_HIDRAW_THREADED_WRITES  = ${LIBFREESPACE_HIDRAW_THREADED_WRITES}")
 #message(STATUS "LIBFREESPACE_CUSTOM_INSTALL_RULES    = ${LIBFREESPACE_CUSTOM_INSTALL_RULES}")
 
-# TODO : reconcile config-win32.h & config.h
-configure_file(${PROJECT_SOURCE_DIR}/config.h.in ${PROJECT_BINARY_DIR}/include/freespace_config.h)
+configure_file(${PROJECT_SOURCE_DIR}/freespace_config.h.in ${PROJECT_BINARY_DIR}/include/freespace_config.h)
+
+
+set(_LIBFREESPACE_LIBRARIES "")
 
 if (LIBFREESPACE_CODECS_ONLY)
+    list(APPEND _LIBFREESPACE_LIBRARIES freespace-codecs)
     # BUILD WITHOUT HID DEPENDENCIES
     message(STATUS "Building libfreespace without HID support")
     if (ANDROID)
@@ -126,6 +128,7 @@ if (LIBFREESPACE_CODECS_ONLY)
         )
     endif()
 else()
+    list(APPEND _LIBFREESPACE_LIBRARIES freespace)
     if (WIN32)
         # WINDOWS BUILD CONFIGURATION
         if (NOT EXISTS "${LIBFREESPACE_WINDDK_DIR}")
@@ -243,5 +246,14 @@ SET(CPACK_STRIP_FILES "libfreespace")
 #SET(CPACK_SYSTEM_NAME "Linux-i686")
 #SET(CPACK_TOPLEVEL_TAG "Linux-i686")
 
-
 include(CPack)
+
+#
+# Exports 
+#
+set(LIBFREESPACE_LIBRARIES ${_LIBFREESPACE_LIBRARIES}
+    CACHE "STRING" "List of libraries to include for libfreespace support" FORCE)
+set(LIBFREESPACE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include 
+    CACHE "STRING" "List of include directories for libfreespace support" FORCE
+)
+mark_as_advanced(LIBFREESPACE_LIBRARIES LIBFREESPACE_INCLUDE_DIRS)
