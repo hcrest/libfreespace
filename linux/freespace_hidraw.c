@@ -729,7 +729,9 @@ static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const
 				*API = &freespace_deviceAPITable[i];
 			} else if (descriptor.size == 199) { // Ozmo Remote
 				*API = &freespace_deviceAPITable[i];
-			} else if (descriptor.size == 93) { // TI Remote
+			} else if (descriptor.size == 93) {  // TI Remote
+				*API = &freespace_deviceAPITable[i];
+			} else if (descriptor.size == 178) { // RC520
 				*API = &freespace_deviceAPITable[i];
 			}
 		}
