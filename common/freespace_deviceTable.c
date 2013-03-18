@@ -109,9 +109,10 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
 };
 
 const int freespace_deviceAPITableNum = sizeof(freespace_deviceAPITable) / sizeof(struct FreespaceDeviceAPI);
-
+
 const struct FreespaceDeviceInfo freespace_newDeviceAPITable[] = {
 	{ "Smart USB RF Transceiver v2 (MKCV)", 0x1d5a, 0xc0b3, 2 },
+	{ "Smart USB RF Transceiver v2 (MKCV)", 0x1d5a, 0xc2b3, 2 },
 };
 
 const int freespace_newDeviceAPITableNum = sizeof(freespace_newDeviceAPITable) / sizeof(freespace_newDeviceAPITable[0]);
