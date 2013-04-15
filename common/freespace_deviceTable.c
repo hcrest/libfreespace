@@ -89,6 +89,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
 	{ 0x1d5a, 0xc107, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP262"},
     { 0x1d5a, 0xc200, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP275"},
     { 0x1d5a, 0xc201, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for FSP276"},
+	{ 0x1d5a, 0xc2b3, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Smart USB RF Transceiver v2 (MKCV)"},
 	{ 0x1d5a, 0xc300, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP160"},
 	{ 0x1d5a, 0xc301, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for WP260"},
 	{ 0x1d5a, 0xc302, 1, 1, 0, {{0, 0},      {0, 0}}, "USB Bootloader for S2U160"},
