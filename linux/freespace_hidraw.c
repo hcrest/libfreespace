@@ -1069,7 +1069,6 @@ static int _disconnect(struct FreespaceDevice * device) {
 		TRACE("*** Sending removal notification (Opened)**", "");
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
-            hotplugCallback = NULL;
 		}
 
 		// we have to wait for closeDevice() to deallocate this device.
@@ -1091,7 +1090,6 @@ static int _disconnect(struct FreespaceDevice * device) {
 		TRACE("*** Sending removal notification (connected)**", "");
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
-            hotplugCallback = NULL;
 		}
 
     	return FREESPACE_SUCCESS;
