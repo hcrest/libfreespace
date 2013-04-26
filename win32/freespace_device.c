@@ -725,6 +725,8 @@ LIBFREESPACE_API int freespace_sendMessage(FreespaceDeviceId id,
     int retVal;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
+
+    memset(msgBuf, 0, sizeof(msgBuf));
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (message->dest == 0) {
@@ -781,6 +783,8 @@ LIBFREESPACE_API int freespace_sendMessageAsync(FreespaceDeviceId id,
     int retVal;
     uint8_t msgBuf[FREESPACE_MAX_OUTPUT_MESSAGE_SIZE];
     struct FreespaceDeviceInfo info;
+
+    memset(msgBuf, 0, sizeof(msgBuf));
     
     // Address is reserved for now and must be set to 0 by the caller.
     if (message->dest == 0) {
