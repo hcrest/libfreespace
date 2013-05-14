@@ -21,6 +21,11 @@
 # To specify additional include paths (for NDK builds) set the following var:
 #
 
+#
+# Exports
+#	LIBFREESPACE_MSG_GEN - target for message script generation
+#	LIBFREESPACE_C_INCLUDES - include directories for libfreespace
+
 LOCAL_PATH := $(call my-dir)/
 
 include $(CLEAR_VARS)
@@ -92,8 +97,10 @@ LOCAL_C_INCLUDES += \
 	$(LIBFREESPACE_GEN_DIR)/include/ \
 	$(LIBFREESPACE_ADDITIONAL_INCLUDES)
 
-LOCAL_EXPORT_C_INCLUDES := \
+LIBFREESPACE_C_INCLUDES := \
 	$(LOCAL_PATH)/include \
 	$(LIBFREESPACE_GEN_DIR)/include/
+
+LOCAL_EXPORT_C_INCLUDES := $(LIBFREESPACE_C_INCLUDES)
 
 include $(BUILD_STATIC_LIBRARY)
