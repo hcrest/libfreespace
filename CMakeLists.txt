@@ -1,4 +1,4 @@
-# 
+#
 # This file is part of libfreespace.
 # Copyright (c) 2009-2013 Hillcrest Laboratories, Inc.
 # libfreespace is free software; you can redistribute it and/or
@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-# 
+#
 #
 
 cmake_minimum_required (VERSION 2.6)
@@ -37,7 +37,7 @@ set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs"
 if (WIN32)
     set(LIBFREESPACE_LIB_TYPE_DEFAULT "STATIC")
 else()
-    set(LIBFREESPACE_LIB_TYPE_DEFAULT "SHARED")    
+    set(LIBFREESPACE_LIB_TYPE_DEFAULT "SHARED")
 endif()
 set(LIBFREESPACE_LIB_TYPE "${LIBFREESPACE_LIB_TYPE_DEFAULT}" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
 set(LIBFREESPACE_BACKEND "" CACHE STRING "Specify an alternate backend on some paltforms. On Linux, valid values are 'hidraw' and 'libusb'")
@@ -61,14 +61,14 @@ set(hdr_gen
 add_custom_command(
     OUTPUT ${src_gen} ${hdr_gen}
     COMMAND
-        ${PYTHON_EXECUTABLE}        
+        ${PYTHON_EXECUTABLE}
         "${PROJECT_SOURCE_DIR}/common/messageCodeGenerator.py"
         "-I" "${PROJECT_BINARY_DIR}/include/"
         "-s" "${PROJECT_BINARY_DIR}/gen_src/"
         "${PROJECT_SOURCE_DIR}/common/setupMessages.py"
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
     ${buildMessageCommand}
-    DEPENDS 
+    DEPENDS
         "common/messageCodeGenerator.py"
         "common/setupMessages.py"
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
@@ -79,7 +79,7 @@ include_directories("include")
 include_directories("${PROJECT_BINARY_DIR}/include")
 
 # Determine the target endianness and set the libfreespace flag.
-if(ANDROID) 
+if(ANDROID)
     #TEST_BIG_ENDIAN doesn't work with Android NDK
     add_definitions( -DFREESPACE_LITTLE_ENDIAN )
     SET( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lm" )
@@ -95,8 +95,9 @@ endif()
 
 # List the common source files
 set(LIBFREESPACE_CODEC_SRCS "${src_gen}")
-set (LIBFREESPACE_COMMON_SRCS 
+set (LIBFREESPACE_COMMON_SRCS
     "common/freespace_deviceTable.c"
+    "common/freespace_util.c"
     "${LIBFREESPACE_CODEC_SRCS}"
 )
 
@@ -117,12 +118,12 @@ if (LIBFREESPACE_CODECS_ONLY)
     # BUILD WITHOUT HID DEPENDENCIES
     message(STATUS "Building libfreespace without HID support")
     if (ANDROID)
-        add_library(freespace-codecs 
+        add_library(freespace-codecs
             STATIC
             ${LIBFREESPACE_CODEC_SRCS}
         )
     else()
-        add_library(freespace-codecs 
+        add_library(freespace-codecs
             ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_CODEC_SRCS}
         )
@@ -138,7 +139,7 @@ else()
         include_directories("${LIBFREESPACE_WINDDK_DIR}/inc")
         set (WINDDK_LIB "${LIBFREESPACE_WINDDK_DIR}/lib/win7/i386")
         add_definitions(-DUNICODE -D_UNICODE)
-        
+
         add_library(freespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON_SRCS}
             "win32/freespace_device.c"
@@ -146,11 +147,11 @@ else()
             "win32/freespace_discovery.c"
             "win32/freespace_discoveryDetail.c"
         )
-        
+
         target_link_libraries(freespace "${WINDDK_LIB}/hid.lib")
         target_link_libraries(freespace setupapi.lib)
 
-    elseif(UNIX) 
+    elseif(UNIX)
         # Additional headers
         include(CheckIncludeFiles)
         check_include_files(sys/time.h HAVE_SYS_TIME_H)
@@ -163,7 +164,7 @@ else()
                 message(FATAL_ERROR "Could not find include file <linux/hidraw.h>")
             endif()
 
-            if (LIBFREESPACE_HIDRAW_THREADED_WRITES) 
+            if (LIBFREESPACE_HIDRAW_THREADED_WRITES)
                 add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
                 list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
             endif()
@@ -172,15 +173,15 @@ else()
                 "linux/freespace_hidraw.c"
                 "linux/linux_hotplug.c"
              )
-             
+
         elseif (LIBFREESPACE_BACKEND STREQUAL "libusb" OR LIBFREESPACE_BACKEND STREQUAL "")
             #set(libusb_1_FIND_QUIETLY ON)
             set(LIBUSB1_FIND_REQUIRED ON)
             find_package(libusb-1.0)
-            
+
             list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
-            add_definitions(-pthread)    
-               
+            add_definitions(-pthread)
+
             include_directories(${LIBUSB_1_INCLUDE_DIRS})
 
             add_library(freespace ${LIBFREESPACE_LIB_TYPE}
@@ -208,9 +209,9 @@ endif()
 if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
     if (NOT LIBFREESPACE_CODECS_ONLY)
         install(TARGETS freespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-        set_target_properties(freespace PROPERTIES 
-            VERSION ${PROJECT_VERSION_STRING} 
-            SOVERSION ${PROJECT_VERSION_MAJOR} )        
+        set_target_properties(freespace PROPERTIES
+            VERSION ${PROJECT_VERSION_STRING}
+            SOVERSION ${PROJECT_VERSION_MAJOR} )
     endif()
     install(DIRECTORY include/freespace DESTINATION include)
     install(FILES ${hdr_gen} DESTINATION include/freespace)
@@ -254,11 +255,11 @@ SET(CPACK_STRIP_FILES "libfreespace")
 include(CPack)
 
 #
-# Exports 
+# Exports
 #
 set(LIBFREESPACE_LIBRARIES ${_LIBFREESPACE_LIBRARIES}
     CACHE "STRING" "List of libraries to include for libfreespace support" FORCE)
-set(LIBFREESPACE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include 
+set(LIBFREESPACE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
     CACHE "STRING" "List of include directories for libfreespace support" FORCE
 )
 mark_as_advanced(LIBFREESPACE_LIBRARIES LIBFREESPACE_INCLUDE_DIRS)

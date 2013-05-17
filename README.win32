@@ -64,11 +64,10 @@ Building
 To correctly check out all of the repositories, change to the <base>
 directory, and then run the following checkout.sh script:
     #!/bin/sh
-    bzr branch lp:libfreespace
-    bzr branch lp:libfreespace-examples
-    bzr branch lp:pyfreespace      # if you want the python bindings
-    bzr branch lp:jfreespace       # if you want the Java bindings
-    bzr branch lp:libfreespace.net # if you want the C# bindings
+    bzr branch lp:libfreespace libfreespace
+    bzr branch lp:libfreespace-examples libfreespace-examples
+    # if you want the Java bindings
+    bzr branch lp:jfreespace jfreespace
 
 
 Launch cmake-gui.
@@ -91,7 +90,7 @@ Click "Generate".
 There should now be a Visual Studio project under the "Where to build the binaries"
 location. The project is call libfreespace.sln.
 
-Open this project. Press F7 to buils all.
+Open this project. Press F7 to build all.
 
 Documentation
 =============
