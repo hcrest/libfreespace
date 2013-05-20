@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "freespace/freespace.h"
+#include <freespace/freespace_util.h>
 
 /******************************************************************************
  * freespace_util_getAcceleration
