@@ -1062,6 +1062,24 @@ SensorPeriodRequest.Fields[2] = [
 messages.append(SensorPeriodRequest)
 
 # ---------------------------------------------------------------------------------------
+# Button Motion Suppression Request
+BmsRequest = Message("BmsRequest", encode=True)
+BmsRequest.Documentation = "Used to suppress button motion"
+BmsRequest.addedVersion = ""
+BmsRequest.deprecatedVersion = ""
+BmsRequest.removedVersion = ""
+BmsRequest.appliesTo = []
+BmsRequest.ID[2] = {
+    ConstantID:7,
+    SubMessageID:{size:1, id:23}
+}
+BmsRequest.Fields[2] = [
+    {name:'bmsRequest', size:1, cType:'uint8_t', Documentation:"BMS Request"},
+]
+
+messages.append(BmsRequest)
+
+# ---------------------------------------------------------------------------------------
 # ------------------------- Generic In Reports ------------------------------------------
 # ---------------------------------------------------------------------------------------
 
