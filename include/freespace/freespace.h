@@ -22,6 +22,7 @@
 #define FREESPACE_H_
 
 #include "freespace/freespace_common.h"
+#include "freespace/freespace_codecs.h"
 
 #ifdef __cplusplus
 extern "C" {
