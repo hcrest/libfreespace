@@ -1,7 +1,7 @@
 /**
- * @mainpage @PACKAGE@ @VERSION@ Documentation
+ * @mainpage @PROJECT_NAME@ @PROJECT_VERSION_STRING@ Documentation
  *
- * See @PACKAGE@ website for more information and FAQ
+ * See @PROJECT_NAME@ website for more information and FAQ
  *
  * \version 0.6 - New messages, DataModeControlV2 and ReorientationRequest, Scoop and FSM-USB_2 support
  * \version 0.5 - API refactor to send messages, FSP2xx support
