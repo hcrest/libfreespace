@@ -23,15 +23,15 @@ if (NOT DOXYGEN)
     return()
 ENDIF ()
 
-set(LIBFREEPACE_DOCS_ENABLED ON CACHE BOOL "Enable doxygen docs as a build target")
-if (NOT LIBFREEPACE_DOCS_ENABLED)
+set(LIBFREESPACE_DOCS_ENABLED ON CACHE BOOL "Enable doxygen docs as a build target")
+if (NOT LIBFREESPACE_DOCS_ENABLED)
 	return()
 endif()
-set(LIBFREEPACE_DOCS_INTERNAL OFF CACHE BOOL "Generate doxygen for src files (in addition to API)")
+set(LIBFREESPACE_DOCS_INTERNAL OFF CACHE BOOL "Generate doxygen for src files (in addition to API)")
 
 set(DOXYGEN_SRC "${PROJECT_BINARY_DIR}/doc/mainpage.h" "${PROJECT_SOURCE_DIR}/include/" "${PROJECT_BINARY_DIR}/include/")
 
-if (LIBFREEPACE_DOCS_INTERNAL)
+if (LIBFREESPACE_DOCS_INTERNAL)
 	set(DOXYGEN_SRC ${DOXYGEN_SRC} "${PROJECT_SOURCE_DIR}/linux/" "${PROJECT_SOURCE_DIR}/win32/")
 endif()
 
