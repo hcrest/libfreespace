@@ -43,7 +43,7 @@ set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs"
 set(LIBFREESPACE_CUSTOM_INSTALL_RULES "" CACHE FILEPATH "CMake file to customize install rules when libfreespace is built as part of a larger project")
 set(LIBFREESPACE_HIDRAW_THREADED_WRITES OFF CACHE BOOL "Enable writes in a backend thread when using hidraw")
 set(LIBFREESPACE_LIB_TYPE "${LIBFREESPACE_LIB_TYPE_DEFAULT}" CACHE STRING "An additional HID message definition file, set to SHARED or STATIC")
-set(LIBFREESPACE_WINDDK_DIR "" CACHE PATH "The WINDDK path for Windows 32-bit builds")
+set_property(CACHE LIBFREESPACE_LIB_TYPE PROPERTY STRINGS "SHARED" "STATIC")
 
 set(src_gen
     "${PROJECT_BINARY_DIR}/gen_src/freespace_codecs.c"
@@ -74,9 +74,6 @@ add_custom_command(
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
     COMMENT "Generating libfreespace Message code"
 )
-
-include_directories("include")
-include_directories("${PROJECT_BINARY_DIR}/include")
 
 # Determine the target endianness and set the libfreespace flag.
 if(ANDROID)
@@ -124,12 +121,39 @@ else()
     list(APPEND _LIBFREESPACE_LIBRARIES freespace)
     if (WIN32)
         # WINDOWS BUILD CONFIGURATION
-        if (NOT EXISTS "${LIBFREESPACE_WINDDK_DIR}")
-            message(FATAL_ERROR "Could not locate WinDDK - Specify path using the LIBFREESPACE_WINDDK_DIR variable")
-        endif()
-        message(STATUS "WinDDK in ${LIBFREESPACE_WINDDK_DIR}")
-        include_directories("${LIBFREESPACE_WINDDK_DIR}/inc")
-        set (WINDDK_LIB "${LIBFREESPACE_WINDDK_DIR}/lib/win7/i386")
+
+        find_package(WinDDK REQUIRED)
+
+        # If using Visual Studio 9 (2008) then we need a couple special includes to make things work
+        IF(MSVC90)
+        	IF ("${VC_INCLUDE}" STREQUAL "" OR "${VC_INCLUDE}" STREQUAL "VC_INCLUDE-NOTFOUND")
+	        	IF (NOT $ENV{VS90COMNTOOLS} STREQUAL "")
+	        		# First try finding it using COMNTOOLS
+	        		get_filename_component(VC_INCLUDE_SEARCH_DIRS $ENV{VS90COMNTOOLS} PATH)
+	        		get_filename_component(VC_INCLUDE_SEARCH_DIRS ${VC_INCLUDE_SEARCH_DIRS} PATH)
+	        		SET(VC_INCLUDE_SEARCH_DIRS "${VC_INCLUDE_SEARCH_DIRS}/VC/include")
+	        	ENDIF()
+	        	IF (EXISTS "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include")
+	        		# Next add a raw guess path
+	        		SET(VC_INCLUDE_SEARCH_DIRS "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include" ${VC_INCLUDE_SEARCH_DIRS})
+	        	ENDIF()
+	        	FIND_PATH(VC_INCLUDE NAMES "string.h" PATHS ${VC_INCLUDE_SEARCH_DIRS})
+	        	SET(VC_INCLUDE "${VC_INCLUDE}" CACHE PATH "Path to the Visual Studio 9.0 Include directory")
+	        	IF ("${VC_INCLUDE}" STREQUAL "" OR "${VC_INCLUDE}" STREQUAL "VC_INCLUDE-NOTFOUND")
+	        		# If neither of those worked prompt user
+	        		MESSAGE(FATAL_ERROR "Visual Studio 9.0 Include Path not found - please set the VC_INCLUDE path.")
+        		ENDIF()
+	        ENDIF()
+	       	IF (NOT EXISTS "${VC_INCLUDE}/string.h")
+	        	# Checks for string.h to see if it makes sense as an include path
+	        	MESSAGE(FATAL_ERROR "VC_INCLUDE does not point to a valid Include path. Look for Microsoft Visual Studio 9.0/VC/include/")
+        	ENDIF()
+        	include_directories("${VC_INCLUDE}")
+        	include_directories("${WINDDK_INCLUDE_DIR}/api")
+        ENDIF()
+
+        include_directories("${WINDDK_INCLUDE_DIR}")
+
         add_definitions(-DUNICODE -D_UNICODE)
 
         add_library(freespace ${LIBFREESPACE_LIB_TYPE}
@@ -140,8 +164,7 @@ else()
             "win32/freespace_discoveryDetail.c"
         )
 
-        target_link_libraries(freespace "${WINDDK_LIB}/hid.lib")
-        target_link_libraries(freespace setupapi.lib)
+        target_link_libraries(freespace "${WINDDK_LIBRARIES}")
 
     elseif(UNIX)
         # Additional headers
@@ -198,6 +221,9 @@ else()
     endif()
 endif()
 
+## These includes are down here because the platform-specific includes must be added first.
+include_directories("include")
+include_directories("${PROJECT_BINARY_DIR}/include")
 
 ### Docs
 add_subdirectory(doc)
