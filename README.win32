@@ -1,50 +1,59 @@
+libfreespace Build info
+Updated 7/3/2013
+
 General Information
 ===================
 
 This document describes the build process for libfreespace.
+
+
+Required Tools
+===================
 
 The tools required to fully build libfreespace are:
 
 All platforms
 
 1)  bazaar          http://bazaar-vcs.org/WindowsDownloads/
+    Use a stable release.
 
 2)  Python v2       http://www.python.org/download/
     Update the environment variable PATH to include the folder that contain
     python.exe.
 
 3)  Doxygen         http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc
-    The configuration file doc\Doxyfile_win is compatible with doxygen 1.8.0.
+    The configuration file doc\Doxyfile is compatible with doxygen 1.8.0.
 
 4)  Graphviz        http://www.graphviz.org/Download_windows.php
+    As of writing, we are using version 2.30.1
 
-5)  CMake           http://www.cmake.org/
+5)  CMake v2.8      http://www.cmake.org/
 
 Windows
 
-1)  MS Visual Studio 2005, 2008, or 2010
+1)  MS Visual Studio 9.0 (2008), 10 (2010), 11 (2012)
+	The "Express" versions work just fine. Only the Visual C/C++ parts are
+	necessary.
 
 2)  Windows Driver Kit (WDK) 7.1.0
     The WDK can be obtained from Microsoft by following the instructions at:
     http://msdn.microsoft.com/en-us/library/windows/hardware/gg487428.aspx
 
-    The project files are currently configured to look for the DDK in the
-    default installation location of C:\WinDDK\7600.16385.1. If you install
-    the DDK elsewhere, you will need to update the include file and library
-    paths.
+    CMake will automatically look for the DDK at C:\WinDDK\7600.16385.1.
+    If you install the DDK elsewhere, you can either point to it during the
+    configuration process, or you can point the environment variable
+    "WINDDK_DIR" to it and CMake will find it.
+
+    At the moment, the newest WDK 8.0 is not supported.
 
 3)  7-zip           http://www.7-zip.org/
+	This may not actually be necessary.
     Update the environment variable PATH to include the folder that contain
     7z.exe.
 
-Linux
 
-Mac OS X
-
-
-Obtaining the files
+Folder Hierarchy
 ===================
-
 
 The build process relies upon a fixed directory structure between
 the different projects.  The structure should be:
@@ -58,8 +67,8 @@ to remove those numbers. If you are building from the bazaar repository,
 you do not need to make any changes.
 
 
-Building
-========
+Getting the files
+===================
 
 To correctly check out all of the repositories, change to the <base>
 directory, and then run the following checkout.sh script:
@@ -69,35 +78,79 @@ directory, and then run the following checkout.sh script:
     # if you want the Java bindings
     bzr branch lp:jfreespace jfreespace
 
+If you find this doesn't work, try:
+    bzr branch lp:~libfreespace-devteam/libfreespace/cmake libfreespace
+    bzr branch lp:~libfreespace-devteam/libfreespace-examples/cmake libfreespace-examples
+
+Building
+===================
 
 Launch cmake-gui.
 
 Fill in the "Where is the source code:" entry. This will be the location of the
 libfreespace directory. (e.g. c:\Hillcrest\libfreespace)
 
-Fill in the "Where to build the binaries" entry. This can be anywhere but a reasonable
-location is c:\Hillcrest\build\win\libfreespace. (If you are also building the examples
-then you might want to put them in c:\Hillcrest\build\win\examples.)
-
-Set the LIBFREESPACE_WINDDK_DIR variable. A typical setting is C:\WinDDK\7600.16385.1
+Fill in the "Where to build the binaries" entry. This can be anywhere but a
+reasonable location is c:\Hillcrest\build\win\libfreespace. (If you are also
+building the examples then you might want to put them in
+c:\Hillcrest\build\win\examples.)
 
 Click "Configure".
 
-OTHER STUFF TO CONFIGURE
+If there are errors, then you may need to fill in some paths on your own.
+For example:
+
+The LIBFREESPACE_WINDDK_DIR variable. A typical setting is:
+    C:\WinDDK\7600.16385.1
+If using Visual Studio 9, the VC_INCLUDE variable. A typical setting is:
+    C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include
+
+There are other configuration settings available:
+
+LIBFREESPACE_BACKEND :
+    Specify an alternate backend on some paltforms. On Linux, valid values are
+    'hidraw' and 'libusb'
+LIBFREESPACE_CODECS_ONLY : (ON/OFF)
+    Build only the libfreespace codecs
+LIBFREESPACE_CUSTOM_INSTALL_RULES :
+    CMake file to customize install rules when libfreespace is built as part of
+    a larger project
+LIBFREESPACE_DOCS_ENABLED : (ON/OFF)
+    Enabled doxygen docs as build target
+LIBFREESPACE_DOCS_INTERNAL : (ON/OFF)
+    Generate doxygen for src files (in addition to API)
+LIBFREESPACE_HIDRAW_THREADED_WRITES : (ON/OFF)
+    Enable writes in a backend thread when using hidraw
+LIBFREESPACE_LIB_TYPE : (SHARED/STATIC)
+    The type of library to create
+
+Set whatever configuration settings you wish, then click "Configure" until all
+red bars are gone.
 
 Click "Generate".
 
-There should now be a Visual Studio project under the "Where to build the binaries"
-location. The project is call libfreespace.sln.
+There should now be a Visual Studio project under the "Where to build the
+binaries" location. The project will be called libfreespace.sln .
 
 Open this project. Press F7 to build all.
 
 Documentation
 =============
 
-To make the doxygen documentation:
-1) cd doc
-2) doxygen Doxyfile_win
+To make the doxygen documentation, you can simply build the libfreespace-docs
+project in the libfreespace solution.
+    1) Open an explorer window to your build directory
+    2) Open libfreespace.sln
+    3) Right click on the libfreespace-docs project and click "Build"
+    4) You can open the documentation by returning to the explorer window, and
+    opening docs > html > index.html
 
-
-
+You can also build the documentation from the command line by opening a command
+window in your build directory:
+    1) Open an explorer window to your build directory
+    2) Shift-(Right Click) on the window and select "Open command window here"
+    3) In the command window, enter:
+    cd doc
+    doxygen Doxyfile
+    4) From here you can open it using
+    ./html/index.html
