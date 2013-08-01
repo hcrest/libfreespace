@@ -43,9 +43,6 @@ set(LIBFREESPACE_CODECS_ONLY OFF CACHE BOOL "Build only the libfreespace codecs"
 set(LIBFREESPACE_CUSTOM_INSTALL_RULES "" CACHE FILEPATH "CMake file to customize install rules when libfreespace is built as part of a larger project")
 set(LIBFREESPACE_HIDRAW_THREADED_WRITES OFF CACHE BOOL "Enable writes in a backend thread when using hidraw")
 set(LIBFREESPACE_LIB_TYPE "${LIBFREESPACE_LIB_TYPE_DEFAULT}" CACHE STRING "The type of library to create, set to SHARED or STATIC")
-set_property(CACHE LIBFREESPACE_LIB_TYPE PROPERTY STRINGS "SHARED" "STATIC")
-
-set(CMAKE_INSTALL_PREFIX "." CACHE PATH "Path to where the lib folder will be installed." FORCE)
 
 set(LIBFREESPACE_CODEC_SRCS
     "${PROJECT_BINARY_DIR}/gen_src/freespace_codecs.c"
@@ -142,7 +139,7 @@ else()
 
         add_definitions(-DUNICODE -D_UNICODE)
 
-        add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
+        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON_SRCS}
             "win32/freespace_device.c"
             "win32/freespace_deviceMgr.c"
@@ -151,12 +148,12 @@ else()
         )
 
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
-	        target_link_libraries(libfreespace "${WINDDK_WIN7_X64_LIBS}")
+	        target_link_libraries(freespace "${WINDDK_WIN7_X64_LIBS}")
 	    ELSE()
 	        IF (${CMAKE_SYSTEM_VERSION} EQUAL 5.1)  # Means we are running XP
-	            target_link_libraries(libfreespace "${WINDDK_WINXP_X86_LIBS}")
+	            target_link_libraries(freespace "${WINDDK_WINXP_X86_LIBS}")
 	        ELSE()
-	            target_link_libraries(libfreespace "${WINDDK_WIN7_X86_LIBS}")
+	            target_link_libraries(freespace "${WINDDK_WIN7_X86_LIBS}")
 	        ENDIF()
 	    ENDIF()
 
@@ -177,7 +174,7 @@ else()
                 add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
                 list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
             endif()
-            add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
+            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
                 ${LIBFREESPACE_COMMON_SRCS}
                 "linux/freespace_hidraw.c"
                 "linux/linux_hotplug.c"
@@ -193,19 +190,19 @@ else()
 
             include_directories(${LIBUSB_1_INCLUDE_DIRS})
 
-            add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
+            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
                 ${LIBFREESPACE_COMMON_SRCS}
                 "linux/freespace.c"
                 "linux/linux_hotplug.c"
              )
 
-            target_link_libraries(libfreespace ${LIBUSB_1_LIBRARIES})
+            target_link_libraries(freespace ${LIBUSB_1_LIBRARIES})
         else()
             message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
         endif()
     elseif(APPLE)
         # Mac OSX / Darwing build configuration
-        add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
+        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON}
             "linux/freespace.c"
             "linux/darwin_hotplug.c"
@@ -225,8 +222,8 @@ add_subdirectory(doc)
 ### Install rules
 if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
     if (NOT LIBFREESPACE_CODECS_ONLY)
-        install(TARGETS libfreespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-        set_target_properties(libfreespace PROPERTIES
+        install(TARGETS freespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        set_target_properties(freespace PROPERTIES
             VERSION ${PROJECT_VERSION_STRING}
             SOVERSION ${PROJECT_VERSION_MAJOR} )
     endif()
