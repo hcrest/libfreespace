@@ -45,12 +45,14 @@ set(LIBFREESPACE_HIDRAW_THREADED_WRITES OFF CACHE BOOL "Enable writes in a backe
 set(LIBFREESPACE_LIB_TYPE "${LIBFREESPACE_LIB_TYPE_DEFAULT}" CACHE STRING "The type of library to create, set to SHARED or STATIC")
 set_property(CACHE LIBFREESPACE_LIB_TYPE PROPERTY STRINGS "SHARED" "STATIC")
 
-set(src_gen
+set(CMAKE_INSTALL_PREFIX "." CACHE PATH "Path to where the lib folder will be installed." FORCE)
+
+set(LIBFREESPACE_CODEC_SRCS
     "${PROJECT_BINARY_DIR}/gen_src/freespace_codecs.c"
     "${PROJECT_BINARY_DIR}/gen_src/freespace_printers.c"
 )
 
-set(hdr_gen
+set(LIBFREESPACE_CODEC_HDRS
     "${PROJECT_BINARY_DIR}/include/freespace/freespace_codecs.h"
     "${PROJECT_BINARY_DIR}/include/freespace/freespace_printers.h"
 )
@@ -59,7 +61,7 @@ set(hdr_gen
 
 # Build rule to generate the HCOMM messages as needed.
 add_custom_command(
-    OUTPUT ${src_gen} ${hdr_gen}
+    OUTPUT ${LIBFREESPACE_CODEC_SRCS} ${LIBFREESPACE_CODEC_HDRS}
     COMMAND
         ${PYTHON_EXECUTABLE}
         "${PROJECT_SOURCE_DIR}/common/messageCodeGenerator.py"
@@ -68,10 +70,7 @@ add_custom_command(
         "${PROJECT_SOURCE_DIR}/common/setupMessages.py"
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
     ${buildMessageCommand}
-    DEPENDS
-        "common/messageCodeGenerator.py"
-        "common/setupMessages.py"
-        "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
+    DEPENDS "${PROJECT_BINARY_DIR}/include"		# This is a workaround to make VS2008 compatible
     COMMENT "Generating libfreespace Message code"
 )
 
@@ -91,7 +90,6 @@ else()
 endif()
 
 # List the common source files
-set(LIBFREESPACE_CODEC_SRCS "${src_gen}")
 set (LIBFREESPACE_COMMON_SRCS
     "common/freespace_deviceTable.c"
     "common/freespace_util.c"
@@ -126,37 +124,25 @@ else()
 
         # If using Visual Studio 9 (2008) then we need a couple special includes to make things work
         IF(MSVC90)
-        	IF ("${VC_INCLUDE}" STREQUAL "" OR "${VC_INCLUDE}" STREQUAL "VC_INCLUDE-NOTFOUND")
-	        	IF (NOT $ENV{VS90COMNTOOLS} STREQUAL "")
-	        		# First try finding it using COMNTOOLS
-	        		get_filename_component(VC_INCLUDE_SEARCH_DIRS $ENV{VS90COMNTOOLS} PATH)
-	        		get_filename_component(VC_INCLUDE_SEARCH_DIRS ${VC_INCLUDE_SEARCH_DIRS} PATH)
-	        		SET(VC_INCLUDE_SEARCH_DIRS "${VC_INCLUDE_SEARCH_DIRS}/VC/include")
-	        	ENDIF()
-	        	IF (EXISTS "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include")
-	        		# Next add a raw guess path
-	        		SET(VC_INCLUDE_SEARCH_DIRS "C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/include" ${VC_INCLUDE_SEARCH_DIRS})
-	        	ENDIF()
-	        	FIND_PATH(VC_INCLUDE NAMES "string.h" PATHS ${VC_INCLUDE_SEARCH_DIRS})
-	        	SET(VC_INCLUDE "${VC_INCLUDE}" CACHE PATH "Path to the Visual Studio 9.0 Include directory")
-	        	IF ("${VC_INCLUDE}" STREQUAL "" OR "${VC_INCLUDE}" STREQUAL "VC_INCLUDE-NOTFOUND")
-	        		# If neither of those worked prompt user
-	        		MESSAGE(FATAL_ERROR "Visual Studio 9.0 Include Path not found - please set the VC_INCLUDE path.")
-        		ENDIF()
-	        ENDIF()
-	       	IF (NOT EXISTS "${VC_INCLUDE}/string.h")
-	        	# Checks for string.h to see if it makes sense as an include path
-	        	MESSAGE(FATAL_ERROR "VC_INCLUDE does not point to a valid Include path. Look for Microsoft Visual Studio 9.0/VC/include/")
-        	ENDIF()
-        	include_directories("${VC_INCLUDE}")
+        	find_package(VC9Include REQUIRED)
+
+        	include_directories("${VC9_INCLUDE}")
         	include_directories("${WINDDK_INCLUDE_DIR}/api")
+        ENDIF()
+
+        # If using Visual Studio 8 (2005) then we need a couple special includes to make things work
+        IF(MSVC80)
+            find_package(VC8Include REQUIRED)
+
+            include_directories("${VC8_INCLUDE}")
+            include_directories("${WINDDK_INCLUDE_DIR}/api")
         ENDIF()
 
         include_directories("${WINDDK_INCLUDE_DIR}")
 
         add_definitions(-DUNICODE -D_UNICODE)
 
-        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+        add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON_SRCS}
             "win32/freespace_device.c"
             "win32/freespace_deviceMgr.c"
@@ -164,7 +150,15 @@ else()
             "win32/freespace_discoveryDetail.c"
         )
 
-        target_link_libraries(freespace "${WINDDK_LIBRARIES}")
+	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
+	        target_link_libraries(libfreespace "${WINDDK_WIN7_X64_LIBS}")
+	    ELSE()
+	        IF (${CMAKE_SYSTEM_VERSION} EQUAL 5.1)  # Means we are running XP
+	            target_link_libraries(libfreespace "${WINDDK_WINXP_X86_LIBS}")
+	        ELSE()
+	            target_link_libraries(libfreespace "${WINDDK_WIN7_X86_LIBS}")
+	        ENDIF()
+	    ENDIF()
 
     elseif(UNIX)
         # Additional headers
@@ -183,7 +177,7 @@ else()
                 add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
                 list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
             endif()
-            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+            add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
                 ${LIBFREESPACE_COMMON_SRCS}
                 "linux/freespace_hidraw.c"
                 "linux/linux_hotplug.c"
@@ -199,19 +193,19 @@ else()
 
             include_directories(${LIBUSB_1_INCLUDE_DIRS})
 
-            add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+            add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
                 ${LIBFREESPACE_COMMON_SRCS}
                 "linux/freespace.c"
                 "linux/linux_hotplug.c"
              )
 
-            target_link_libraries(freespace ${LIBUSB_1_LIBRARIES})
+            target_link_libraries(libfreespace ${LIBUSB_1_LIBRARIES})
         else()
             message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
         endif()
     elseif(APPLE)
         # Mac OSX / Darwing build configuration
-        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+        add_library(libfreespace ${LIBFREESPACE_LIB_TYPE}
             ${LIBFREESPACE_COMMON}
             "linux/freespace.c"
             "linux/darwin_hotplug.c"
@@ -231,13 +225,13 @@ add_subdirectory(doc)
 ### Install rules
 if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
     if (NOT LIBFREESPACE_CODECS_ONLY)
-        install(TARGETS freespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
-        set_target_properties(freespace PROPERTIES
+        install(TARGETS libfreespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        set_target_properties(libfreespace PROPERTIES
             VERSION ${PROJECT_VERSION_STRING}
             SOVERSION ${PROJECT_VERSION_MAJOR} )
     endif()
     install(DIRECTORY include/freespace DESTINATION include)
-    install(FILES ${hdr_gen} DESTINATION include/freespace)
+    install(FILES ${LIBFREESPACE_CODEC_HDRS} DESTINATION include/freespace)
 else()
     include(${LIBFREESPACE_CUSTOM_INSTALL_RULES})
 endif()

@@ -46,11 +46,6 @@ Windows
 
     At the moment, the newest WDK 8.0 is not supported.
 
-3)  7-zip           http://www.7-zip.org/
-	This may not actually be necessary.
-    Update the environment variable PATH to include the folder that contain
-    7z.exe.
-
 
 Folder Hierarchy
 ===================
@@ -107,6 +102,12 @@ If using Visual Studio 9, the VC_INCLUDE variable. A typical setting is:
 
 There are other configuration settings available:
 
+CMAKE_INSTALL_PREFIX :
+	The installation directory where the CMake install project will install to.
+	This is initiated by building the "INSTALL" project in the VS solution.
+	Default is the build directory.
+LIBFREESPACE_ADDITIONAL_MESSAGE_FILE :
+	An additional HID message definition file.
 LIBFREESPACE_BACKEND :
     Specify an alternate backend on some paltforms. On Linux, valid values are
     'hidraw' and 'libusb'
