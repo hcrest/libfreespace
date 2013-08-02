@@ -1,18 +1,16 @@
 libfreespace Build info
-Updated 7/3/2013
+Updated 8/2/2013
 
 General Information
 ===================
 
-This document describes the build process for libfreespace.
+This document describes the build process for libfreespace on Windows.
 
 
 Required Tools
 ===================
 
 The tools required to fully build libfreespace are:
-
-All platforms
 
 1)  bazaar          http://bazaar-vcs.org/WindowsDownloads/
     Use a stable release.
@@ -21,7 +19,7 @@ All platforms
     Update the environment variable PATH to include the folder that contain
     python.exe.
 
-3)  Doxygen         http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc
+3)  Doxygen         http://www.stack.nl/~dimitri/doxygen/download.html
     The configuration file doc\Doxyfile is compatible with doxygen 1.8.0.
 
 4)  Graphviz        http://www.graphviz.org/Download_windows.php
@@ -29,13 +27,11 @@ All platforms
 
 5)  CMake v2.8      http://www.cmake.org/
 
-Windows
+6)  One of MS Visual Studio 8.0 (2005), 9.0 (2008), 10 (2010), 11 (2012)
+	The "Express" versions work just fine, although they lack 64-bit compilers.
+    Only the Visual C/C++ parts arenecessary.
 
-1)  MS Visual Studio 9.0 (2008), 10 (2010), 11 (2012)
-	The "Express" versions work just fine. Only the Visual C/C++ parts are
-	necessary.
-
-2)  Windows Driver Kit (WDK) 7.1.0
+7)  Windows Driver Development Kit (WinDDK) 7.1.0
     The WDK can be obtained from Microsoft by following the instructions at:
     http://msdn.microsoft.com/en-us/library/windows/hardware/gg487428.aspx
 
@@ -47,21 +43,6 @@ Windows
     At the moment, the newest WDK 8.0 is not supported.
 
 
-Folder Hierarchy
-===================
-
-The build process relies upon a fixed directory structure between
-the different projects.  The structure should be:
-    <base>/libfreespace
-    <base>/libfreespace-examples
-    <base>/jfreespace   # Optional
-where <base> represents your fully-qualified base directory.  For example, you
-could use <base> = c:/Hillcrest/. Note that the packaged source releases
-contain version numbers in their names. To build under Windows, you need
-to remove those numbers. If you are building from the bazaar repository,
-you do not need to make any changes.
-
-
 Getting the files
 ===================
 
@@ -69,13 +50,9 @@ To correctly check out all of the repositories, change to the <base>
 directory, and then run the following checkout.sh script:
     #!/bin/sh
     bzr branch lp:libfreespace libfreespace
-    bzr branch lp:libfreespace-examples libfreespace-examples
-    # if you want the Java bindings
-    bzr branch lp:jfreespace jfreespace
 
 If you find this doesn't work, try:
     bzr branch lp:~libfreespace-devteam/libfreespace/cmake libfreespace
-    bzr branch lp:~libfreespace-devteam/libfreespace-examples/cmake libfreespace-examples
 
 Building
 ===================
@@ -86,18 +63,30 @@ Fill in the "Where is the source code:" entry. This will be the location of the
 libfreespace directory. (e.g. c:\Hillcrest\libfreespace)
 
 Fill in the "Where to build the binaries" entry. This can be anywhere but a
-reasonable location is c:\Hillcrest\build\win\libfreespace. (If you are also
-building the examples then you might want to put them in
-c:\Hillcrest\build\win\examples.)
+reasonable location is c:\Hillcrest\build\libfreespace. 
 
-Click "Configure".
+If some configuration data opens up when you enter the build directory, it means
+that the directory already had a build in it. You can reset the directory by 
+selecting File > Delete Cache.
 
-If there are errors, then you may need to fill in some paths on your own.
-For example:
+Click "Configure". You will be prompted to select a generator for this project.
+Choose any of the supported generators:
+    Visual Studio 8 2005
+    Visual Studio 9 2008
+    Visual Studio 10
+    Visual Studio 11
 
-The LIBFREESPACE_WINDDK_DIR variable. A typical setting is:
+At this point, all the configuration settings will be red. This is the time to 
+make any changes to the settings that are displayed. Not all settings are
+required, however some important ones are:
+
+The WINDDK_DIR variable. If your WinDDK is installed in a typical location then
+cmake should be able to detect it for you. A typical setting is:
     C:\WinDDK\7600.16385.1
-If using Visual Studio 9, the VC_INCLUDE variable. A typical setting is:
+
+If using Visual Studio 8 or 9, the VC8_INCLUDE or VC9_INCLUDE variable. If your
+Visual Studio installation is in a typical location cmake should be able to 
+detect it for you. A typical setting is:
     C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include
 
 There are other configuration settings available:
@@ -105,9 +94,7 @@ There are other configuration settings available:
 CMAKE_INSTALL_PREFIX :
 	The installation directory where the CMake install project will install to.
 	This is initiated by building the "INSTALL" project in the VS solution.
-	Default is the build directory.
-LIBFREESPACE_ADDITIONAL_MESSAGE_FILE :
-	An additional HID message definition file.
+	Default is typically "C:\Program Files (x86)\libfreespace"
 LIBFREESPACE_BACKEND :
     Specify an alternate backend on some paltforms. On Linux, valid values are
     'hidraw' and 'libusb'
@@ -124,16 +111,25 @@ LIBFREESPACE_HIDRAW_THREADED_WRITES : (ON/OFF)
     Enable writes in a backend thread when using hidraw
 LIBFREESPACE_LIB_TYPE : (SHARED/STATIC)
     The type of library to create
+LIBFREESPACE_ADDITIONAL_MESSAGE_FILE :
+    Reserved for Hillcrest use. An additional HID message definition file.
 
 Set whatever configuration settings you wish, then click "Configure" until all
-red bars are gone.
+red bars are gone. If a red bar persists, it means that setting will need to
+be set manually.
 
-Click "Generate".
+Once the red bars are gone click "Generate".
 
 There should now be a Visual Studio project under the "Where to build the
 binaries" location. The project will be called libfreespace.sln .
 
-Open this project. Press F7 to build all.
+Open this project. Press F7 to build all. There should now be a
+libfreespace.lib file in the Debug directory of the build directory.
+
+If you wish to use the "INSTALL" feature of cmake, you will need to open
+Visual Studio using administrator privileges. Then right click the "INSTALL"
+project and click "Build". There will now be a libfreespace build in the
+install directory pointed to by CMAKE_INSTALL_PREFIX.
 
 Documentation
 =============

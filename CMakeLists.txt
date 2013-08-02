@@ -123,19 +123,19 @@ else()
         IF(MSVC90)
         	find_package(VC9Include REQUIRED)
 
-        	include_directories("${VC9_INCLUDE}")
-        	include_directories("${WINDDK_INCLUDE_DIR}/api")
+        	include_directories(${VC9_INCLUDE})
+        	include_directories(${WINDDK_INCLUDE_DIR}/api)
         ENDIF()
 
         # If using Visual Studio 8 (2005) then we need a couple special includes to make things work
         IF(MSVC80)
             find_package(VC8Include REQUIRED)
 
-            include_directories("${VC8_INCLUDE}")
-            include_directories("${WINDDK_INCLUDE_DIR}/api")
+            include_directories(${VC8_INCLUDE})
+            include_directories(${WINDDK_INCLUDE_DIR}/api)
         ENDIF()
 
-        include_directories("${WINDDK_INCLUDE_DIR}")
+        include_directories(${WINDDK_INCLUDE_DIR})
 
         add_definitions(-DUNICODE -D_UNICODE)
 
@@ -150,12 +150,12 @@ else()
         set_target_properties(freespace PROPERTIES PREFIX "lib")
 
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
-	        target_link_libraries(freespace "${WINDDK_WIN7_X64_LIBS}")
+	        target_link_libraries(freespace ${WINDDK_WIN7_X64_LIBS})
 	    ELSE()
 	        IF (${CMAKE_SYSTEM_VERSION} EQUAL 5.1)  # Means we are running XP
-	            target_link_libraries(freespace "${WINDDK_WINXP_X86_LIBS}")
+	            target_link_libraries(freespace ${WINDDK_WINXP_X86_LIBS})
 	        ELSE()
-	            target_link_libraries(freespace "${WINDDK_WIN7_X86_LIBS}")
+	            target_link_libraries(freespace ${WINDDK_WIN7_X86_LIBS})
 	        ENDIF()
 	    ENDIF()
 

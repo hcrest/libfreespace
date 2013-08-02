@@ -1,0 +1,150 @@
+libfreespace Build info
+Updated 8/2/2013
+
+General Information
+===================
+
+This document describes the build process for libfreespace on Linux.
+Some information will be tailored to Ubuntu users, as it is the most
+common Linux distro and has been proven to work with libfreespace.
+
+Required Tools
+===================
+
+The tools required to fully build libfreespace are:
+
+1)  bazaar          http://wiki.bazaar.canonical.com/DistroDownloads
+    Use a stable release.
+    On Ubuntu:  sudo apt-get install bzr
+    
+2)  Python v2       http://www.python.org/download/
+    On Ubuntu:  sudo apt-get install python
+
+3)  Doxygen         http://www.stack.nl/~dimitri/doxygen/download.html
+    The configuration file doc\Doxyfile is compatible with doxygen 1.8.0.
+    On Ubuntu:  sudo apt-get install doxygen
+
+4)  Graphviz        http://graphviz.org/Download..php
+    As of writing, we are using version 2.30.1
+    On Ubuntu:  sudo apt-get install graphviz
+
+5)  CMake v2.8      http://www.cmake.org/
+    On Ubuntu:  sudo apt-get install cmake
+                sudo apt-get install cmake-gui
+
+6)  GNU Make and GNU G++
+    The best way to get these is to get the build-essential package.
+    This should be available for most Linux distros.
+    On Ubuntu:  sudo apt-get install build-essential
+
+7)  libusb          http://www.libusb.org/
+    On Ubuntu:  sudo apt-get install libusb-1.0-0-dev
+
+Getting the files
+===================
+
+To correctly check out all of the repositories, change to the <base>
+directory, and then run the following checkout.sh script:
+    #!/bin/sh
+    bzr branch lp:libfreespace libfreespace
+
+If you find this doesn't work, try:
+    bzr branch lp:~libfreespace-devteam/libfreespace/cmake libfreespace
+
+Building
+===================
+
+Launch cmake-gui.
+
+Fill in the "Where is the source code:" entry. This will be the location of the
+libfreespace directory. (e.g. ~\Hillcrest\libfreespace)
+
+Fill in the "Where to build the binaries" entry. This can be anywhere but a
+reasonable location is ~\Hillcrest\build\libfreespace.
+
+If some configuration data opens up when you enter the build directory, it means
+that the directory already had a build in it. You can reset the directory by 
+selecting File > Delete Cache.
+
+Click "Configure". You will be prompted to select a generator for this project.
+Select the generator "Unix Makefiles" and ensure the "Use default native 
+compilers" is selected.
+
+At this point, all the configuration settings will be red. This is the time to 
+make any changes to the settings that are displayed. Not all settings are
+required, however some important ones are:
+
+The LIBUSB_1_INCLUDE_DIR and LIBUSB_1_LIBRARY variables. These should be
+automatically detected by cmake but if they are not you may need to point
+them at your libusb installation.
+
+There are other configuration settings available:
+
+CMAKE_INSTALL_PREFIX :
+    The installation directory where the CMake install project will install to.
+    This is initiated by building the "INSTALL" project in the VS solution.
+    Default is typically "C:\Program Files (x86)\libfreespace"
+LIBFREESPACE_BACKEND :
+    Specify an alternate backend on some paltforms. On Linux, valid values are
+    'hidraw' and 'libusb'
+LIBFREESPACE_CODECS_ONLY : (ON/OFF)
+    Build only the libfreespace codecs
+LIBFREESPACE_CUSTOM_INSTALL_RULES :
+    CMake file to customize install rules when libfreespace is built as part of
+    a larger project
+LIBFREESPACE_DOCS_ENABLED : (ON/OFF)
+    Enabled doxygen docs as build target
+LIBFREESPACE_DOCS_INTERNAL : (ON/OFF)
+    Generate doxygen for src files (in addition to API)
+LIBFREESPACE_HIDRAW_THREADED_WRITES : (ON/OFF)
+    Enable writes in a backend thread when using hidraw
+LIBFREESPACE_LIB_TYPE : (SHARED/STATIC)
+    The type of library to create
+LIBFREESPACE_ADDITIONAL_MESSAGE_FILE :
+    Reserved for Hillcrest use. An additional HID message definition file.
+
+Set whatever configuration settings you wish, then click "Configure" until all
+red bars are gone. If a red bar persists, it means that setting will need to
+be set manually.
+
+Once the red bars are gone click "Generate".
+
+There should now be a Makefile in the build directory.
+In order to build the library simply open a terminal window, cd to the build
+directory and use the make command.
+
+Example:
+    cd ~/Hillcrest/build/libfreespace
+    make
+
+The result will be a library file called libfreespace.so.X.X.X, where the X.X.X
+corresponds to the version of libfreespace.
+
+If you wish to use the "INSTALL" feature of cmake, you can use the install 
+target of the Makefile. You may need administrator priveleges in order to do so. 
+This will install libfreespace in the directory pointed to by 
+CMAKE_INSTALL_PREFIX.
+
+Example:
+    cd ~/Hillcrest/build/libfreespace
+    sudo make install
+
+Documentation
+=============
+
+To make the doxygen documentation, you can simply make the libfreespace-docs
+target of the libfreespace Makefile
+    1) Open a terminal window and navigate to the build directory.
+    2) Enter  "make libfreespace-docs"
+    4) From here you can open it using Firefox (or any other browser):
+        firefox ./doc/html/index.html
+
+You can also build the documentation from the command line by opening a command
+window in your build directory:
+    1) Open a terminal window and navigate to the build directory.
+    2) Navigate to the "doc" directory by using:
+        cd doc
+    3) Build the Doxygen documentation by using:
+        doxygen Doxyfile
+    4) From here you can open it using Firefox (or any other browser):
+        firefox ./html/index.html
