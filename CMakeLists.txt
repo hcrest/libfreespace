@@ -147,6 +147,8 @@ else()
             "win32/freespace_discoveryDetail.c"
         )
 
+        set_target_properties(freespace PROPERTIES PREFIX "lib")
+
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
 	        target_link_libraries(freespace "${WINDDK_WIN7_X64_LIBS}")
 	    ELSE()
