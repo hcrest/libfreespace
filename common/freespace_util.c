@@ -186,9 +186,9 @@ LIBFREESPACE_API int freespace_util_getAngularVelocity(struct freespace_MotionEn
 }
 
 /******************************************************************************
- * freespace_util_getMagmetometer
+ * freespace_util_getMagnetometer
  */
-LIBFREESPACE_API int freespace_util_getMagmetometer(struct freespace_MotionEngineOutput const * meOutPkt,
+LIBFREESPACE_API int freespace_util_getMagnetometer(struct freespace_MotionEngineOutput const * meOutPkt,
                                                     struct MultiAxisSensor * sensor) {
 
     int offset = 0; // default value of 0; if < 0 then offset is not valid

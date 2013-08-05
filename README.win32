@@ -66,8 +66,8 @@ Fill in the "Where to build the binaries" entry. This can be anywhere but a
 reasonable location is c:\Hillcrest\build\libfreespace. 
 
 If some configuration data opens up when you enter the build directory, it means
-that the directory already had a build in it. You can reset the directory by 
-selecting File > Delete Cache.
+that the directory already had a build in it. You can reset the build directory
+by selecting File > Delete Cache.
 
 Click "Configure". You will be prompted to select a generator for this project.
 Choose any of the supported generators:

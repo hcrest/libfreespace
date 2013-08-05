@@ -106,7 +106,7 @@ LIBFREESPACE_API int freespace_util_getAngularVelocity(struct freespace_MotionEn
  *         -2 if the meOutPkt does not contain mag at all
  *         -3 if the format select number is unrecognized
  */
-LIBFREESPACE_API int freespace_util_getMagmetometer(struct freespace_MotionEngineOutput const * meOutPkt,
+LIBFREESPACE_API int freespace_util_getMagnetometer(struct freespace_MotionEngineOutput const * meOutPkt,
                                                     struct MultiAxisSensor * sensor);
 
 /** @ingroup util

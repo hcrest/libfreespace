@@ -9,7 +9,7 @@ Some information will be tailored to Ubuntu users, as it is the most
 common Linux distro and has been proven to work with libfreespace.
 
 Required Tools
-===================
+==============
 
 The tools required to fully build libfreespace are:
 
@@ -52,7 +52,7 @@ If you find this doesn't work, try:
     bzr branch lp:~libfreespace-devteam/libfreespace/cmake libfreespace
 
 Building
-===================
+========
 
 Launch cmake-gui.
 
@@ -148,3 +148,57 @@ window in your build directory:
         doxygen Doxyfile
     4) From here you can open it using Firefox (or any other browser):
         firefox ./html/index.html
+
+Linux Kernel Configuration
+==========================
+
+libusb requires the Kernel to have USB support enabled.  Specifically:
+
+Support for Host side USB must be enabled in the kernel.
+Support for USB device filesystem
+
+At least one USB Host Controller Driver must be enabled.
+
+These options can be found under Device Drivers, USB Support using
+make menuconfig
+
+
+Troubleshooting
+===============
+
+Depending on how your system is configured, you may need to tweak
+some settings to enable access to the USB port.  The following are
+options to try:
+
+1.  If using an old version of Linux, USBFS may need to be mounted
+
+    You can check if USBFS is mounted by issuing:
+
+    cat /proc/bus/usb/devices
+
+    with at least one USB device attached.
+    If the file does not exist, issue the following command:
+
+    mount -t usbfs /dev/bus/usb /proc/bus/usb
+
+2.  The permissions on the /dev/bus/usb/[bus]/[device] file may be too
+    restrictive.  Try running as root to see if this fixes the problem.
+    If it does and you don't want to run as root, update the udev configuration.
+    For example, edit or add /etc/udev/rules.d/99-local.rules and add the line:
+
+    SUBSYSTEM=="usb", ATTR{idVendor}=="1d5a", MODE="0666"
+
+3.  If you're running on a system that uses HAL to auto-load drivers, 
+    you may want to keep it from loading the HID drivers while debugging
+    to avoid mouse movement.  To do this, create a file in /etc/hal/fdi/preprobe
+    with the contents:
+
+<?xml version="1.0" encoding="UTF-8"?>
+
+<deviceinfo version="0.2">
+ <device>
+  <match key="usb_device.vendor_id" int="7514">
+    <merge key="info.ignore" type="bool">true</merge>
+  </match>
+ </device>
+</deviceinfo>
