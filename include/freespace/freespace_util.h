@@ -174,7 +174,8 @@ LIBFREESPACE_API int freespace_util_getAngPos(struct freespace_MotionEngineOutpu
  * For MEOut Format 1 units are degrees
  *
  * @param meOutPkt a pointer to the MEOut packet to extract the activity classification from
- * @param sensor a pointer to where to store the extracted values
+ * @param sensor a pointer to where to store the extracted values. The Activity Classification
+ * is stored in the x-coordinate and the Power Management Flags are stored in the y-coordinate.
  * @return 0 if successful
  *         -1 if the format flag was not set for the activity classification field
  *         -2 if the meOutPkt does not contain activity classification at all

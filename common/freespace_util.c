@@ -459,7 +459,7 @@ LIBFREESPACE_API int freespace_util_getActClass(struct freespace_MotionEngineOut
                                                 struct MultiAxisSensor * sensor) {
 
     int offset = 0; // default value of 0; if < 0 then offset is not valid
-    int16_t axisVal;
+    int8_t flagVal;
     float scale;
 
     switch(meOutPkt->formatSelect) {
@@ -488,11 +488,10 @@ LIBFREESPACE_API int freespace_util_getActClass(struct freespace_MotionEngineOut
         return -1; // Act class flag not set
     }
 
-    // Extract and convert the activity classification data
-    axisVal = meOutPkt->meData[offset + 1] << 8 |  meOutPkt->meData[offset + 0];
-    sensor->x = ((float) axisVal) / scale;
-    axisVal = meOutPkt->meData[offset + 3] << 8 |  meOutPkt->meData[offset + 2];
-    sensor->y = ((float) axisVal) / scale;
+    flagVal = meOutPkt->meData[offset + 0]; // Act Class Flags
+    sensor->x = ((float) flagVal) / scale;
+    flagVal = meOutPkt->meData[offset + 1]; // Power Mgmt Flags
+    sensor->y = ((float) flagVal) / scale;
 
     return 0;
 }
