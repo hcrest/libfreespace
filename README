@@ -21,9 +21,11 @@ The tools required to fully build libfreespace are:
     			Update the environment variable PATH to include the folder that contain python.exe.
     Ubuntu:		sudo apt-get install python
 
-3)  Doxygen 1.8.0
+3)  Doxygen v1.8.0 (older versions will have formatting problems)
     Windows:	http://www.stack.nl/~dimitri/doxygen/download.html
-    Ubuntu:		sudo apt-get install doxygen
+    Ubuntu:		You cannot use apt-get for doxygen because the version is too old.
+    			Instead, get it from the Doxygen download page.
+
 
 4)  Graphviz v2.30.1  
     Windows:	http://www.graphviz.org/Download_windows.php
