@@ -337,36 +337,53 @@ DceOutV3Message.Fields[2] = [
 messages.append(DceOutV3Message)
 
 # ---------------------------------------------------------------------------------------
-# DceOutV4 Message
-DceOutV4Message = Message("DceOutV4", decode=True)
-DceOutV4Message.Documentation = "Compact 9-axis raw motion sensor data."
-DceOutV4Message.addedVersion = ""
-DceOutV4Message.deprecatedVersion = ""
-DceOutV4Message.removedVersion = ""
-DceOutV4Message.appliesTo = []
-DceOutV4Message.ID[2] = {
-    ConstantID:41
+# DceOutV4T0 Message
+DceOutV4T0Message = Message("DceOutV4T0", decode=True)
+DceOutV4T0Message.Documentation = "Compact 9-axis raw motion sensor data."
+DceOutV4T0Message.addedVersion = ""
+DceOutV4T0Message.deprecatedVersion = ""
+DceOutV4T0Message.removedVersion = ""
+DceOutV4T0Message.appliesTo = []
+DceOutV4T0Message.ID[2] = {
+    ConstantID:41,
+	SubMessageID:{size:1, id:0}
 }
-DceOutV4Message.Fields[2] = [
-    {name:"tempSeq",        size:1, cType:'uint8_t', Documentation:"Temperature and sequence number."},
-
-    {name:"sampleBase",     size:1, nibbles:[{name:'sampleBase', Documentation:"Report sequence number. Increments monotonically."},
-                                             {name:'temperature', Documentation:"Temperature."}]},
-    {name:"flags",          size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
-#    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
-#    {name:"ay",             size:2, cType:'int16_t'},
-#    {name:"az",             size:2, cType:'int16_t'},
-#    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
-#    {name:"ry",             size:2, cType:'int16_t'},
-#    {name:"rz",             size:2, cType:'int16_t'},
-#    {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
-#    {name:"my",             size:2, cType:'int16_t'},
-#    {name:"mz",             size:2, cType:'int16_t'},
-    {name:"data0",          size:13, cType:'int8_t', Documentation:"TBD."},
-#    {name:"data1",          size:1, cType:'int8_t', Documentation:"TBD."},
+DceOutV4T0Message.Fields[2] = [
+    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+    {name:"ay",             size:2, cType:'int16_t'},
+    {name:"az",             size:2, cType:'int16_t'},
+    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+    {name:"ry",             size:2, cType:'int16_t'},
+    {name:"rz",             size:2, cType:'int16_t'},
+    {name:"temperature",    size:2, cType:'int16_t', Documentation:"Temperature reading."},
 ]
 
-messages.append(DceOutV4Message)
+messages.append(DceOutV4T0Message)
+
+# ---------------------------------------------------------------------------------------
+# DceOutV4T1 Message
+DceOutV4T1Message = Message("DceOutV4T1", decode=True)
+DceOutV4T1Message.Documentation = "Compact 9-axis raw motion sensor data."
+DceOutV4T1Message.addedVersion = ""
+DceOutV4T1Message.deprecatedVersion = ""
+DceOutV4T1Message.removedVersion = ""
+DceOutV4T1Message.appliesTo = []
+DceOutV4T1Message.ID[2] = {
+    ConstantID:41,
+	SubMessageID:{size:1, id:1}
+}
+DceOutV4T1Message.Fields[2] = [
+    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
+    {name:"my",             size:2, cType:'int16_t'},
+    {name:"mz",             size:2, cType:'int16_t'},
+    {name:"flags",          size:1, bits:[{name:'flag1', Documentation:"Flags bits"},{name:'flag2'},{name:'flag3'},{name:'flag4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+]
+
+messages.append(DceOutV4T1Message)
 
 # ---------------------------------------------------------------------------------------
 # Data Motion Control Message
