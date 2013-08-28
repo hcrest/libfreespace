@@ -67,8 +67,11 @@ add_custom_command(
         "${PROJECT_SOURCE_DIR}/common/setupMessages.py"
         "${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}"
     ${buildMessageCommand}
-    DEPENDS "${PROJECT_BINARY_DIR}/include"		# This is a workaround to make VS2008 compatible
-    COMMENT "Generating libfreespace Message code"
+    DEPENDS ${PROJECT_BINARY_DIR}/include
+            ${PROJECT_SOURCE_DIR}/common/messageCodeGenerator.py
+            ${PROJECT_SOURCE_DIR}/common/setupMessages.py
+            ${LIBFREESPACE_ADDITIONAL_MESSAGE_FILE}
+    COMMENT "Generating libfreespace message code"
 )
 
 # Determine the target endianness and set the libfreespace flag.
