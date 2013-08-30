@@ -1015,7 +1015,7 @@ DataModeControlV2Request.ID[2] = {
 }
 DataModeControlV2Request.Fields[2] =  [
     {name:"modeAndStatus", size:1, bits:[{name:'reportStatus', Documentation:"Set to 0 to set status, 1 to report current status"},
-                                         {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep depp sleep, 4 - full motion on, 5 - rf on motion", size: 3},
+                                         {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep deep sleep, 4 - full motion on, 5 - rf on motion", size: 3},
                                          {name:'reportMode', Documentation:"Set to 0 to set mode, 1 to report current mode"}]},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
     {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
