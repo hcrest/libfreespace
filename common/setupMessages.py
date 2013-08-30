@@ -263,9 +263,17 @@ MotionEngineOutput.appliesTo = [10002658, 10002794]
 MotionEngineOutput.ID[2] = {
     ConstantID:38
 }
+MEFORMATFLAG_BLURB="See \\ref meoutformatinfo \"MotionEngine Output Format\" for more information about format flags."
 MotionEngineOutput.Fields[2] = [
-    {name:"formatSelect",   size:1, cType:'uint8_t', Documentation:"Identifies the format of the MotionEngine Output packet"},
-    {name:"formatFlags",    size:1, bits:[{name:'ff0', Documentation:"Format flags."},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'},{name:'ff5'},{name:'ff6'},{name:'ff7'}]},
+    {name:"formatSelect",   size:1, cType:'uint8_t', Documentation:"Identifies the format of the MotionEngine Output packet. " + MEFORMATFLAG_BLURB},
+    {name:"formatFlags",    size:1, bits:[{name:'ff0', Documentation:"Format flag 0. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff1', Documentation:"Format flag 1. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff2', Documentation:"Format flag 2. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff3', Documentation:"Format flag 3. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff4', Documentation:"Format flag 4. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff5', Documentation:"Format flag 5. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff6', Documentation:"Format flag 6. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff7', Documentation:"Format flag 7. " + MEFORMATFLAG_BLURB} ]},
     {name:"sequenceNumber", size:4, cType:'uint32_t', Documentation:"Report sequence number. Increments monotonically."},
     {name:"meData",         size:44, cType:'uint8_t', Documentation:"MotionEngine Output data."}
 
@@ -329,36 +337,53 @@ DceOutV3Message.Fields[2] = [
 messages.append(DceOutV3Message)
 
 # ---------------------------------------------------------------------------------------
-# DceOutV4 Message
-DceOutV4Message = Message("DceOutV4", decode=True)
-DceOutV4Message.Documentation = "Compact 9-axis raw motion sensor data."
-DceOutV4Message.addedVersion = ""
-DceOutV4Message.deprecatedVersion = ""
-DceOutV4Message.removedVersion = ""
-DceOutV4Message.appliesTo = []
-DceOutV4Message.ID[2] = {
-    ConstantID:41
+# DceOutV4T0 Message
+DceOutV4T0Message = Message("DceOutV4T0", decode=True)
+DceOutV4T0Message.Documentation = "Compact 9-axis raw motion sensor data."
+DceOutV4T0Message.addedVersion = ""
+DceOutV4T0Message.deprecatedVersion = ""
+DceOutV4T0Message.removedVersion = ""
+DceOutV4T0Message.appliesTo = []
+DceOutV4T0Message.ID[2] = {
+    ConstantID:41,
+	SubMessageID:{size:1, id:0}
 }
-DceOutV4Message.Fields[2] = [
-    {name:"tempSeq",        size:1, cType:'uint8_t', Documentation:"Temperature and sequence number."},
-
-    {name:"sampleBase",     size:1, nibbles:[{name:'sampleBase', Documentation:"Report sequence number. Increments monotonically."},
-                                             {name:'temperature', Documentation:"Temperature."}]},
-    {name:"flags",          size:1, bits:[{name:'button1', Documentation:"Flags and Button bits"},{name:'button2'},{name:'button3'},{name:'button4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
-#    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
-#    {name:"ay",             size:2, cType:'int16_t'},
-#    {name:"az",             size:2, cType:'int16_t'},
-#    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
-#    {name:"ry",             size:2, cType:'int16_t'},
-#    {name:"rz",             size:2, cType:'int16_t'},
-#    {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
-#    {name:"my",             size:2, cType:'int16_t'},
-#    {name:"mz",             size:2, cType:'int16_t'},
-    {name:"data0",          size:13, cType:'int8_t', Documentation:"TBD."},
-#    {name:"data1",          size:1, cType:'int8_t', Documentation:"TBD."},
+DceOutV4T0Message.Fields[2] = [
+    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
+    {name:"ay",             size:2, cType:'int16_t'},
+    {name:"az",             size:2, cType:'int16_t'},
+    {name:"rx",             size:2, cType:'int16_t', Documentation:"Rotational sensor reading."},
+    {name:"ry",             size:2, cType:'int16_t'},
+    {name:"rz",             size:2, cType:'int16_t'},
+    {name:"temperature",    size:2, cType:'int16_t', Documentation:"Temperature reading."},
 ]
 
-messages.append(DceOutV4Message)
+messages.append(DceOutV4T0Message)
+
+# ---------------------------------------------------------------------------------------
+# DceOutV4T1 Message
+DceOutV4T1Message = Message("DceOutV4T1", decode=True)
+DceOutV4T1Message.Documentation = "Compact 9-axis raw motion sensor data."
+DceOutV4T1Message.addedVersion = ""
+DceOutV4T1Message.deprecatedVersion = ""
+DceOutV4T1Message.removedVersion = ""
+DceOutV4T1Message.appliesTo = []
+DceOutV4T1Message.ID[2] = {
+    ConstantID:41,
+	SubMessageID:{size:1, id:1}
+}
+DceOutV4T1Message.Fields[2] = [
+    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
+    {name:"my",             size:2, cType:'int16_t'},
+    {name:"mz",             size:2, cType:'int16_t'},
+    {name:"flags",          size:1, bits:[{name:'flag1', Documentation:"Flags bits"},{name:'flag2'},{name:'flag3'},{name:'flag4'},{name:'ff1'},{name:'ff2'},{name:'ff3'},{name:'ff4'}]},
+    {name:"buttons",        size:1, bits:[{name:'button1', Documentation:"Button bits."},{name:'button2'},{name:'button3'},{name:'button4'},{name:'button5'},{name:'button6'},{name:'button7'},{name:'button8'}]},
+    {name:"deltaWheel",     size:1, cType:'int8_t', Documentation:"Scroll wheel movement."},
+]
+
+messages.append(DceOutV4T1Message)
 
 # ---------------------------------------------------------------------------------------
 # Data Motion Control Message
@@ -411,7 +436,7 @@ messages.append(PairingMessage)
 # ---------------------------------------------------------------------------------------
 # Product ID Request Message
 ProductIDRequest = Message("ProductIDRequest", encode=True)
-ProductIDRequest.Documentation = "This is sent from the host to the attached device(dongle) to request the product ID information. The dongle will forward this request to the Loop."
+ProductIDRequest.Documentation = "This is sent from the host to the attached device(dongle) to request the product ID information. The dongle will forward this request to the handheld."
 ProductIDRequest.addedVersion = "1.0.0"
 ProductIDRequest.deprecatedVersion = ""
 ProductIDRequest.removedVersion = ""
@@ -437,7 +462,7 @@ messages.append(ProductIDRequest)
 # ---------------------------------------------------------------------------------------
 # LED Set Request
 LEDSetRequest = Message("LEDSetRequest", encode=True)
-LEDSetRequest.Documentation = "This request causes the Loop or dongle to set a status LED to a particular value"
+LEDSetRequest.Documentation = "This request causes the handheld or dongle to set a status LED to a particular value"
 LEDSetRequest.addedVersion = "1.0.0"
 LEDSetRequest.deprecatedVersion = ""
 LEDSetRequest.removedVersion = ""
@@ -486,7 +511,7 @@ messages.append(LinkQualityRequest)
 # ---------------------------------------------------------------------------------------
 # Always On Request Message
 AlwaysOnRequest = Message("AlwaysOnRequest", encode=True)
-AlwaysOnRequest.Documentation = "This message forces the Loop into an always on state. It is relayed to the Loop from the dongle."
+AlwaysOnRequest.Documentation = "This message forces the handheld into an always on state. It is relayed to the handheld from the dongle."
 AlwaysOnRequest.addedVersion = "1.0.0"
 AlwaysOnRequest.deprecatedVersion = ""
 AlwaysOnRequest.removedVersion = ""
@@ -504,7 +529,7 @@ messages.append(AlwaysOnRequest)
 # ---------------------------------------------------------------------------------------
 # Frequency Fix Request Message
 FrequencyFixRequest = Message("FrequencyFixRequest", encode=True)
-FrequencyFixRequest.Documentation = "This message causes the RF frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.\n\t When the loop is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep."
+FrequencyFixRequest.Documentation = "This message causes the RF frequencies of the selected device to be fixed at channels 0-4. The last byte selects the device.\n\t When a handheld is selected it is put into a mode where it does not require the dongle to transmit and where it does not go to sleep."
 FrequencyFixRequest.addedVersion = "1.0.0"
 FrequencyFixRequest.deprecatedVersion = ""
 FrequencyFixRequest.removedVersion = ""
@@ -523,7 +548,7 @@ FrequencyFixRequest.Fields[1] = [
     {name:'channel2', size:1, cType:'uint8_t'},
     {name:'channel3', size:1, cType:'uint8_t'},
     {name:'channel4', size:1, cType:'uint8_t'},
-    {name:'device',   size:1, cType:'uint8_t', Documentation:"1 for dongle, 2 for loop"}
+    {name:'device',   size:1, cType:'uint8_t', Documentation:"1 for dongle, 2 for handheld"}
 ]
 FrequencyFixRequest.Fields[2] = [
     {name:'channel0', size:1, cType:'uint8_t'},
@@ -625,44 +650,44 @@ RFSupressMessage.Fields[2] = RFSupressMessage.Fields[1]
 messages.append(RFSupressMessage)
 
 # ---------------------------------------------------------------------------------------
-# FRS Loop Read Request Message
-FRSLoopReadRequest = Message("FRSLoopReadRequest", encode=True)
-FRSLoopReadRequest.Documentation = "This is sent from dongle towards the loop to request flash record to be sent.\n\tThe data sent starts from the word offset and continues through to the end of the record."
-FRSLoopReadRequest.addedVersion = "1.0.0"
-FRSLoopReadRequest.deprecatedVersion = ""
-FRSLoopReadRequest.removedVersion = ""
-FRSLoopReadRequest.appliesTo = [10001602, 10001853]
-FRSLoopReadRequest.ID[1] = {
+# FRS handheld Read Request Message
+FRSHandheldReadRequest = Message("FRSHandheldReadRequest", encode=True)
+FRSHandheldReadRequest.Documentation = "This is sent from dongle towards the handheld to request flash record to be sent.\n\tThe data sent starts from the word offset and continues through to the end of the record."
+FRSHandheldReadRequest.addedVersion = "1.0.0"
+FRSHandheldReadRequest.deprecatedVersion = ""
+FRSHandheldReadRequest.removedVersion = ""
+FRSHandheldReadRequest.appliesTo = [10001602, 10001853]
+FRSHandheldReadRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadRequest.Fields[1] = [
+FRSHandheldReadRequest.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to begin reading.'},
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:"BlockSize",  size:2, cType:'uint16_t', Documentation:'Number of 32-bit words to read.'}
 ]
 
-messages.append(FRSLoopReadRequest)
+messages.append(FRSHandheldReadRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Loop Write Request Message
-FRSLoopWriteRequest = Message("FRSLoopWriteRequest", encode=True)
-FRSLoopWriteRequest.Documentation = "This is sent from the host towards the loop to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
-FRSLoopWriteRequest.addedVersion = "1.0.0"
-FRSLoopWriteRequest.deprecatedVersion = ""
-FRSLoopWriteRequest.removedVersion = ""
-FRSLoopWriteRequest.appliesTo = [10001602, 10001853]
-FRSLoopWriteRequest.ID[1] = {
+# FRS Handheld Write Request Message
+FRSHandheldWriteRequest = Message("FRSHandheldWriteRequest", encode=True)
+FRSHandheldWriteRequest.Documentation = "This is sent from the host towards the handheld to initiate a flash record write.\n\tA length of 0 will cause the record to be invalidated."
+FRSHandheldWriteRequest.addedVersion = "1.0.0"
+FRSHandheldWriteRequest.deprecatedVersion = ""
+FRSHandheldWriteRequest.removedVersion = ""
+FRSHandheldWriteRequest.appliesTo = [10001602, 10001853]
+FRSHandheldWriteRequest.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteRequest.Fields[1] = [
+FRSHandheldWriteRequest.Fields[1] = [
     {name:"length",  size:2, cType:'uint16_t', Documentation:'Length in 32-bit words of record to be written.'},
     {name:"FRStype", size:2, cType:'uint16_t', Documentation:'FRS record type to read.'},
     {name:RESERVED,  size:2}
 ]
 
-messages.append(FRSLoopWriteRequest)
+messages.append(FRSHandheldWriteRequest)
 
 # ---------------------------------------------------------------------------------------
 # FRS Write Request Message
@@ -685,23 +710,23 @@ FRSWriteRequest.Fields[2] = [
 messages.append(FRSWriteRequest)
 
 # ---------------------------------------------------------------------------------------
-# FRS Loop Write Data Message
-FRSLoopWriteData = Message("FRSLoopWriteData", encode=True)
-FRSLoopWriteData.Documentation = "This message is sent from the host towards the loop to write data to the record a previous write request indicated."
-FRSLoopWriteData.addedVersion = "1.0.0"
-FRSLoopWriteData.deprecatedVersion = ""
-FRSLoopWriteData.removedVersion = ""
-FRSLoopWriteData.appliesTo = [10001602, 10001853]
-FRSLoopWriteData.ID[1] = {
+# FRS Handheld Write Data Message
+FRSHandheldWriteData = Message("FRSHandheldWriteData", encode=True)
+FRSHandheldWriteData.Documentation = "This message is sent from the host towards the handheld to write data to the record a previous write request indicated."
+FRSHandheldWriteData.addedVersion = "1.0.0"
+FRSHandheldWriteData.deprecatedVersion = ""
+FRSHandheldWriteData.removedVersion = ""
+FRSHandheldWriteData.appliesTo = [10001602, 10001853]
+FRSHandheldWriteData.ID[1] = {
     ConstantID:7,
     SubMessageID:{size:1, id:63}
 }
-FRSLoopWriteData.Fields[1] = [
+FRSHandheldWriteData.Fields[1] = [
     {name:"wordOffset", size:2, cType:'uint16_t', Documentation:'Offset from start of record to write data.'},
     {name:"data",       size:4, cType:'uint32_t', Documentation:'32-bit word to write.'}
 ]
 
-messages.append(FRSLoopWriteData)
+messages.append(FRSHandheldWriteData)
 
 # ---------------------------------------------------------------------------------------
 # FRS Write Data Message
@@ -991,15 +1016,15 @@ DataModeControlV2Request.ID[2] = {
 DataModeControlV2Request.Fields[2] =  [
     {name:"modeAndStatus", size:1, cType:'uint8_t', Documentation:"Controls operating mode and status changes"},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
-    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
-    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0"},
-                                         {name:'ff1', Documentation:"Set to enable section 1"},
-                                         {name:'ff2', Documentation:"Set to enable section 2"},
-                                         {name:'ff3', Documentation:"Set to enable section 3"},
-                                         {name:'ff4', Documentation:"Set to enable section 4"},
-                                         {name:'ff5', Documentation:"Set to enable section 5"},
-                                         {name:'ff6', Documentation:"Set to enable section 6"},
-                                         {name:'ff7', Documentation:"Set to enable error range for previous sections"}]}
+    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet. " + MEFORMATFLAG_BLURB},
+    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff1', Documentation:"Set to enable section 1. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff2', Documentation:"Set to enable section 2. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff3', Documentation:"Set to enable section 3. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff4', Documentation:"Set to enable section 4. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff5', Documentation:"Set to enable section 5. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff6', Documentation:"Set to enable section 6. " + MEFORMATFLAG_BLURB},
+                                         {name:'ff7', Documentation:"Set to enable section 7. " + MEFORMATFLAG_BLURB}]}
 ]
 
 messages.append(DataModeControlV2Request)
@@ -1220,7 +1245,7 @@ messages.append(LinkStatusMessage)
 # ---------------------------------------------------------------------------------------
 # Always On Response Message
 AlwaysOnResponse = Message("AlwaysOnResponse", decode=True)
-AlwaysOnResponse.Documentation = "This message is sent from a the loop to acknowledge an always on mode request message."
+AlwaysOnResponse.Documentation = "This message is sent from a handheld to acknowledge an always on mode request message."
 AlwaysOnResponse.addedVersion = "1.0.0"
 AlwaysOnResponse.deprecatedVersion = ""
 AlwaysOnResponse.removedVersion = ""
@@ -1281,18 +1306,18 @@ FRSReadResponseBLE.Fields[2] = [
 messages.append(FRSReadResponseBLE)
 
 # ---------------------------------------------------------------------------------------
-# FRS Loop Read Response Message
-FRSLoopReadResponse = Message("FRSLoopReadResponse", decode=True)
-FRSLoopReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
-FRSLoopReadResponse.addedVersion = "1.0.0"
-FRSLoopReadResponse.deprecatedVersion = ""
-FRSLoopReadResponse.removedVersion = ""
-FRSLoopReadResponse.appliesTo = [10001602, 10001853]
-FRSLoopReadResponse.ID[1] = {
+# FRS Handheld Read Response Message
+FRSHandheldReadResponse = Message("FRSHandheldReadResponse", decode=True)
+FRSHandheldReadResponse.Documentation = "This is sent from the handheld to the host to convey an FRS record."
+FRSHandheldReadResponse.addedVersion = "1.0.0"
+FRSHandheldReadResponse.deprecatedVersion = ""
+FRSHandheldReadResponse.removedVersion = ""
+FRSHandheldReadResponse.appliesTo = [10001602, 10001853]
+FRSHandheldReadResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:58}
 }
-FRSLoopReadResponse.Fields[1] = [
+FRSHandheldReadResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t', Documentation:"Word Offset indicates the number of words the data is offset from the beginning of the record"},
     {name:"data",       size:20, cType:'uint32_t'},
     {name:"status",     size:1, nibbles:[{name:'status',     Documentation:"Status:\n\t0: no error\n\t1: unrecognized FRS type\n\t2: busy\n\t3: read completed\n\t4: offset out of range\n\t5: record empty\n\t6: read block completed\n\t7: read block completed and read reacord completed"},
@@ -1300,7 +1325,7 @@ FRSLoopReadResponse.Fields[1] = [
     {name:"FRStype",    size:2, cType:'uint16_t', Documentation:"FRS record type"}
 ]
 
-messages.append(FRSLoopReadResponse)
+messages.append(FRSHandheldReadResponse)
 
 # ---------------------------------------------------------------------------------------
 # FRS Write Response Message
@@ -1332,18 +1357,18 @@ FRSWriteResponse.Fields[2] = [
 messages.append(FRSWriteResponse)
 
 # ---------------------------------------------------------------------------------------
-# FRS Loop Write Response Message
-FRSLoopWriteResponse = Message("FRSLoopWriteResponse", decode=True)
-FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
-FRSLoopWriteResponse.addedVersion = "1.0.0"
-FRSLoopWriteResponse.deprecatedVersion = ""
-FRSLoopWriteResponse.removedVersion = ""
-FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
-FRSLoopWriteResponse.ID[1] = {
+# FRS Handheld Write Response Message
+FRSHandheldWriteResponse = Message("FRSHandheldWriteResponse", decode=True)
+FRSHandheldWriteResponse.Documentation = "This is sent from the handheld to the host to indicate status of the write operation."
+FRSHandheldWriteResponse.addedVersion = "1.0.0"
+FRSHandheldWriteResponse.deprecatedVersion = ""
+FRSHandheldWriteResponse.removedVersion = ""
+FRSHandheldWriteResponse.appliesTo = [10001602, 10001853]
+FRSHandheldWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:61}
 }
-FRSLoopWriteResponse.Fields[1] = [
+FRSHandheldWriteResponse.Fields[1] = [
     {name:"wordOffset", size:2,  cType:'uint16_t'},
     {name:"status",     size:1,  cType:'uint8_t', Documentation:"Status/Error:\n\t\
 0: word received\n\t\
@@ -1359,7 +1384,7 @@ FRSLoopWriteResponse.Fields[1] = [
     {name:RESERVED,     size:22}
 ]
 
-messages.append(FRSLoopWriteResponse)
+messages.append(FRSHandheldWriteResponse)
 
 # ---------------------------------------------------------------------------------------
 # FRS Dongle Read Response Message
@@ -1416,7 +1441,7 @@ messages.append(FRSDongleWriteResponse)
 # ---------------------------------------------------------------------------------------
 # FRS EFlash Read Response Message
 FRSEFlashReadResponse = Message("FRSEFlashReadResponse", decode=True)
-FRSEFlashReadResponse.Documentation = "This is sent from the loop to the host to convey an FRS record."
+FRSEFlashReadResponse.Documentation = "This is sent from the handheld to the host to convey an FRS record."
 FRSEFlashReadResponse.addedVersion = "1.0.0"
 FRSEFlashReadResponse.deprecatedVersion = ""
 FRSEFlashReadResponse.removedVersion = ""
@@ -1438,11 +1463,11 @@ messages.append(FRSEFlashReadResponse)
 # ---------------------------------------------------------------------------------------
 # FRS EFlash Write Response Message
 FRSEFlashWriteResponse = Message("FRSEFlashWriteResponse", decode=True)
-FRSLoopWriteResponse.Documentation = "This is sent from the loop to the host to indicate status of the write operation."
-FRSLoopWriteResponse.addedVersion = "1.0.0"
-FRSLoopWriteResponse.deprecatedVersion = ""
-FRSLoopWriteResponse.removedVersion = ""
-FRSLoopWriteResponse.appliesTo = [10001602, 10001853]
+FRSHandheldWriteResponse.Documentation = "This is sent from the handheld to the host to indicate status of the write operation."
+FRSHandheldWriteResponse.addedVersion = "1.0.0"
+FRSHandheldWriteResponse.deprecatedVersion = ""
+FRSHandheldWriteResponse.removedVersion = ""
+FRSHandheldWriteResponse.appliesTo = [10001602, 10001853]
 FRSEFlashWriteResponse.ID[1] = {
     ConstantID:8,
     SubMessageID:{size:1, id:66}
@@ -1565,15 +1590,15 @@ DataModeControlV2Response.ID[2] = {
 DataModeControlV2Response.Fields[2] =  [
     {name:"modeAndStatus", size:1, cType:'uint8_t', Documentation:"Controls operating mode and status changes"},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
-    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
-    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0"},
-                                         {name:'ff1', Documentation:"Set to enable section 1"},
-                                         {name:'ff2', Documentation:"Set to enable section 2"},
-                                         {name:'ff3', Documentation:"Set to enable section 3"},
-                                         {name:'ff4', Documentation:"Set to enable section 4"},
-                                         {name:'ff5', Documentation:"Set to enable section 5"},
-                                         {name:'ff6', Documentation:"Set to enable section 6"},
-                                         {name:'ff7', Documentation:"Set to enable error range for previous sections"}]}
+    {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"The format of the incoming MotionEngineOutput packets. " + MEFORMATFLAG_BLURB},
+    {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Format flag 0. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff1', Documentation:"Format flag 1. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff2', Documentation:"Format flag 2. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff3', Documentation:"Format flag 3. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff4', Documentation:"Format flag 4. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff5', Documentation:"Format flag 5. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff6', Documentation:"Format flag 6. " + MEFORMATFLAG_BLURB}, \
+        {name:'ff7', Documentation:"Format flag 7. " + MEFORMATFLAG_BLURB} ]}
 ]
 
 messages.append(DataModeControlV2Response)
