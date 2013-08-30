@@ -177,18 +177,6 @@ static uint8_t byteFromNibbles(uint8_t lsn, uint8_t msn) {
     return lsn | (msn << 4);
 }
 
-static uint8_t byteFromBits(uint8_t lsb, 
-                            uint8_t b,
-                            uint8_t c,
-                            uint8_t d,
-                            uint8_t e,
-                            uint8_t f,
-                            uint8_t g,
-                            uint8_t msb) {
-    return (uint8_t) (((msb & 0x01) << 7) | ((g & 0x01) << 6) | ((f & 0x01) << 5) | ((e & 0x01) << 4) | ((d & 0x01) << 3) | ((c & 0x01) << 2) | ((b & 0x01) << 1) | (lsb & 0x01));
-}
-
-
 
 ''')
 
@@ -657,7 +645,7 @@ def writeEncodeBody(message, fields, outFile):
             if message.ID[v].has_key('subId'):
                 outFile.write("\t\t\tmessage[%d + offset] = (uint8_t) %d;\n" % (byteCounter, message.ID[v]['subId']['id']))
                 byteCounter += 1
-                
+
             # Message fields
             for field in message.Fields[v]:
                 if field.has_key('synthesized'):
@@ -667,21 +655,16 @@ def writeEncodeBody(message, fields, outFile):
                     byteCounter += elementSize
                     continue
                 if field.has_key('bits'):
-                    outFile.write('\t\t\tmessage[%d + offset] = byteFromBits('%byteCounter)
-                    firstLoop = True
+                    bitoffset = 0
+                    exprs = []
                     for bit in field['bits']:
-                        if not firstLoop:
-                            outFile.write(', ')
-                        else:
-                            firstLoop = False
-                        if bit['name'] == 'RESERVED':
-                            outFile.write('0')
-                        else:
-                            outFile.write('s->%s'%bit['name']);
-                            if bit.has_key('size'):
-                                for i in range(1, bit['size']):
-                                    outFile.write(', s->%s >> %d'%(bit['name'],i))
-                    outFile.write(');\n')
+                        sz = bit.get('size', 1);
+                        if bit['name'] != 'RESERVED':
+                            mask = (1 << sz) - 1
+                            exprs.append('((s->%s & 0x%x) << %d)' % (bit['name'], mask, bitoffset))
+                        bitoffset += sz
+                    exprs = "\n\t\t\t\t\t\t\t\t|  ".join(exprs)
+                    outFile.write('\t\t\tmessage[%d + offset] = (%s);\n' % (byteCounter, exprs))
                     byteCounter += 1
                 elif field.has_key('nibbles'):
                     outFile.write('\t\t\tmessage[%d + offset] = byteFromNibbles('%byteCounter)
@@ -784,6 +767,7 @@ def writeDecodeBody(message, fields, outFile):
                         bitCounter += 1
                     byteCounter += 1
                 elif field.has_key('nibbles'):
+
                     nibbleCounter = 0
                     for nibble in field['nibbles']:
                         if nibble['name'] != 'RESERVED':
