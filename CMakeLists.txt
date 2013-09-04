@@ -152,15 +152,31 @@ else()
 
         set_target_properties(freespace PROPERTIES PREFIX "lib")
 
+
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
-	        target_link_libraries(freespace ${WINDDK_WIN7_X64_LIBS})
+	        set(_hid ${WINDDK_WIN7_X64_HID_LIB})
+            set(_setupapi ${WINDDK_WIN7_X64_SETUPAPI_LIB})
 	    ELSE()
 	        IF (${CMAKE_SYSTEM_VERSION} EQUAL 5.1)  # Means we are running XP
-	            target_link_libraries(freespace ${WINDDK_WINXP_X86_LIBS})
+	            set(_hid ${WINDDK_WINXP_X86_HID_LIB})
+                set(_setupapi ${WINDDK_WINXP_X86SETUPAPID_LIB})
 	        ELSE()
-	            target_link_libraries(freespace ${WINDDK_WIN7_X86_LIBS})
+	            set(_hid ${WINDDK_WIN7_X86_HID_LIB})
+                set(_setupapi ${WINDDK_WIN7_X86_SETUPAPI_LIB})
 	        ENDIF()
 	    ENDIF()
+        
+        if (NOT _hid)
+            message(FATAL_ERROR "Could not locate hid.lib")
+        endif()
+        
+        if (NOT _setupapi)
+            # Not found in WinDDK, assume it's in default search path
+            set(_setupapi "setupapi.lib")
+        endif()
+
+        target_link_libraries(freespace ${_hid})
+        target_link_libraries(freespace ${_setupapi})
 
     elseif(UNIX)
         # Additional headers
