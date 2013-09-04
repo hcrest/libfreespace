@@ -1014,9 +1014,9 @@ DataModeControlV2Request.ID[2] = {
     SubMessageID:{size:1, id:20}
 }
 DataModeControlV2Request.Fields[2] =  [
-    {name:"modeAndStatus", size:1, bits:[{name:'reportStatus', Documentation:"Set to 0 to set status, 1 to report current status"},
+    {name:"modeAndStatus", size:1, bits:[{name:'operatingStatus', Documentation:"0 - update the current operating mode as indicated, 1 - report the current operating mode without changing it"},
                                          {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep deep sleep, 4 - full motion on, 5 - rf on motion", size: 3},
-                                         {name:'reportMode', Documentation:"Set to 0 to set mode, 1 to report current mode"}]},
+                                         {name:'outputStatus', Documentation:"0 - update the current packet and format selections as indicate, 1 - report the current packet and format selections without changing them"}]},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
     {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"Selects the format of the packet"},
     {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Set to enable section 0"},
@@ -1590,9 +1590,9 @@ DataModeControlV2Response.ID[2] = {
     SubMessageID:{size:1, id:20}
 }
 DataModeControlV2Response.Fields[2] =  [
-    {name:"modeAndStatus", size:1, bits:[{name:'reportStatus', Documentation:"0 if in response to update, 1 in response to status request"},
+    {name:"modeAndStatus", size:1, bits:[{name:'operatingStatus', Documentation:"0 if in response to update, 1 in response to status request"},
                                          {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep depp sleep, 4 - full motion on, 5 - rf on motion", size: 3},
-                                         {name:'reportMode', Documentation:"0 if in response to update, 1 in response to status request"}]},
+                                         {name:'outputStatus', Documentation:"0 if in response to update, 1 in response to status request"}]},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
     {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"The format of the incoming MotionEngineOutput packets. " + MEFORMATFLAG_BLURB},
     {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Format flag 0. " + MEFORMATFLAG_BLURB}, \
