@@ -349,7 +349,7 @@ DceOutV4T0Message.ID[2] = {
 	SubMessageID:{size:1, id:0}
 }
 DceOutV4T0Message.Fields[2] = [
-    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"sampleBase",     size:1, cType:'uint8_t', Documentation:"Report sequence number. Increments monotonically."},
     {name:"ax",             size:2, cType:'int16_t', Documentation:"Accelerometer sensor reading."},
     {name:"ay",             size:2, cType:'int16_t'},
     {name:"az",             size:2, cType:'int16_t'},
@@ -374,7 +374,7 @@ DceOutV4T1Message.ID[2] = {
 	SubMessageID:{size:1, id:1}
 }
 DceOutV4T1Message.Fields[2] = [
-    {name:"sampleBase",     size:1, cType:'int8_t', Documentation:"Report sequence number. Increments monotonically."},
+    {name:"sampleBase",     size:1, cType:'uint8_t', Documentation:"Report sequence number. Increments monotonically."},
     {name:"mx",             size:2, cType:'int16_t', Documentation:"Magnetometer sensor reading."},
     {name:"my",             size:2, cType:'int16_t'},
     {name:"mz",             size:2, cType:'int16_t'},
