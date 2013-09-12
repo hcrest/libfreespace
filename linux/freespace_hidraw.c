@@ -150,6 +150,9 @@ static int _disconnect(struct FreespaceDevice * device);
 static void _deallocateDevice(struct FreespaceDevice* device);
 static int _write(int fd, const uint8_t* message, int length);
 
+const int MAX_DEVICES = 16;
+static int connectedDevices_ = 0;
+
 #ifdef LIBFRESPACE_THREADED_WRITES
 #include <pthread.h>
 
@@ -818,8 +821,16 @@ static int _parseNum(const char * path) {
 }
 
 static FreespaceDeviceId _assignId() {
-	static int ctr = 0;
-	return ctr++;
+    int i;
+    
+    for (i = 0; i < MAX_DEVICES; ++i) {
+        if ((connectedDevices_ & (1 << i)) == 0) {
+            connectedDevices_ |= (1 << i);
+            WARN("Device ID %d is connected", i);
+            return i;
+        }
+    }
+    return -1;
 }
 
 static int _scanDevice(const char * dir, const char * filename) {
@@ -1088,6 +1099,9 @@ static int _disconnect(struct FreespaceDevice * device) {
 			device->fd_ = -1;
 		}
 
+        // Indicate that the device is disconnected so that its ID can be reused
+        connectedDevices_ &= ~((int)(1 << device->id_));
+        WARN("Device ID %d is disconnected", device->id_);
 
 		device->state_ = FREESPACE_DISCONNECTED;
 		TRACE("*** Sending removal notification (Opened)**", "");
@@ -1108,6 +1122,11 @@ static int _disconnect(struct FreespaceDevice * device) {
 			close(device->fd_);
 			device->fd_ = -1;
 		}
+
+        // Indicate that the device is disconnected so that its ID can be reused
+        connectedDevices_ &= ~((int)(1 << device->id_));
+        WARN("Device ID %d is disconnected", device->id_);
+
     	_deallocateDevice(device);
     	device = NULL;
 
@@ -1241,4 +1260,3 @@ static void * _writeThread_fn(void * ptr) {
 }
 
 #endif
-
