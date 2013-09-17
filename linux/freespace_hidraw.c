@@ -150,7 +150,6 @@ static int _disconnect(struct FreespaceDevice * device);
 static void _deallocateDevice(struct FreespaceDevice* device);
 static int _write(int fd, const uint8_t* message, int length);
 
-const int MAX_DEVICES = 16;
 static int connectedDevices_ = 0;
 
 #ifdef LIBFRESPACE_THREADED_WRITES
@@ -189,6 +188,8 @@ static void _flushWriteJobs(struct FreespaceDevice * dev);
 /* pthread function for write queue */
 static void * _writeThread_fn(void * ptr);
 #endif
+
+static int _scanAllDevices();
 
 const char* freespace_version() {
     return LIBFREESPACE_VERSION;
@@ -340,7 +341,7 @@ int freespace_openDevice(FreespaceDeviceId id) {
 void freespace_closeDevice(FreespaceDeviceId id) {
 	struct FreespaceDevice* device = findDeviceById(id);
 	if (device == NULL) {
-		DEBUG("closeDevice() -- failed to get device", id);
+		DEBUG("closeDevice() -- failed to get device %d", id);
 		return;
 	}
 
@@ -376,7 +377,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 		_deallocateDevice(device);
 		return;
 	}
-	DEBUG("close wtf??", "");
+	DEBUG("Closed device %d", id);
 }
 
 int freespace_isNewDevice(FreespaceDeviceId id) {
@@ -537,37 +538,74 @@ int freespace_getNextTimeout(int* timeoutMsOut) {
 }
 
 int freespace_perform() {
-	int i;
-	int n;
+    int i;
+    int n;
+    int nfds;
+    static int needToRescan = 1;
 
-	_scanDevices();
+	if (needToRescan) {
+		_scanAllDevices();
+		needToRescan = 0;
+	}
 
-	i = 0;
-	n = 0;
-	for (; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
+    struct pollfd fds[FREESPACE_MAXIMUM_DEVICE_COUNT + 1];
+
+    // Populate fds[]
+    fds[0].fd = inotify_fd_;
+    fds[0].events = POLLIN;
+
+	for (i = 0, n = 0; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
 		struct FreespaceDevice * device = devices[i];
 		if (!device) {
 			continue;
 		}
-		n++;
 
-		switch (device->state_) {
-			case FREESPACE_CONNECTED:
-				// no-op
-				break;
+        ++n;
+        fds[n].fd = device->fd_;
+        fds[n].events = POLLIN | POLLHUP | POLLERR;
+    }
 
-			case FREESPACE_OPENED:
-				_pollDevice(device);
-				break;
+    // Poll for open file descripts
+    nfds = poll(fds, numDevices + 1, 0);
 
-			case FREESPACE_DISCONNECTED:
-				// no-op
-				break;
+    if (nfds > 0 ) {
+        // inotify_fd_
+        if (fds[0].revents & POLLIN) {
+            DEBUG("inotify_fd_ received POLLIN. Call _scanDevices(). nfds = %d", nfds);
+            fds[0].revents = 0;
+            --nfds;
+	        _scanDevices();
+	    }
 
-			case FREESPACE_NONE:
-				break;
-		}
-	}
+        // Other device->fd_
+        while (nfds > 0) {
+            for (i = 0, n = 0; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
+	            struct FreespaceDevice * device = devices[i];
+                if (!device) {
+                    continue;
+                }
+                ++n;
+
+                if (fds[n].revents) {
+                    if (fds[n].revents & (POLLHUP | POLLERR)) {
+                        DEBUG("Disconnect device %d", device->id_);
+                        _disconnect(device);
+                    }
+                    if (fds[n].revents & POLLIN) {
+                        if (device->state_ == FREESPACE_OPENED) {
+                            _pollDevice(device);
+                        }
+                    }
+                    fds[n].revents = 0;
+                    --nfds;
+                    break;
+                }
+            }
+        }
+    } else if (nfds < 0 ) {
+        WARN("poll() failed: %s," strerror(errno));
+        return FREESPACE_ERROR_UNEXPECTED;
+    }
 
     return FREESPACE_SUCCESS;
 }
@@ -823,7 +861,7 @@ static int _parseNum(const char * path) {
 static FreespaceDeviceId _assignId() {
     int i;
     
-    for (i = 0; i < MAX_DEVICES; ++i) {
+    for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
         if ((connectedDevices_ & (1 << i)) == 0) {
             connectedDevices_ |= (1 << i);
             WARN("Device ID %d is connected", i);
@@ -883,7 +921,7 @@ static int _scanDevice(const char * dir, const char * filename) {
 }
 
 static int _scanAllDevices() {
-	TRACE("Scanning all hidraw devices", "");
+	TRACE("Scanning all hidraw devices");
 	// Check if a device has been added (iterate all of /dev)
 	DIR*    dev_dir = opendir(DEV_DIR);
 	if (dev_dir) {
@@ -919,7 +957,6 @@ static int _init_inotify() {
 		WARN("Failed inotify -> non block: %s", strerror(errno));
 		return FREESPACE_ERROR_IO;
 	}
-
 
 	inotify_wd_ = inotify_add_watch(inotify_fd_, DEV_DIR, IN_CREATE | IN_DELETE);
 	if (inotify_wd_ < 0) {
@@ -957,13 +994,7 @@ static struct FreespaceDevice * _findDeviceByHidrawNum(int num) {
 }
 
 static int _scanDevices() {
-	static int needToRescan = 1;
 	int rc;
-
-	if (needToRescan) {
-		_scanAllDevices();
-		needToRescan = 0;
-	}
 
 	// process inotify events
 	char buf[(sizeof(struct inotify_event) + 32) * 16];
@@ -1004,18 +1035,18 @@ static int _scanDevices() {
 			// first, check to see if we have a complete inotify_event
 			if (remainder < expectedSize) {
 				// this event is incomplete (not aligned), break here and read again
-				TRACE("Not enough space in the buffer for inotify struct... %ld/%ld", remainder, expectedSize);
+				TRACE("Not enough space in the buffer for inotify struct... %d/%d", remainder, expectedSize);
 				break;
 			}
 
 			// now, check to see if the path following it has been completely read.
 			expectedSize += event->len;
 			if (remainder < expectedSize) {
-				TRACE("Not enough space in the buffer for inotify struct + string... %ld/%ld -- (%ld + %d)", remainder, expectedSize, sizeof(struct inotify_event), event->len);
+				TRACE("Not enough space in the buffer for inotify struct + string... %d/%d -- (%d + %d)", remainder, expectedSize, sizeof(struct inotify_event), event->len);
 				break;
 			}
 
-			offset +=expectedSize;
+			offset += expectedSize;
 
             if (strncmp(event->name, HIDRAW_PREFIX, strlen(HIDRAW_PREFIX)) != 0) {
             	TRACE("Skipping, inotify event - %04x:%s ", event->mask, event->name);
@@ -1024,12 +1055,6 @@ static int _scanDevices() {
 
 			DEBUG("Handle inotify event - %04x:%s ", event->mask, event->name);
 			num = _parseNum(event->name);
-			if (event->mask & IN_DELETE) {
-				struct FreespaceDevice * device = _findDeviceByHidrawNum(num);
-				if (device) {
-					_disconnect(device);
-				}
-			}
 
 			if (event->mask & IN_CREATE) {
 				struct FreespaceDevice * device = _findDeviceByHidrawNum(num);
@@ -1104,7 +1129,7 @@ static int _disconnect(struct FreespaceDevice * device) {
         WARN("Device ID %d is disconnected", device->id_);
 
 		device->state_ = FREESPACE_DISCONNECTED;
-		TRACE("*** Sending removal notification (Opened)**", "");
+		TRACE("*** Sending removal notification for device %d while opened", device->id_);
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
 		}
@@ -1130,7 +1155,7 @@ static int _disconnect(struct FreespaceDevice * device) {
     	_deallocateDevice(device);
     	device = NULL;
 
-		TRACE("*** Sending removal notification (connected)**", "");
+		TRACE("*** Sending removal notification for device %d while connected", device->id_);
 		if (hotplugCallback) {
 			hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
 		}
