@@ -568,6 +568,8 @@ int freespace_perform() {
     // Poll for open file descripts
     nfds = poll(fds, numDevices + 1, 0);
 
+    i = 0;
+    n = 0;
     if (nfds > 0 ) {
         // inotify_fd_
         if (fds[0].revents & POLLIN) {
@@ -579,12 +581,14 @@ int freespace_perform() {
 
         // Other device->fd_
         while (nfds > 0) {
-            for (i = 0, n = 0; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
+            while (n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT) {
 	            struct FreespaceDevice * device = devices[i];
                 if (!device) {
+                    ++i;
                     continue;
                 }
                 ++n;
+                ++i;
 
                 if (fds[n].revents) {
                     if (fds[n].revents & (POLLHUP | POLLERR)) {
