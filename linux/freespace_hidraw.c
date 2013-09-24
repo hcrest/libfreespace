@@ -607,7 +607,7 @@ int freespace_perform() {
             }
         }
     } else if (nfds < 0 ) {
-        WARN("poll() failed: %s," strerror(errno));
+        WARN("poll() failed: %s", strerror(errno));
         return FREESPACE_ERROR_UNEXPECTED;
     }
 
