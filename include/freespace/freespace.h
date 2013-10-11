@@ -239,15 +239,6 @@ LIBFREESPACE_API int freespace_getDeviceInfo(FreespaceDeviceId id,
 
 /** @ingroup device
  *
- * Return determine whether the device supports new messages.
- *
- * @param id which device
- * @return FREESPACE_SUCCESS for new devices or FREESPACE_ERROR_NO_DEVICE for old device.
- */
-LIBFREESPACE_API int freespace_isNewDevice(FreespaceDeviceId id);
-
-/** @ingroup device
- *
  * Open a Freespace device for use. A device must be in the opened
  * state before most other commands in this API can be called. This
  * internally allocates the resources needed to communicate with the
