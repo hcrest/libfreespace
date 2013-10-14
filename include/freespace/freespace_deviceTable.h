@@ -95,18 +95,6 @@ extern const struct FreespaceDeviceAPI freespace_deviceAPITable[];
  */
 extern const int freespace_deviceAPITableNum;
 
-/**
- * @ingroup device
- * Stores product IDs for all Freespace devices that support the new API.
- */
-extern const struct FreespaceDeviceInfo freespace_newDeviceAPITable[];
-
-/**
- * Defines the number of devices in the API table.  This can't be done as a sizeof the array
- * because the externed definition of the array is not dimensioned.
- */
-extern const int freespace_newDeviceAPITableNum;
-
 #ifdef __cplusplus
 }
 #endif

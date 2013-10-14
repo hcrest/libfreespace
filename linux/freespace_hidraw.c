@@ -382,29 +382,6 @@ void freespace_closeDevice(FreespaceDeviceId id) {
     DEBUG("Closed device %d", id);
 }
 
-int freespace_isNewDevice(FreespaceDeviceId id) {
-    const struct FreespaceDeviceInfo*   pDeviceInfo = NULL;
-    int rc;
-    int idx;
-    struct FreespaceDevice* device = findDeviceById(id);
-
-    if (device == NULL) {
-        return FREESPACE_ERROR_NO_DEVICE;
-    }
-
-    // Determine if the product ID represent a new device
-    for (idx = 0; idx < freespace_newDeviceAPITableNum; ++idx)
-    {
-        pDeviceInfo = &freespace_newDeviceAPITable[idx];
-        if ( (pDeviceInfo->vendor == device->api_->idVendor_) &&
-             (pDeviceInfo->product == device->api_->idProduct_) )
-        {
-            return FREESPACE_SUCCESS;
-        }
-    }
-    return FREESPACE_ERROR_NO_DEVICE;
-}
-
 int freespace_private_send(FreespaceDeviceId id, const uint8_t* message, int length) {
     return FREESPACE_ERROR_UINIMPLEMENTED;
 }
@@ -722,6 +699,7 @@ static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const
 
     int i;
     int rc;
+    int stringFound = 0;
     struct hidraw_devinfo info;
     int fd = open(path, O_RDONLY);
 
@@ -741,49 +719,47 @@ static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const
         return FREESPACE_ERROR_IO;
     }
 
-    for (i = 0; i < freespace_deviceAPITableNum; i++) {
-        if (freespace_deviceAPITable[i].idVendor_ != info.vendor) {
-            continue;
+    {
+        // Search for 06 01 FF 09 04 A1 in the HID descriptor
+        #define FREESPACE_HID_STRING_LEN 6
+        const __u8 FREESPACE_HID_STRING[FREESPACE_HID_STRING_LEN] = {0x06, 0x01, 0xFF, 0x09, 0x04, 0xA1};
+        struct hidraw_report_descriptor descriptor;
+
+        rc = ioctl(fd, HIDIOCGRDESCSIZE, &descriptor.size);
+        if (rc < 0) {
+            DEBUG("HIDIOCGRDESCSIZE %s: %s", path, strerror(errno));
+            close(fd);
+            return FREESPACE_ERROR_IO;
+        }
+        rc = ioctl(fd, HIDIOCGRDESC, &descriptor);
+        if (rc < 0) {
+            DEBUG("HIDIOCGRDESC %s: %s", path, strerror(errno));
+            close(fd);
+            return FREESPACE_ERROR_IO;
         }
 
-        if (freespace_deviceAPITable[i].idProduct_ != (info.product & 0xffff )) {
-            continue;
-        }
-
-        {
-            struct hidraw_report_descriptor descriptor;
-            rc = ioctl(fd, HIDIOCGRDESCSIZE, &descriptor.size);
-            if (rc < 0) {
-                DEBUG("HIDIOCGRDESCSIZE %s: %s", path, strerror(errno));
-                close(fd);
-                return FREESPACE_ERROR_IO;
-            }
-            rc = ioctl(fd, HIDIOCGRDESC, &descriptor);
-            if (rc < 0) {
-                DEBUG("HIDIOCGRDESC %s: %s", path, strerror(errno));
-                close(fd);
-                return FREESPACE_ERROR_IO;
-            }
-
-            TRACE("%s  - descriptor size: %d",  path,  descriptor.size);
-
-            // TODO parse descriptors and do something intelligent....
-            // Really, really crude matching for now..
-            if (descriptor.size == 161) { // scoop
-                *API = &freespace_deviceAPITable[i];
-            } else if (descriptor.size == 174) { // Roku Broadcom Remote
-                *API = &freespace_deviceAPITable[i];
-            } else if (descriptor.size == 229) { // Ozmo Remote
-                *API = &freespace_deviceAPITable[i];
-            } else if (descriptor.size == 199) { // Ozmo Remote
-                *API = &freespace_deviceAPITable[i];
-            } else if (descriptor.size == 93) {  // TI Remote
-                *API = &freespace_deviceAPITable[i];
-            } else if (descriptor.size == 178) { // RC520
-                *API = &freespace_deviceAPITable[i];
+        for (i = 0; i < (int)(descriptor.size - FREESPACE_HID_STRING_LEN); ++i) {
+            if (memcmp(FREESPACE_HID_STRING, &descriptor.value[i], FREESPACE_HID_STRING_LEN) == 0) {
+                stringFound = 1;
+                break;
             }
         }
-        break;
+    }
+
+    if (stringFound) {
+        TRACE("Freespace device found: %s", path);
+        for (i = 0; i < freespace_deviceAPITableNum; i++) {
+            if (freespace_deviceAPITable[i].idVendor_ != info.vendor) {
+                continue;
+            }
+
+            if (freespace_deviceAPITable[i].idProduct_ != (info.product & 0xffff )) {
+                continue;
+            }
+
+            *API = &freespace_deviceAPITable[i];
+            break;
+        }
     }
 
     close(fd);
