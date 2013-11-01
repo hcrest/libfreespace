@@ -44,7 +44,11 @@ typedef void* FreespaceFileHandleType;
 #else
 #include <stdint.h>
 typedef int FreespaceFileHandleType;
+#if (defined LIBFREESPACE_EXPORTS && defined __GNUC__ && __GNUC__ >= 4)
+#define LIBFREESPACE_API __attribute__ ((visibility ("default")))
+#else
 #define LIBFREESPACE_API
+#endif  // (defined LIBFREESPACE_EXPORTS && defined __GNUC__ && __GNUC__ >= 4)
 #endif
 
 /** \ingroup initialization

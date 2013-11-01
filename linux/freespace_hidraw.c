@@ -411,7 +411,6 @@ int freespace_private_read(FreespaceDeviceId id,
                            int maxLength,
                            unsigned int timeoutMs,
                            int* actualLength) {
-    int rc;
     GET_DEVICE_IF_OPEN(id, device);
 
     // TODO
@@ -441,7 +440,7 @@ int _write(int fd, const uint8_t* message, int length) {
         }
 
         if (errno == ETIMEDOUT) {
-            FREESPACE_ERROR_TIMEOUT;
+            return FREESPACE_ERROR_TIMEOUT;
         }
 
         WARN("Write failed: %s", strerror(errno));
@@ -462,7 +461,9 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
                                 unsigned int timeoutMs,
                                 freespace_sendCallback callback,
                                 void* cookie) {
+#ifdef LIBFRESPACE_THREADED_WRITES
     ssize_t rc;
+#endif
     GET_DEVICE_IF_OPEN(id, device);
 
 #ifndef LIBFRESPACE_THREADED_WRITES
@@ -641,7 +642,6 @@ int freespace_private_setReceiveCallback(FreespaceDeviceId id,
 int freespace_setReceiveMessageCallback(FreespaceDeviceId id,
                                         freespace_receiveMessageCallback callback,
                                         void* cookie) {
-    int rc;
     GET_DEVICE(id, device);
 
     device->receiveMessageCallback_ = callback;
@@ -981,7 +981,6 @@ static struct FreespaceDevice * _findDeviceByHidrawNum(int num) {
 }
 
 static int _scanDevices() {
-    int rc;
 
     // Process inotify events
     char buf[(sizeof(struct inotify_event) + 32) * 16];
