@@ -64,6 +64,7 @@ const struct FreespaceDeviceAPI freespace_deviceAPITable[] = {
     { 0x1d5a, 0xc050, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MV)"},
     { 0x1d5a, 0xc051, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (V)"},
     { 0x1d5a, 0xc052, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "SPI to USB adapter v2 (MKCV)"},
+    { 0x1d5a, 0xc053, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "I2C to USB adapter v2 (SV)"},
     { 0x1d5a, 0xc060, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (MV)"},
     { 0x1d5a, 0xc061, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Coprocessor to USB adapter v2 (V)"},
     { 0x1d5a, 0xc070, 1, 1, 2, {{4, 0xff01}, {0, 0}}, "Bluetooth v2 (MV)"},

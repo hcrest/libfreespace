@@ -1591,8 +1591,9 @@ DataModeControlV2Response.ID[2] = {
 }
 DataModeControlV2Response.Fields[2] =  [
     {name:"modeAndStatus", size:1, bits:[{name:'operatingStatus', Documentation:"0 if in response to update, 1 in response to status request"},
-                                         {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep depp sleep, 4 - full motion on, 5 - rf on motion", size: 3},
-                                         {name:'outputStatus', Documentation:"0 if in response to update, 1 in response to status request"}]},
+                                         {name:'mode', Documentation:"Operating mode.0 - full motion , 1 - sleep, 2 - deep sleep, 3 - deep deep sleep, 4 - full motion on, 5 - notify on motion", size: 3},
+                                         {name:'outputStatus', Documentation:"0 if in response to update, 1 in response to status request"},
+                                         {name:'modeActual', Documentation:"Operating mode actual.0 - full motion , 1 - wake-on-motion, 2 - reserved, 3 - sleep, 4 - reserved, 5 - notify on motion", size: 3}]},
     {name:"packetSelect",  size:1, cType:'uint8_t', Documentation:"Selects the packet type to output"},
     {name:"formatSelect",  size:1, cType:'uint8_t', Documentation:"The format of the incoming MotionEngineOutput packets. " + MEFORMATFLAG_BLURB},
     {name:'formatFlags',   size:1, bits:[{name:'ff0', Documentation:"Format flag 0. " + MEFORMATFLAG_BLURB}, \
