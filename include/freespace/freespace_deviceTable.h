@@ -81,6 +81,7 @@ struct FreespaceDeviceAPI {
 	int         hVer_; // HID messaging protocol used for a particular product ID
     struct      FreespaceDeviceUsageAPI usages_[FREESPACE_HANDLE_COUNT_MAX];
     const char* name_;
+    int         mask_; // Used for masking idProduct_
 };
 
 /**

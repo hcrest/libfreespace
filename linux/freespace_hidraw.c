@@ -749,15 +749,16 @@ static int _isFreespaceDevice(const char * path, struct FreespaceDeviceAPI const
     if (stringFound) {
         TRACE("Freespace device found: %s", path);
         for (i = 0; i < freespace_deviceAPITableNum; i++) {
-            if (freespace_deviceAPITable[i].idVendor_ != info.vendor) {
+            struct FreespaceDeviceAPI const * api = &freespace_deviceAPITable[i];
+            if (api->idVendor_ != info.vendor) {
                 continue;
             }
 
-            if (freespace_deviceAPITable[i].idProduct_ != (info.product & 0xffff )) {
+            if ((api->idProduct_ & api->mask_) != (info.product & api->mask_)) {
                 continue;
             }
 
-            *API = &freespace_deviceAPITable[i];
+            *API = api;
             break;
         }
     }

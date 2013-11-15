@@ -149,11 +149,17 @@ static const struct FreespaceDeviceAPI* getDeviceAPI(const struct FreespaceDevic
     int index;
     for (i = 0; i < freespace_deviceAPITableNum; i++) {
         const struct FreespaceDeviceAPI* api = &freespace_deviceAPITable[i];
-        if (info->idVendor_ == api->idVendor_ && info->idProduct_ == api->idProduct_) {
-            index = getDeviceAPIIndex(api, info);
-            if (index >= 0) {
-                return api;
-            }
+        if (info->idVendor_ != api->idVendor_) {
+            continue;
+        }
+
+        if ((info->idProduct_ & api->mask_) != (api->idProduct_ & api->mask_)) {
+            continue;
+        }
+
+        index = getDeviceAPIIndex(api, info);
+        if (index >= 0) {
+            return api;
         }
     }
 

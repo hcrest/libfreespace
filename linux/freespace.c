@@ -185,10 +185,15 @@ static struct FreespaceDeviceAPI const * lookupDevice(struct libusb_device_descr
     int i;
     for (i = 0; i < freespace_deviceAPITableNum; i++) {
         struct FreespaceDeviceAPI const * api = &freespace_deviceAPITable[i];
-        if (desc->idVendor == api->idVendor_ &&
-            desc->idProduct == api->idProduct_) {
-            return api;
+        if (desc->idVendor != api->idVendor_) {
+            continue;
         }
+
+        if ((desc->idProduct & api->mask_) != (api->idProduct_ & api->mask_)) {
+            continue;
+        }
+
+        return api;
     }
 
     return NULL;
