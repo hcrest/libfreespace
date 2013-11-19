@@ -181,9 +181,11 @@ struct FreespaceDeviceStruct* freespace_private_getDeviceByRef(FreespaceDeviceRe
 
 struct FreespaceDeviceStruct* freespace_private_getDeviceById(FreespaceDeviceId id) {
     int i;
-    for (i = 0; i < freespace_instance_->deviceCount_; i++) {
-        if (id == freespace_instance_->devices_[i]->id_) {
-            return freespace_instance_->devices_[i];
+    if (freespace_instance_ != NULL) {
+        for (i = 0; i < freespace_instance_->deviceCount_; i++) {
+            if (id == freespace_instance_->devices_[i]->id_) {
+                return freespace_instance_->devices_[i];
+            }
         }
     }
     return NULL;
