@@ -928,7 +928,7 @@ static int _scanAllDevices() {
     return FREESPACE_SUCCESS;
 }
 
-// Create and initialize inotiy instance
+// Create and initialize inotify instance
 // Add watch to about events specified by when new file is created or deleted in
 // the device directory (/dev)
 static int _init_inotify() {
@@ -984,17 +984,14 @@ static struct FreespaceDevice * _findDeviceByHidrawNum(int num) {
 static int _scanDevices() {
 
     // Process inotify events
-    char buf[(sizeof(struct inotify_event) + 32) * 16];
+    char buf[(sizeof(struct inotify_event) + 32) * 8];
     ssize_t length = 0;
     ssize_t offset = 0;
 
     while(1) {
-        if (offset > 0) {
-            // mMve the trailing bytes to the beginning
-            memmove(buf, buf + offset, length - offset);
-        }
 
-        length = read(inotify_fd_, buf + offset, sizeof(buf) - offset);
+        length = read(inotify_fd_, buf, sizeof(buf));
+
         if (length < 0) {
             if (errno == EAGAIN) {
                 // done!
@@ -1029,7 +1026,8 @@ static int _scanDevices() {
             // Now, check to see if the path following it has been completely read.
             expectedSize += event->len;
             if (remainder < expectedSize) {
-                TRACE("Not enough space in the buffer for inotify struct + string... %d/%d -- (%d + %d)", remainder, expectedSize, sizeof(struct inotify_event), event->len);
+                TRACE("Not enough space in the buffer for inotify struct + string... %d/%d -- (%d + %d)", 
+                      remainder, expectedSize, sizeof(struct inotify_event), event->len);
                 break;
             }
 
@@ -1046,7 +1044,7 @@ static int _scanDevices() {
             if (event->mask & IN_CREATE) {
                 struct FreespaceDevice * device = _findDeviceByHidrawNum(num);
                 if (device) {
-                    TRACE("%s is alread added!", event->name);
+                    TRACE("%s is already added!", event->name);
                     continue;
                 }
 
