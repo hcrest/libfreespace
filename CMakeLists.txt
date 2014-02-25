@@ -192,7 +192,7 @@ else()
             endif()
 
             if (LIBFREESPACE_HIDRAW_THREADED_WRITES)
-                add_definitions(-DLIBFRESPACE_THREADED_WRITES -pthread)
+                add_definitions(-DLIBFREESPACE_THREADED_WRITES -pthread)
                 list(APPEND CMAKE_EXE_LINKER_FLAGS -pthread)
             endif()
             add_library(freespace ${LIBFREESPACE_LIB_TYPE}

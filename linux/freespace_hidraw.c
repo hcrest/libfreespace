@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #include <linux/types.h>
 #include <linux/input.h>
@@ -152,7 +153,7 @@ static int _write(int fd, const uint8_t* message, int length);
 
 static int connectedDevices_ = 0;
 
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
 #include <pthread.h>
 
 pthread_t writeThread_;
@@ -215,7 +216,7 @@ int freespace_init() {
         return FREESPACE_ERROR_IO;
     }
 
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
     rc = pthread_create( &writeThread_, NULL, &_writeThread_fn, NULL);
     //pthread_setname_np(writeThread_, "libfreespace-write");
 
@@ -252,7 +253,7 @@ void freespace_exit() {
         }
     }
 
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
     // Signal the thread to shutdown...
     writeThreadExit_ = 1;
     pthread_cond_signal(&writeCond_);
@@ -355,7 +356,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
 
     if (device->state_ == FREESPACE_OPENED) {
         DEBUG("Close opened device");
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
         pthread_mutex_lock(&writeMutex_ );
         _flushWriteJobs(device);
         pthread_mutex_unlock(&writeMutex_);
@@ -461,12 +462,12 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
                                 unsigned int timeoutMs,
                                 freespace_sendCallback callback,
                                 void* cookie) {
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
     ssize_t rc;
 #endif
     GET_DEVICE_IF_OPEN(id, device);
 
-#ifndef LIBFRESPACE_THREADED_WRITES
+#ifndef LIBFREESPACE_THREADED_WRITES
     return _write(device->fd_, message, length);
 #else
     pthread_mutex_lock(&writeMutex_ );
@@ -1094,7 +1095,7 @@ static void _deallocateDevice(struct FreespaceDevice* device) {
 static int _disconnect(struct FreespaceDevice * device) {
     DEBUG("Freespace device (%d) at %s disconnected", device->id_, device->hidrawPath_);
 
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
     pthread_mutex_lock(&writeMutex_ );
     _flushWriteJobs(device);
     pthread_mutex_unlock(&writeMutex_);
@@ -1151,7 +1152,7 @@ static int _disconnect(struct FreespaceDevice * device) {
     return FREESPACE_ERROR_UNEXPECTED;
 }
 
-#ifdef LIBFRESPACE_THREADED_WRITES
+#ifdef LIBFREESPACE_THREADED_WRITES
 
 static struct WriteJob * _allocateWriteJob() {
     struct WriteJob * j;
