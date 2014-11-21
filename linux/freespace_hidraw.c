@@ -1,7 +1,7 @@
 /*
  * This file is part of libfreespace.
  *
- * Copyright (c) 2012-2013 Hillcrest Laboratories, Inc.
+ * Copyright (c) 2012-2014 Hillcrest Laboratories, Inc.
  *
  * libfreespace is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,16 +40,14 @@
 
 /**
  * TODO
- *    - bluetooth write support on Ubunutu/hidp
- *    - add sync support?
- *    - better device suppport
+ *    - support synchronous API
  */
 
-//#define _FREESPACE_WARN
-//#define _FREESPACE_DEBUG
-//#define _FREESPACE_TRACE
+#define _FREESPACE_DEBUG
+#define _FREESPACE_WARN
+#define _FREESPACE_TRACE
 
-#define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (%s:%d): " #lvl " " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
+#define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (%20s:%4d): " #lvl " " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 
 #ifdef _FREESPACE_WARN
 #define WARN(fmt, ...) LOGF(fmt,  WARN, ##__VA_ARGS__)
@@ -94,12 +92,61 @@ enum FreespaceDeviceState {
     FREESPACE_DISCONNECTED,
 };
 
+#ifdef LIBFREESPACE_THREADED_WRITES
+#include <pthread.h>
+
+struct FreespaceDevice;
+
+static const int NUM_MAX_JOBS = 5;
+static const int NUM_MAX_FREE_JOBS = 3;
+
+struct FreespaceBGWriteJob {
+    int fd;
+    int cookie;
+    uint8_t message[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
+    int length;
+    struct FreespaceBGWriteJob * next;
+};
+
+struct FreespaceBGWriter {
+    pthread_t thread;
+    pthread_mutex_t mutex;
+    pthread_cond_t  cond;
+
+    struct FreespaceBGWriteJob * head;
+    struct FreespaceBGWriteJob * tail;
+    struct FreespaceBGWriteJob * free;
+
+    int exitThread;
+
+    int queueLen;
+    int numFree;
+};
+
+/* Allocate job struct. If the queue is full, drop the next job belonging to
+this device. Call with lock held */
+static struct FreespaceBGWriteJob * _popFreeJobLocked();
+/* Deallocate job struct. Call with lock held */
+static int _returnWriteJobLocked(struct FreespaceBGWriteJob *);
+/* Pop the next job from the write queue. Call with lock held */
+static struct FreespaceBGWriteJob * _popWriteJobLocked();
+/* Push a write job to the write_queue. Call with lock held */
+static int _pushWriteJobLocked(struct FreespaceBGWriteJob *);
+/* Flush all write jobs associated with *devCall with lock held */
+static void _flushWriteJobsLocked(struct FreespaceDevice * dev, int l);
+/* pthread function for write queue */
+static void * _writeThread_fn(void * ptr);
+
+#endif
+
+
 struct FreespaceDevice {
-    FreespaceDeviceId id_;
+    FreespaceDeviceId id_; // this id is unique to all connected devices
     enum FreespaceDeviceState state_;
 
     int fd_;
-    int num_;
+    int devNum_;
+    int cookie_; // this id is unique across all instances
     char hidrawPath_[16];
     struct FreespaceDeviceAPI const * api_;
 
@@ -109,7 +156,7 @@ struct FreespaceDevice {
     void* receiveMessageCookie_;
 };
 
-#define DEV_DIR "/dev/"
+#define DEV_DIR "/dev"
 #define HIDRAW_PREFIX  "hidraw"
 
 #define GET_DEVICE(id, device) \
@@ -131,65 +178,36 @@ struct FreespaceDevice {
             return FREESPACE_ERROR_UNEXPECTED;\
     }
 
-/* global variables */
-static int numDevices = 0;
-static FreespaceDeviceId nextFreeIndex = 0;
-static struct FreespaceDevice* devices[FREESPACE_MAXIMUM_DEVICE_COUNT];
-static int inotify_fd_ = -1;
-static int inotify_wd_ = -1;
 
-static freespace_pollfdAddedCallback userAddedCallback = NULL;
-static freespace_pollfdRemovedCallback userRemovedCallback = NULL;
-static freespace_hotplugCallback hotplugCallback = NULL;
-static void* hotplugCookie;
+struct freespace_context {
+    int numDevices;
+    int nextFreeIndex;
+    int connectedDevices; // bitmap of connected devices
+    struct FreespaceDevice * devices[FREESPACE_MAXIMUM_DEVICE_COUNT];
+
+    int inotify_fd;
+    int inotify_wd;
+
+    freespace_pollfdAddedCallback userAddedCallback;
+    freespace_pollfdRemovedCallback userRemovedCallback;
+    freespace_hotplugCallback hotplugCallback;
+    void* hotplugCookie;
+
+#ifdef LIBFREESPACE_THREADED_WRITES
+    struct FreespaceBGWriter writer;
+#endif
+};
+
+/* global variables */
+static struct freespace_context ctx_;
 
 /* local functions */
-static int _init_inotify();
-static int _scanDevices();
+static int _inotify_init();
+static int _inotify_process();
 static int _readDevice(struct FreespaceDevice * device);
 static int _disconnect(struct FreespaceDevice * device);
 static void _deallocateDevice(struct FreespaceDevice* device);
 static int _write(int fd, const uint8_t* message, int length);
-
-static int connectedDevices_ = 0;
-
-#ifdef LIBFREESPACE_THREADED_WRITES
-#include <pthread.h>
-
-pthread_t writeThread_;
-pthread_mutex_t writeMutex_ = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t  writeCond_ = PTHREAD_COND_INITIALIZER;
-
-struct WriteJob {
-    struct FreespaceDevice * dev;
-    uint8_t message[FREESPACE_MAX_INPUT_MESSAGE_SIZE];
-    int length;
-    struct WriteJob * next;
-};
-
-struct WriteJob * writeJobsHead_ = 0;
-struct WriteJob * writeJobsTail_ = 0;
-struct WriteJob * freeJobsHead_ = 0;
-static int writeThreadExit_  = 0;
-static int numWriteJobsAllocated_ = 0;
-static int numWriteJobsFree_ = 0;
-static const int MaxWriteJobs = 5;
-static const int MaxFreeWriteJobs = 3;
-
-/* Allocate a WriteJob struct. Call with lock held */
-static struct WriteJob * _allocateWriteJob();
-/* Deallocate a WriteJob struct. Call with lock held */
-static int _deallocateWriteJob(struct WriteJob *);
-/* Pop the next WriteJob from the write queue. Call with lock held */
-static struct WriteJob * _popWriteJob();
-/* Push a write job to the write_queue. Call with lock held */
-static int _pushWriteJob(struct WriteJob *);
-/* Flush all write jobs associated with *devCall with lock held */
-static void _flushWriteJobs(struct FreespaceDevice * dev);
-/* pthread function for write queue */
-static void * _writeThread_fn(void * ptr);
-#endif
-
 static int _scanAllDevices();
 
 const char* freespace_version() {
@@ -199,8 +217,8 @@ const char* freespace_version() {
 static struct FreespaceDevice* findDeviceById(FreespaceDeviceId id) {
     int i;
     for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        if (devices[i] != NULL && devices[i]->id_ == id) {
-            return devices[i];
+        if (ctx_.devices[i] != NULL && ctx_.devices[i]->id_ == id) {
+            return ctx_.devices[i];
         }
     }
 
@@ -210,20 +228,23 @@ static struct FreespaceDevice* findDeviceById(FreespaceDeviceId id) {
 // Initialize inotify
 int freespace_init() {
     int rc = 0;
-    memset(&devices, 0, sizeof(devices));
-    rc = _init_inotify();
+    memset(&ctx_, 0, sizeof(ctx_));
+    rc = _inotify_init();
     if (rc != 0) {
-        return FREESPACE_ERROR_IO;
+        return rc;
     }
 
 #ifdef LIBFREESPACE_THREADED_WRITES
-    rc = pthread_create( &writeThread_, NULL, &_writeThread_fn, NULL);
-    //pthread_setname_np(writeThread_, "libfreespace-write");
+    rc = pthread_create(&ctx_.writer.thread, NULL, &_writeThread_fn, NULL);
+    //pthread_setname_np(ctx_.writer.thread, "libfreespace-write");
 
     if (rc < 0) {
         WARN("pthread_create failed: %s", strerror(errno));
         return FREESPACE_ERROR_COULD_NOT_CREATE_THREAD;
     }
+
+    pthread_mutex_init(&ctx_.writer.mutex, NULL);
+    pthread_cond_init(&ctx_.writer.cond, NULL);
 #endif
 
     return FREESPACE_SUCCESS;
@@ -233,7 +254,7 @@ int freespace_init() {
 void freespace_exit() {
     int i;
     for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        struct FreespaceDevice * device = devices[i];
+        struct FreespaceDevice * device = ctx_.devices[i];
         if (device == NULL) {
             continue;
         }
@@ -242,25 +263,25 @@ void freespace_exit() {
             _disconnect(device);
         }
 
-        if (devices[i]) {
-            _deallocateDevice(devices[i]);
+        if (ctx_.devices[i]) {
+            _deallocateDevice(ctx_.devices[i]);
         }
     }
 
-    if (inotify_fd_ > 0) {
-        if (userRemovedCallback) {
-            userRemovedCallback(inotify_fd_);
+    if (ctx_.inotify_fd > 0) {
+        if (ctx_.userRemovedCallback) {
+            ctx_.userRemovedCallback(ctx_.inotify_fd);
         }
     }
 
 #ifdef LIBFREESPACE_THREADED_WRITES
     // Signal the thread to shutdown...
-    writeThreadExit_ = 1;
-    pthread_cond_signal(&writeCond_);
+    ctx_.writer.exitThread = 1;
+    pthread_cond_signal(&ctx_.writer.cond);
 
-    pthread_join(writeThread_, NULL);
-    pthread_mutex_destroy(&writeMutex_);
-    pthread_cond_destroy(&writeCond_);
+    pthread_join(ctx_.writer.thread, NULL);
+    pthread_mutex_destroy(&ctx_.writer.mutex);
+    pthread_cond_destroy(&ctx_.writer.cond);
 #endif
 
     return;
@@ -269,8 +290,8 @@ void freespace_exit() {
 
 int freespace_setDeviceHotplugCallback(freespace_hotplugCallback callback,
                                        void* cookie) {
-    hotplugCallback = callback;
-    hotplugCookie = cookie;
+    ctx_.hotplugCallback = callback;
+    ctx_.hotplugCookie = cookie;
     return FREESPACE_SUCCESS;
 }
 
@@ -281,14 +302,14 @@ int freespace_getDeviceList(FreespaceDeviceId* idList,
     int rc;
     *numIds = 0;
 
-    rc = _scanDevices();
+    rc = _inotify_process();
     if (rc != FREESPACE_SUCCESS) {
         return rc;
     }
 
     for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT && *numIds < maxIds; i++) {
-        if (devices[i] != NULL) {
-            idList[*numIds] = devices[i]->id_;
+        if (ctx_.devices[i] != NULL) {
+            idList[*numIds] = ctx_.devices[i]->id_;
             *numIds = *numIds + 1;
         }
     }
@@ -333,8 +354,8 @@ int freespace_openDevice(FreespaceDeviceId id) {
     uint8_t buf[1024];
     while (read(device->fd_, buf, sizeof(buf)) > 0);
 
-    if (userAddedCallback) {
-        userAddedCallback(device->fd_, POLLIN);
+    if (ctx_.userAddedCallback) {
+        ctx_.userAddedCallback(device->fd_, POLLIN);
     }
 
     device->state_ = FREESPACE_OPENED;
@@ -349,22 +370,22 @@ void freespace_closeDevice(FreespaceDeviceId id) {
     }
 
     if (device->state_ == FREESPACE_CONNECTED) {
-        TRACE("Close closed device");
+        TRACE("closeDevice() that is not opened");
         // not open
         return;
     }
 
     if (device->state_ == FREESPACE_OPENED) {
-        DEBUG("Close opened device");
+        DEBUG("closeDevice() opened device");
 #ifdef LIBFREESPACE_THREADED_WRITES
-        pthread_mutex_lock(&writeMutex_ );
-        _flushWriteJobs(device);
-        pthread_mutex_unlock(&writeMutex_);
+        pthread_mutex_lock(&ctx_.writer.mutex );
+        _flushWriteJobsLocked(device, -1);
+        pthread_mutex_unlock(&ctx_.writer.mutex);
 #endif
         // return the device to the "connected" state
         if (device->fd_ > 0) {
-            if (userRemovedCallback) {
-                userRemovedCallback(device->fd_);
+            if (ctx_.userRemovedCallback) {
+                ctx_.userRemovedCallback(device->fd_);
             }
             close(device->fd_);
             device->fd_ = -1;
@@ -374,7 +395,7 @@ void freespace_closeDevice(FreespaceDeviceId id) {
     }
 
     if (device->state_ == FREESPACE_DISCONNECTED) {
-        DEBUG("Close device already Disconnected");
+        DEBUG("closeDevice() already disconnected");
         // device is disconnected...
         // we've been waiting for this close() to deallocate it.
         _deallocateDevice(device);
@@ -462,28 +483,45 @@ int freespace_private_sendAsync(FreespaceDeviceId id,
                                 unsigned int timeoutMs,
                                 freespace_sendCallback callback,
                                 void* cookie) {
-#ifdef LIBFREESPACE_THREADED_WRITES
-    ssize_t rc;
-#endif
-    GET_DEVICE_IF_OPEN(id, device);
-
 #ifndef LIBFREESPACE_THREADED_WRITES
+
+    GET_DEVICE_IF_OPEN(id, device);
     return _write(device->fd_, message, length);
 #else
-    pthread_mutex_lock(&writeMutex_ );
-    struct WriteJob * job = _allocateWriteJob();
+    ssize_t rc;
+    struct FreespaceBGWriteJob * job;
+
+    GET_DEVICE_IF_OPEN(id, device);
+
+    pthread_mutex_lock(&ctx_.writer.mutex );
+    job = _popFreeJobLocked(device);
     if (!job) {
-        rc = FREESPACE_ERROR_OUT_OF_MEMORY;
-    } else {
-        job->dev = device;
+        if (ctx_.writer.queueLen + 1 > NUM_MAX_JOBS) {
+            // our queue is full, we need to evict a job belonging to this device
+            _flushWriteJobsLocked(device, 1);
+            // there should be a job in our free pool now
+            job = _popFreeJobLocked(device);
+        } else {
+            // ok, create a new job
+            job = malloc(sizeof(struct FreespaceBGWriteJob));
+        }
+    }
+
+    if (job) {
+        memset(job, 0, sizeof(*job));
+        // we'll use the fd to
+        job->fd = device->fd_;
+        job->cookie = device->cookie_;
         memcpy(job->message, message, length);
         job->length = length;
 
-        rc = _pushWriteJob(job);
+        rc = _pushWriteJobLocked(job);
+    } else {
+        WARN("error allocating a write job");
     }
 
-    pthread_mutex_unlock(&writeMutex_);
-    pthread_cond_signal(&writeCond_);
+    pthread_mutex_unlock(&ctx_.writer.mutex);
+    pthread_cond_signal(&ctx_.writer.cond);
     return rc;
 #endif
 }
@@ -522,6 +560,7 @@ int freespace_perform() {
     int i;
     int n;
     int nfds;
+    int rc;
     static int needToRescan = 1;
 
     // Initial scan of all devices
@@ -533,11 +572,11 @@ int freespace_perform() {
     struct pollfd fds[FREESPACE_MAXIMUM_DEVICE_COUNT + 1];
 
     // Populate fds[]
-    fds[0].fd = inotify_fd_;
+    fds[0].fd = ctx_.inotify_fd;
     fds[0].events = POLLIN;
 
-    for (i = 0, n = 0; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
-        struct FreespaceDevice * device = devices[i];
+    for (i = 0, n = 0; n < ctx_.numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
+        struct FreespaceDevice * device = ctx_.devices[i];
         if (!device) {
             continue;
         }
@@ -548,23 +587,25 @@ int freespace_perform() {
     }
 
     // Poll open file descriptors
-    nfds = poll(fds, numDevices + 1, 0);
+    nfds = poll(fds, ctx_.numDevices + 1, 0);
 
     i = 0;
     n = 0;
     if (nfds > 0 ) {
         // inotify events
         if (fds[0].revents & POLLIN) {
-            DEBUG("inotify_fd_ received POLLIN. Call _scanDevices(). nfds = %d", nfds);
+
             fds[0].revents = 0;
             --nfds;
-            _scanDevices();
+            if ((rc = _inotify_process())) {
+                return rc;
+            }
         }
 
         // Other device->fd_
         while (nfds > 0) {
-            while (n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT) {
-                struct FreespaceDevice * device = devices[i];
+            while (n < ctx_.numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT) {
+                struct FreespaceDevice * device = ctx_.devices[i];
                 if (!device) {
                     ++i;
                     continue;
@@ -575,14 +616,16 @@ int freespace_perform() {
                 if (fds[n].revents) {
                     if (fds[n].revents & (POLLHUP | POLLERR)) {
                         DEBUG("Disconnect device %d", device->id_);
-                        _disconnect(device);
+                        rc = _disconnect(device);
                     }
                     if (fds[n].revents & POLLIN) {
                         if (device->state_ == FREESPACE_OPENED) {
-                            _readDevice(device);
+                            rc = _readDevice(device);
                         }
                     }
-                    fds[n].revents = 0;
+                    if (rc) {
+                        return rc;
+                    }
                     --nfds;
                     break;
                 }
@@ -598,30 +641,30 @@ int freespace_perform() {
 
 void freespace_setFileDescriptorCallbacks(freespace_pollfdAddedCallback addedCallback,
                                           freespace_pollfdRemovedCallback removedCallback) {
-    userAddedCallback = addedCallback;
-    userRemovedCallback = removedCallback;
+    ctx_.userAddedCallback = addedCallback;
+    ctx_.userRemovedCallback = removedCallback;
 }
 
 int freespace_syncFileDescriptors() {
     int i;
     int n;
 
-    if (userAddedCallback == NULL) {
+    if (ctx_.userAddedCallback == NULL) {
         return FREESPACE_SUCCESS;
     }
 
     // Add the hot-plug inotify's fd
-    userAddedCallback(inotify_fd_, POLLIN);
+    ctx_.userAddedCallback(ctx_.inotify_fd, POLLIN);
 
     i = 0;
     n = 0;
-    for (; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        struct FreespaceDevice * device = devices[i];
+    for (; n < ctx_.numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
+        struct FreespaceDevice * device = ctx_.devices[i];
         if (device) {
             n++;
             if (device->state_ == FREESPACE_OPENED) {
                 // assert(device->fd_ > 0);
-                userAddedCallback(device->fd_, POLLIN);
+                ctx_.userAddedCallback(device->fd_, POLLIN);
             }
         }
     }
@@ -772,7 +815,7 @@ static int _allocateNewDevice(struct FreespaceDevice** out_device) {
     struct FreespaceDevice* device;
     *out_device = 0;
 
-    if (nextFreeIndex == -1) {
+    if (ctx_.nextFreeIndex == -1) {
         return FREESPACE_ERROR_OUT_OF_MEMORY;
     }
 
@@ -782,108 +825,94 @@ static int _allocateNewDevice(struct FreespaceDevice** out_device) {
         return FREESPACE_ERROR_OUT_OF_MEMORY;
     }
     memset(device, 0, sizeof(struct FreespaceDevice));
-    numDevices++;
+    device->cookie_ = ++ctx_.numDevices;
 
-    devices[nextFreeIndex] = device;
-    if (numDevices < FREESPACE_MAXIMUM_DEVICE_COUNT) {
-        while (devices[nextFreeIndex] != NULL) {
-            nextFreeIndex++;
-            if (nextFreeIndex == FREESPACE_MAXIMUM_DEVICE_COUNT) {
-                nextFreeIndex = 0;
+    ctx_.devices[ctx_.nextFreeIndex] = device;
+    if (ctx_.numDevices < FREESPACE_MAXIMUM_DEVICE_COUNT) {
+        while (ctx_.devices[ctx_.nextFreeIndex] != NULL) {
+            ctx_.nextFreeIndex++;
+            if (ctx_.nextFreeIndex == FREESPACE_MAXIMUM_DEVICE_COUNT) {
+                ctx_.nextFreeIndex = 0;
             }
         }
     } else {
-        nextFreeIndex = -1;
+        ctx_.nextFreeIndex = -1;
     }
 
     * out_device = device;
     return FREESPACE_SUCCESS;
 }
 
-// check if /dev/hidraw<num> path already belongs to an existing device
-static int _isNewDevice(int num, int * isNew) {
-
-    int i = 0;
-    int n = 0;
-
-    for (; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        struct FreespaceDevice * device = devices[i];
-
-        if (device == 0) {
-            continue;
-        }
-
-        n++;
-        if (device->num_ != num) {
-            continue;
-        }
-
-        switch (device->state_) {
-            case FREESPACE_OPENED:
-            case FREESPACE_CONNECTED:
-                *isNew = 0; // /dev/hidraw<num>is already known
-                return FREESPACE_SUCCESS;
-
-            case FREESPACE_DISCONNECTED:
-                *isNew = 1; // this is a "ghost" device that close() has not been called on.
-                return FREESPACE_SUCCESS;
-
-            default:
-                break;
-        }
-    }
-
-    // does not match one of our current devices
-    *isNew = 1;
-    return FREESPACE_SUCCESS;
-}
-
-// return <num> from /dev/hidraw<num>
-static int _parseNum(const char * path) {
-    return atoi(path + sizeof(HIDRAW_PREFIX) - 1);
-}
 
 static FreespaceDeviceId _assignId() {
     int i;
     
     for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT; ++i) {
-        if ((connectedDevices_ & (1 << i)) == 0) {
-            connectedDevices_ |= (1 << i);
-            WARN("Device ID %d is connected", i);
+        if ((ctx_.connectedDevices & (1 << i)) == 0) {
+            ctx_.connectedDevices |= (1 << i);
+            DEBUG("Device ID %d is connected", i);
             return i;
         }
     }
     return -1;
 }
 
-static int _scanDevice(const char * dir, const char * filename) {
+static int _scanDevice(const char * devName) {
 
-    int num;
-    int isNew = 0;
-    char absPath[NAME_MAX];
+    int rc, i, n, devNum;
+    char absPath[NAME_MAX] = "";
+    struct FreespaceDevice * device;
     struct FreespaceDeviceAPI const * API = 0;
 
-    num = _parseNum(filename);
-    _isNewDevice(num, &isNew);
-
-    if (!isNew) {
-        return 0;
+    // get <num> from hidraw<num>
+    if (sscanf(devName, "hidraw%u", &devNum) != 1) {
+        return FREESPACE_ERROR_UNEXPECTED;
     }
 
-    // Append the file name and store an absolute path
-    snprintf(absPath, sizeof(absPath), "%s%s", dir, filename);
+    for (i = 0, n = 0; n < ctx_.numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
+        device = ctx_.devices[i];
 
-    _isFreespaceDevice(absPath, &API);
+        if (device == 0) {
+            continue;
+        }
 
+        n++;
+        if (device->devNum_ != devNum) {
+            continue;
+        }
+
+        switch (device->state_) {
+            case FREESPACE_OPENED:
+            case FREESPACE_CONNECTED:
+                // known device
+                return FREESPACE_SUCCESS;
+
+            case FREESPACE_DISCONNECTED:
+                // this is a "ghost" device that close() has not been called on.
+                return FREESPACE_SUCCESS;
+
+            default:
+                WARN("unexpected state: %d", (int) device->state_);
+                return FREESPACE_ERROR_UNEXPECTED;
+        }
+    }
+
+    snprintf(absPath, sizeof(absPath), "%s/%s", DEV_DIR, devName);
+    if ((rc = access(absPath, R_OK | W_OK))) {
+        // can't access this file, just skip
+        DEBUG(" -- %s: %s", absPath, strerror(errno));
+        return FREESPACE_SUCCESS;
+    }
+
+    rc = _isFreespaceDevice(absPath, &API);
     if (!API) {
         TRACE("Not a freespace device: %s", absPath);
-        return 0;
+        return rc;
     }
 
     // Allocate a device
     {
 
-        struct FreespaceDevice * device;
         int rc = _allocateNewDevice(&device);
         if (rc != FREESPACE_SUCCESS) {
             return rc;
@@ -892,24 +921,24 @@ static int _scanDevice(const char * dir, const char * filename) {
         device->state_ = FREESPACE_CONNECTED;
         device->fd_ = -1;
         device->id_ = _assignId();
-        device->num_ = num;
+        device->devNum_ = devNum;
         strncpy(device->hidrawPath_, absPath, sizeof(device->hidrawPath_));
         device->api_ = API;
 
-        if (hotplugCallback) {
-            hotplugCallback(FREESPACE_HOTPLUG_INSERTION, device->id_, hotplugCookie);
+        if (ctx_.hotplugCallback) {
+            ctx_.hotplugCallback(FREESPACE_HOTPLUG_INSERTION, device->id_, ctx_.hotplugCookie);
         }
     }
 
-    DEBUG("Found freespace device at %s. ** Num devices: %d **", absPath, numDevices);
-    return 0;
+    DEBUG("Found freespace device at %s. ** Num devices: %d **", absPath, ctx_.numDevices);
+    return FREESPACE_SUCCESS;
 }
 
 // Check whether a hidraw device is added/removed to/from the device directory /dev)
 static int _scanAllDevices() {
     TRACE("Scanning all hidraw devices");
     // Check if a device has been added (iterate all of /dev)
-    DIR*    dev_dir = opendir(DEV_DIR);
+    DIR* dev_dir = opendir(DEV_DIR);
     if (dev_dir) {
         struct dirent*  ent;
 
@@ -918,10 +947,11 @@ static int _scanAllDevices() {
                 continue;
             }
 
-            _scanDevice(DEV_DIR, ent->d_name);
+            _scanDevice(ent->d_name);
         }
     } else {
         WARN("Failed opening %s", DEV_DIR);
+        return FREESPACE_ERROR_ACCESS;
     }
 
     // TODO handle the case where devices drop when in the "connected" but not "opened" state...
@@ -932,159 +962,99 @@ static int _scanAllDevices() {
 // Create and initialize inotify instance
 // Add watch to about events specified by when new file is created or deleted in
 // the device directory (/dev)
-static int _init_inotify() {
+static int _inotify_init() {
     int rc;
 
-    inotify_fd_ = inotify_init();
-    if (inotify_fd_ < 0) {
+    ctx_.inotify_fd = inotify_init();
+    if (ctx_.inotify_fd < 0) {
         WARN("Failed inotify_init: %s", strerror(errno));
         return FREESPACE_ERROR_IO;
     }
 
-    rc = fcntl(inotify_fd_, F_SETFL, O_NONBLOCK);  // Set to non-blocking
+    rc = fcntl(ctx_.inotify_fd, F_SETFL, O_NONBLOCK);  // Set to non-blocking
     if (rc < 0) {
         WARN("Failed inotify -> non block: %s", strerror(errno));
         return FREESPACE_ERROR_IO;
     }
 
-    inotify_wd_ = inotify_add_watch(inotify_fd_, DEV_DIR, IN_CREATE | IN_DELETE);
-    if (inotify_wd_ < 0) {
+    // watch for files added or permissions changed under /dev
+    ctx_.inotify_wd = inotify_add_watch(ctx_.inotify_fd, DEV_DIR, IN_CREATE | IN_ATTRIB);
+    if (ctx_.inotify_wd < 0) {
         WARN("Failed inotify_add_watch: %s", strerror(errno));
         return FREESPACE_ERROR_IO;
     }
 
-    if (userAddedCallback) {
-        userAddedCallback(inotify_fd_, POLLIN);
+    if (ctx_.userAddedCallback) {
+        ctx_.userAddedCallback(ctx_.inotify_fd, POLLIN);
     }
-    return 0;
+    return FREESPACE_SUCCESS;
 }
 
-static struct FreespaceDevice * _findDeviceByHidrawNum(int num) {
-    int i = 0;
-    int n = 0;
-    for (; n < numDevices && i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        struct FreespaceDevice * device = devices[i];
-
-        if (!device) {
-            continue;
-        }
-
-        n++;
-        if (device->state_!= FREESPACE_OPENED && device->state_!= FREESPACE_CONNECTED) {
-            continue;
-        }
-
-        if (num == device->num_) {
-            return device;
-        }
-    }
-
-    return NULL;
-}
-
-static int _scanDevices() {
+static int _inotify_process() {
 
     // Process inotify events
-    char buf[(sizeof(struct inotify_event) + 32) * 8];
-    ssize_t length = 0;
-    ssize_t offset = 0;
+    char buf[sizeof(struct inotify_event) + NAME_MAX + 1];
 
-    while(1) {
+    // inotify returns only 1 event at a time.
+    int rc = read(ctx_.inotify_fd, buf, sizeof(buf));
 
-        length = read(inotify_fd_, buf, sizeof(buf));
-
-        if (length < 0) {
-            if (errno == EAGAIN) {
-                // done!
-                return FREESPACE_SUCCESS;
-            }
-            return FREESPACE_ERROR_IO;
+    if (rc < 0) {
+        if (errno == EAGAIN) {
+            // done!
+            return FREESPACE_SUCCESS;
         }
-        //TRACE("Inotify: read %d/%d bytes", length, sizeof(buf));
+        WARN("inotify: fd read error: %s", strerror(errno));
+        return FREESPACE_ERROR_IO;
+    }
 
-        // Start at the beginning
-        offset = 0;
+    struct inotify_event * event = (struct inotify_event *) (buf);
 
-        // Process all events in our buffer
-        while (offset < length) {
+    if (event->wd != ctx_.inotify_wd) {
+        WARN("inotify: watchdog does not match! -- %d != %d", event->wd, ctx_.inotify_wd);
+        return FREESPACE_ERROR_IO;
+    }
 
-            struct inotify_event * event = (struct inotify_event *) (buf + offset);
-            ssize_t remainder = length - offset;
-            ssize_t expectedSize = sizeof(struct inotify_event);
-            int num;
+    if (event->len > sizeof(buf)) {
+        TRACE("inotify: event read length violation. event size: %u, buffer size: %zu",
+              event->len, sizeof(buf));
+        return FREESPACE_ERROR_IO;
+    }
 
-            if (event->wd != inotify_wd_) {
-                WARN("Inotify watchdog does not match! -- %d != %d", event->wd, inotify_wd_);
-            }
+    if (strncmp(event->name, HIDRAW_PREFIX, strlen(HIDRAW_PREFIX)) != 0) {
+        TRACE("inotify: skip event - %s/%s:%04x ", DEV_DIR, event->name, event->mask);
+        return FREESPACE_SUCCESS;
+    }
 
-            // First, check to see if we have a complete inotify_event
-            if (remainder < expectedSize) {
-                // This event is incomplete (not aligned), break here and read again
-                TRACE("Not enough space in the buffer for inotify struct... %d/%d", remainder, expectedSize);
-                break;
-            }
-
-            // Now, check to see if the path following it has been completely read.
-            expectedSize += event->len;
-            if (remainder < expectedSize) {
-                TRACE("Not enough space in the buffer for inotify struct + string... %d/%d -- (%d + %d)", 
-                      remainder, expectedSize, sizeof(struct inotify_event), event->len);
-                break;
-            }
-
-            offset += expectedSize;
-
-            if (strncmp(event->name, HIDRAW_PREFIX, strlen(HIDRAW_PREFIX)) != 0) {
-                TRACE("Skipping, inotify event - %04x:%s ", event->mask, event->name);
-                continue;
-            }
-
-            DEBUG("Handle inotify event - %04x:%s ", event->mask, event->name);
-            num = _parseNum(event->name);
-
-            if (event->mask & IN_CREATE) {
-                struct FreespaceDevice * device = _findDeviceByHidrawNum(num);
-                if (device) {
-                    TRACE("%s is already added!", event->name);
-                    continue;
-                }
-
-#if 1
-                // hack to allow udev some time...
-                usleep(1000 * 500);
-#endif
-                _scanDevice(DEV_DIR, event->name);
-                continue;
-            }
-        }
+    DEBUG("inotify: handle event - %s/%s:%04x ", DEV_DIR, event->name, event->mask);
+    if (event->mask & (IN_CREATE | IN_ATTRIB)) {
+        return _scanDevice(event->name);
     }
 
     return FREESPACE_SUCCESS;
-
 }
 
 static void _deallocateDevice(struct FreespaceDevice* device) {
     int i;
     for (i = 0; i < FREESPACE_MAXIMUM_DEVICE_COUNT; i++) {
-        if (devices[i] == device) {
-            if (nextFreeIndex == -1) {
-                nextFreeIndex = i;
+        if (ctx_.devices[i] == device) {
+            if (ctx_.nextFreeIndex == -1) {
+                ctx_.nextFreeIndex = i;
             }
 
 #if 1 // this should not be necessary.
             if (device->fd_ > 0) {
                 DEBUG("Deallocate device (%s) -- fd still open!", device->hidrawPath_)
-                if (userRemovedCallback) {
-                    userRemovedCallback(device->fd_);
+                if (ctx_.userRemovedCallback) {
+                    ctx_.userRemovedCallback(device->fd_);
                 }
                 close(device->fd_);
                 device->fd_ = -1;
             }
 #endif
             free(device);
-            devices[i] = NULL;
-            numDevices--;
-            DEBUG("Freed device. ** Num devices: %d **", numDevices);
+            ctx_.devices[i] = NULL;
+            ctx_.numDevices--;
+            DEBUG("Freed device. ** Num devices: %d **", ctx_.numDevices);
             return;
         }
     }
@@ -1096,28 +1066,28 @@ static int _disconnect(struct FreespaceDevice * device) {
     DEBUG("Freespace device (%d) at %s disconnected", device->id_, device->hidrawPath_);
 
 #ifdef LIBFREESPACE_THREADED_WRITES
-    pthread_mutex_lock(&writeMutex_ );
-    _flushWriteJobs(device);
-    pthread_mutex_unlock(&writeMutex_);
+    pthread_mutex_lock(&ctx_.writer.mutex );
+    _flushWriteJobsLocked(device, -1);
+    pthread_mutex_unlock(&ctx_.writer.mutex);
 #endif
     // device is currently in use, we can't delete it outright
     if (device->state_ == FREESPACE_OPENED) {
         if (device->fd_ > 0) {
-            if (userRemovedCallback) {
-                userRemovedCallback(device->fd_);
+            if (ctx_.userRemovedCallback) {
+                ctx_.userRemovedCallback(device->fd_);
             }
             close(device->fd_);
             device->fd_ = -1;
         }
 
         // Indicate that the device is disconnected so that its ID can be reused
-        connectedDevices_ &= ~((int)(1 << device->id_));
+        ctx_.connectedDevices &= ~((int)(1 << device->id_));
         WARN("Device ID %d is disconnected", device->id_);
 
         device->state_ = FREESPACE_DISCONNECTED;
         TRACE("*** Sending removal notification for device %d while opened", device->id_);
-        if (hotplugCallback) {
-            hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, hotplugCookie);
+        if (ctx_.hotplugCallback) {
+            ctx_.hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, device->id_, ctx_.hotplugCookie);
         }
 
         // we have to wait for closeDevice() to deallocate this device.
@@ -1127,23 +1097,23 @@ static int _disconnect(struct FreespaceDevice * device) {
     if (device->state_ == FREESPACE_CONNECTED) {
         int id = device->id_;
         if (device->fd_ > 0) {
-            if (userRemovedCallback) {
-                userRemovedCallback(device->fd_);
+            if (ctx_.userRemovedCallback) {
+                ctx_.userRemovedCallback(device->fd_);
             }
             close(device->fd_);
             device->fd_ = -1;
         }
 
         // Indicate that the device is disconnected so that its ID can be reused
-        connectedDevices_ &= ~((int)(1 << device->id_));
+        ctx_.connectedDevices &= ~((int)(1 << device->id_));
         WARN("Device ID %d is disconnected", device->id_);
 
         _deallocateDevice(device);
         device = NULL;
 
-        TRACE("*** Sending removal notification for device %d while connected", device->id_);
-        if (hotplugCallback) {
-            hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, hotplugCookie);
+        TRACE("*** Sending removal notification for device %d while connected", id);
+        if (ctx_.hotplugCallback) {
+            ctx_.hotplugCallback(FREESPACE_HOTPLUG_REMOVAL, id, ctx_.hotplugCookie);
         }
 
         return FREESPACE_SUCCESS;
@@ -1154,82 +1124,70 @@ static int _disconnect(struct FreespaceDevice * device) {
 
 #ifdef LIBFREESPACE_THREADED_WRITES
 
-static struct WriteJob * _allocateWriteJob() {
-    struct WriteJob * j;
-    if (freeJobsHead_ != NULL) {
-        j = freeJobsHead_;
-        freeJobsHead_ = freeJobsHead_->next;
+static struct FreespaceBGWriteJob * _popFreeJobLocked() {
+    struct FreespaceBGWriteJob * j;
+    if (ctx_.writer.free != NULL) {
+        j = ctx_.writer.free;
+        ctx_.writer.free = ctx_.writer.free->next;
         j->next = NULL;
         return j;
     }
 
-    if (numWriteJobsAllocated_ + 1 > MaxWriteJobs) {
-        return NULL;
-    }
-
-    j = malloc(sizeof(struct WriteJob));
-    if (j) {
-        memset(j, 0, sizeof(*j));
-        numWriteJobsAllocated_++;
-        return j;
-    }
-    WARN("malloc failed", "");
     return NULL;
 }
 
-static int _deallocateWriteJob(struct WriteJob * j) {
-    if (numWriteJobsFree_ + 1 > MaxFreeWriteJobs) {
+static int _returnWriteJobLocked(struct FreespaceBGWriteJob * j) {
+    if (ctx_.writer.numFree + 1 > NUM_MAX_FREE_JOBS) {
         free(j);
-        numWriteJobsAllocated_--;
         return 0;
     }
 
-    numWriteJobsFree_++;
-    j->next = freeJobsHead_;
-    freeJobsHead_ = j;
+    ctx_.writer.numFree++;
+    j->next = ctx_.writer.free;
+    ctx_.writer.free = j;
     return FREESPACE_SUCCESS;
 }
 
 
-static struct WriteJob * _popWriteJob() {
-    struct WriteJob * j = NULL;
+static struct FreespaceBGWriteJob * _popWriteJobLocked() {
+    struct FreespaceBGWriteJob * j = NULL;
 
-    if (writeJobsHead_ != NULL) {
-        j = writeJobsHead_;
-        writeJobsHead_ = j->next;
-        if (writeJobsHead_ == NULL) {
-            writeJobsTail_ = NULL;
+    if (ctx_.writer.head != NULL) {
+        j = ctx_.writer.head;
+        ctx_.writer.head = j->next;
+        if (ctx_.writer.head == NULL) {
+            ctx_.writer.tail = NULL;
         }
     }
 
-    //TRACE("Pop: %p Head: %p Tail: %p. Allocated: %d", j, writeJobsHead_, writeJobsTail_, numWriteJobsAllocated_);
+    ctx_.writer.queueLen--;
     return j;
 }
 
-static int _pushWriteJob(struct WriteJob * j) {
-    if (writeJobsTail_ == NULL) {
-        writeJobsHead_ = j;
-        writeJobsTail_ = j;
+static int _pushWriteJobLocked(struct FreespaceBGWriteJob * j) {
+    if (ctx_.writer.tail == NULL) {
+        ctx_.writer.head = j;
+        ctx_.writer.tail = j;
     } else {
-        writeJobsTail_->next = j;
-        writeJobsTail_ = j;
+        ctx_.writer.tail->next = j;
+        ctx_.writer.tail = j;
     }
 
-    //TRACE("Pop: %p Head: %p Tail: %p. Allocated: %d", j, writeJobsHead_, writeJobsTail_, numWriteJobsAllocated_);
+    ctx_.writer.queueLen++;
     return FREESPACE_SUCCESS;
 }
 
-static void _flushWriteJobs(struct FreespaceDevice * dev) {
-    struct WriteJob * j = writeJobsHead_;
-    struct WriteJob * prev = NULL;
-    struct WriteJob * t = NULL;
+static void _flushWriteJobsLocked(struct FreespaceDevice * dev, int limit) {
+    struct FreespaceBGWriteJob * j = ctx_.writer.head;
+    struct FreespaceBGWriteJob * prev = NULL;
+    struct FreespaceBGWriteJob * next = NULL;
 
     if (j == NULL) {
         return;
     }
 
-    while (j) {
-        if (j->dev != dev) {
+    while (j && limit) {
+        if (j->cookie != dev->cookie_) {
             // keep this job
             prev = j;
             j = j->next;
@@ -1237,34 +1195,37 @@ static void _flushWriteJobs(struct FreespaceDevice * dev) {
 
         // we have to remove j from the linked list
         if (prev == NULL) {
-            writeJobsHead_ = j->next;
+            ctx_.writer.head = j->next;
         }
 
-        t = j->next;
-        _deallocateWriteJob(j);
-        if (prev) {
-            prev->next = t;
+        next = j->next;
+        _returnWriteJobLocked(j);
+        if (limit > 0) {
+            limit--;
         }
-        j = t;
+        if (prev) {
+            prev->next = next;
+        }
+        j = next;
     }
 }
 
 static void * _writeThread_fn(void * ptr) {
-    while (writeThreadExit_ == 0) {
-          struct WriteJob * j;
+    while (ctx_.writer.exitThread == 0) {
+          struct FreespaceBGWriteJob * j;
 
          // Lock mutex and then wait for signal to relase mutex
-          pthread_mutex_lock(&writeMutex_ );
+          pthread_mutex_lock(&ctx_.writer.mutex );
           // wait for signal..
-          pthread_cond_wait(&writeCond_, &writeMutex_ );
-          while (writeThreadExit_ == 0 && (j = _popWriteJob()) != NULL) {
-              pthread_mutex_unlock(&writeMutex_);
-              _write(j->dev->fd_, j->message, j->length);
-              pthread_mutex_lock(&writeMutex_ );
-              _deallocateWriteJob(j);
+          pthread_cond_wait(&ctx_.writer.cond, &ctx_.writer.mutex );
+          while (ctx_.writer.exitThread == 0 && (j = _popWriteJobLocked()) != NULL) {
+              pthread_mutex_unlock(&ctx_.writer.mutex);
+              _write(j->fd, j->message, j->length);
+              pthread_mutex_lock(&ctx_.writer.mutex );
+              _returnWriteJobLocked(j);
           }
 
-          pthread_mutex_unlock(&writeMutex_);
+          pthread_mutex_unlock(&ctx_.writer.mutex);
     }
 
     return 0;
