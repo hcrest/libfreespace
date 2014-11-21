@@ -68,7 +68,7 @@ LIBFREESPACE_CONF_FILE := $(LIBFREESPACE_GEN_DIR)/include/freespace_config.h
 # Depend on msg gen for directory structure and Android.mk to catch changes to config file
 $(LIBFREESPACE_CONF_FILE) : $(LOCAL_PATH)/Android.mk $(LIBFREESPACE_MSG_GEN)
 	@echo "libfreespace <= Creating Config File"
-	@echo "#define LIBFREESPACE_VERSION \"0.7.0\"	" > $@
+	@echo "#define LIBFREESPACE_VERSION \"0.7.1\"	" > $@
 
 LOCAL_SRC_FILES := linux/freespace_hidraw.c common/freespace_deviceTable.c
 
