@@ -43,9 +43,9 @@
  *    - support synchronous API
  */
 
-#define _FREESPACE_DEBUG
-#define _FREESPACE_WARN
-#define _FREESPACE_TRACE
+// #define _FREESPACE_DEBUG
+// #define _FREESPACE_WARN
+// #define _FREESPACE_TRACE
 
 #define LOGF(fmt, lvl, ...) fprintf(stderr, "libfreespace (%20s:%4d): " #lvl " " fmt "\n", __func__, __LINE__, ##__VA_ARGS__);
 
