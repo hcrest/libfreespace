@@ -103,7 +103,7 @@ set (LIBFREESPACE_COMMON_SRCS
 #message(STATUS "LIBFREESPACE_HIDRAW_THREADED_WRITES  = ${LIBFREESPACE_HIDRAW_THREADED_WRITES}")
 #message(STATUS "LIBFREESPACE_CUSTOM_INSTALL_RULES    = ${LIBFREESPACE_CUSTOM_INSTALL_RULES}")
 
-configure_file(${PROJECT_SOURCE_DIR}/freespace_config.h.in ${PROJECT_BINARY_DIR}/include/freespace_config.h)
+configure_file(${PROJECT_SOURCE_DIR}/CMake/freespace_config.h.in ${PROJECT_BINARY_DIR}/include/freespace_config.h)
 
 set(_LIBFREESPACE_LIBRARIES "")
 
