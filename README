@@ -1,6 +1,3 @@
-libfreespace Build info
-Updated 8/2/2013
-
 General Information
 ===================
 
@@ -12,22 +9,22 @@ Required Tools
 
 The tools required to fully build libfreespace are:
 
-1)  bazaar - Use a stable release.
-	Windows:	http://wiki.bazaar.canonical.com/WindowsDownloads
-	Ubuntu:		sudo apt-get install bzr
+1)  git - Use a stable release.
+	Windows:	https://git-scm.com/download/win
+	Ubuntu:		sudo apt-get install git
 
 2)  Python v2.7
 	Windows:	http://www.python.org/download/releases/2.7.5/
-    			Update the environment variable PATH to include the folder that contain python.exe.
+                Update the environment variable PATH to include the folder that
+                contain python.exe.
     Ubuntu:		sudo apt-get install python
 
 3)  Doxygen v1.8.0 (older versions will have formatting problems)
     Windows:	http://www.stack.nl/~dimitri/doxygen/download.html
-    Ubuntu:		You cannot use apt-get for doxygen because the version is too old.
-    			Instead, get it from the Doxygen download page.
+    Ubuntu:     You cannot use apt-get for doxygen because the version is too
+                old. Instead, get it from the Doxygen download page.
 
-
-4)  Graphviz v2.30.1  
+4)  Graphviz v2.30.1
     Windows:	http://www.graphviz.org/Download_windows.php
     Ubuntu:		sudo apt-get install graphviz
 
@@ -69,13 +66,8 @@ Getting the files
 
 To correctly check out all of the repositories, navigate to the <base>
 directory and use the following command:
-    bzr branch lp:libfreespace libfreespace
+    git clone https://github.com/hcrest/libfreespace.git
 
-If you find this doesn't work, try:
-    bzr branch lp:~libfreespace-devteam/libfreespace/cmake libfreespace
-
-If still it does not seem to work, try the standalone flag:
-	bzr branch --standalone lp:~libfreespace-devteam/libfreespace/cmake libfreespace
 
 Building
 ===================
@@ -83,10 +75,12 @@ Building
 Launch cmake-gui.
 
 Fill in the "Where is the source code:" entry. This will be the location of the
-libfreespace directory. (e.g. c:\Hillcrest\libfreespace or ~\Hillcrest\libfreespace)
+libfreespace directory. (e.g. c:\Hillcrest\libfreespace or
+~\Hillcrest\libfreespace)
 
 Fill in the "Where to build the binaries" entry. This can be anywhere but a
-reasonable location is c:\Hillcrest\build\libfreespace or ~\Hillcrest\build\libfreespace
+reasonable location is c:\Hillcrest\build\libfreespace or
+~\Hillcrest\build\libfreespace
 
 If some configuration data opens up when you enter the build directory, it means
 that the directory already had a build in it. You can reset the build directory
@@ -104,7 +98,7 @@ Windows:
 Linux:
 	Unix Makefiles
 
-At this point, all the configuration settings will be red. This is the time to 
+At this point, all the configuration settings will be red. This is the time to
 make any changes to the settings that are displayed. Not all settings are
 required, however some important ones are:
 
@@ -115,7 +109,7 @@ cmake should be able to detect it for you. A typical setting is:
     C:\WinDDK\7600.16385.1
 
 If using Visual Studio 8 or 9, the VC8_INCLUDE or VC9_INCLUDE variable. If your
-Visual Studio installation is in a typical location cmake should be able to 
+Visual Studio installation is in a typical location cmake should be able to
 detect it for you. A typical setting is:
     C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include
 
@@ -180,14 +174,14 @@ If you wish to use the "INSTALL" feature of cmake:
 
 Windows:
 
-You will probably have to start Visual Studio using administrator privileges. 
-Then right click the "INSTALL" project and click "Build". There will now be a 
+You will probably have to start Visual Studio using administrator privileges.
+Then right click the "INSTALL" project and click "Build". There will now be a
 libfreespace build in the install directory pointed to by CMAKE_INSTALL_PREFIX.
 
 Linux:
 
-You can use the install target of the Makefile. You may need administrator 
-priveleges in order to do so. This will install libfreespace in the directory 
+You can use the install target of the Makefile. You may need administrator
+priveleges in order to do so. This will install libfreespace in the directory
 pointed to by CMAKE_INSTALL_PREFIX.
 
 Example:
@@ -197,7 +191,7 @@ Example:
 Documentation
 =============
 
-To make the doxygen documentation: 
+To make the doxygen documentation:
 
 Windows:
 You can build the libfreespace-docs project in the libfreespace solution.
@@ -272,7 +266,7 @@ options to try:
 
     SUBSYSTEM=="usb", ATTR{idVendor}=="1d5a", MODE="0666"
 
-3.  If you're running on a system that uses HAL to auto-load drivers, 
+3.  If you're running on a system that uses HAL to auto-load drivers,
     you may want to keep it from loading the HID drivers while debugging
     to avoid mouse movement.  To do this, create a file in /etc/hal/fdi/preprobe
     with the contents:
