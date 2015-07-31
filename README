@@ -35,7 +35,7 @@ The tools required to fully build libfreespace are:
 
 If using Microsoft Windows:
 
-6)  One of MS Visual Studio 8.0 (2005), 9.0 (2008), 10 (2010), 11 (2012)
+6)  MS Visual Studio 10 (2010) or above
 	The "Express" versions work just fine, although they lack 64-bit compilers.
     Only the Visual C/C++ parts are necessary.
 
@@ -114,7 +114,7 @@ detect it for you. A typical setting is:
     C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include
 
 Linux:
-	
+
 The LIBUSB_1_INCLUDE_DIR and LIBUSB_1_LIBRARY variables. These should be
 automatically detected by cmake but if they are not you may need to point
 them at your libusb installation.

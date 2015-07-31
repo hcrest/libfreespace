@@ -24,7 +24,7 @@ extern "C" {
 
 /* Define the types */
 #ifdef _WIN32
-#include "win32_stdint.h"
+#include <stdint.h>
 typedef void* FreespaceFileHandleType;
 
 // All files within this DLL are compiled with the LIBFREESPACE_EXPORTS
