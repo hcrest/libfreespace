@@ -90,10 +90,10 @@ Click "Configure". You will be prompted to select a generator for this project.
 Choose any of the supported generators:
 
 Windows:
-    Visual Studio 8 2005
-    Visual Studio 9 2008
-    Visual Studio 10
-    Visual Studio 11
+    Visual Studio 10  (2010)
+    Visual Studio 11  (2012)
+    Visual Studio 12  (2013)
+    
 
 Linux:
 	Unix Makefiles
@@ -108,10 +108,6 @@ The WINDDK_DIR variable. If your WinDDK is installed in a typical location then
 cmake should be able to detect it for you. A typical setting is:
     C:\WinDDK\7600.16385.1
 
-If using Visual Studio 8 or 9, the VC8_INCLUDE or VC9_INCLUDE variable. If your
-Visual Studio installation is in a typical location cmake should be able to
-detect it for you. A typical setting is:
-    C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\include
 
 Linux:
 
