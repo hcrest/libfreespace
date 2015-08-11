@@ -1,6 +1,6 @@
 ## libfreespace - library for communicating with Freespace devices
 #
-# Copyright 2015 Hillcrest Labs, Inc.
+# Copyright 2013-15 Hillcrest Laboratories, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -265,7 +265,7 @@ SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CMake is a build tool")
 SET(CPACK_PACKAGE_INSTALL_DIRECTORY "libfreespace")
 SET(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "libfreespace")
 SET(CPACK_PACKAGE_NAME "libfreespace")
-SET(CPACK_PACKAGE_VENDOR "Hillcrest Labs, Inc.")
+SET(CPACK_PACKAGE_VENDOR "Hillcrest Laboratories, Inc.")
 SET(CPACK_PACKAGE_VERSION "${PROJECT_VERSION_STRING}")
 SET(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 SET(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
