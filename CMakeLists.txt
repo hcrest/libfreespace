@@ -25,6 +25,10 @@ set(PROJECT_VERSION_PATCH 1)
 
 set(PROJECT_VERSION_STRING "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
+if (NOT DEFINED CMAKE_MACOSX_RPATH)
+    set(CMAKE_MACOSX_RPATH ON)
+endif()
+
 include(FindPythonInterp)
 if (NOT DEFINED PYTHONINTERP_FOUND)
 	message(FATAL_ERROR "Could not locate python interpreter, python is required to generate freespace messages)")
@@ -178,6 +182,28 @@ else()
         target_link_libraries(freespace ${_hid})
         target_link_libraries(freespace ${_setupapi})
 
+    elseif(APPLE)
+        # Mac OSX / Darwin build configuration
+        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
+            ${LIBFREESPACE_COMMON_SRCS}
+            "linux/freespace.c"
+            "linux/darwin_hotplug.c"
+        )
+        # find_library must be used for OS X frameworks
+        find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+        find_library(IOKIT_LIBRARY IOKit)
+        set(LIBUSB1_FIND_REQUIRED ON)
+        find_package(libusb-1.0)
+        include_directories(${LIBUSB_1_INCLUDE_DIRS})
+        find_package(Threads)
+
+        target_link_libraries(freespace
+            PRIVATE
+            ${COREFOUNDATION_LIBRARY}
+            ${IOKIT_LIBRARY}
+            ${LIBUSB_1_LIBRARIES}
+            ${CMAKE_THREAD_LIBS_INIT})
+
     elseif(UNIX)
         # Additional headers
         include(CheckIncludeFiles)
@@ -221,13 +247,6 @@ else()
         else()
             message(FATAL_ERROR "Unsupported backened -- ${LIBFREESPACE_BACKEND}")
         endif()
-    elseif(APPLE)
-        # Mac OSX / Darwing build configuration
-        add_library(freespace ${LIBFREESPACE_LIB_TYPE}
-            ${LIBFREESPACE_COMMON}
-            "linux/freespace.c"
-            "linux/darwin_hotplug.c"
-        )
     else()
         message(FATAL_ERROR "Unsupported platform")
     endif()
