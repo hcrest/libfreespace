@@ -14,18 +14,20 @@ The tools required to fully build libfreespace are:
 	Ubuntu:		sudo apt-get install git
 
 2)  Python v2.7
-	Windows:	http://www.python.org/download/releases/2.7.5/
+	Windows:	http://www.python.org/download/releases/2.7.5/#download
                 Update the environment variable PATH to include the folder that
                 contain python.exe.
     Ubuntu:		sudo apt-get install python
 
 3)  Doxygen v1.8.0 (older versions will have formatting problems)
-    Windows:	http://www.stack.nl/~dimitri/doxygen/download.html
+    Windows:	http://www.stack.nl/~dimitri/doxygen/download.html#srcbin
     Ubuntu:     You cannot use apt-get for doxygen because the version is too
                 old. Instead, get it from the Doxygen download page.
 
 4)  Graphviz v2.30.1
-    Windows:	http://www.graphviz.org/Download_windows.php
+    Windows:	https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+                Update the environment variable PATH to include the folder that
+                contain dot.exe.
     Ubuntu:		sudo apt-get install graphviz
 
 5)  CMake v2.8      http://www.cmake.org/
@@ -93,7 +95,8 @@ Windows:
     Visual Studio 10  (2010)
     Visual Studio 11  (2012)
     Visual Studio 12  (2013)
-    
+    Visual Studio 14  (2015)
+
 
 Linux:
 	Unix Makefiles
