@@ -10,35 +10,35 @@ Required Tools
 The tools required to fully build libfreespace are:
 
 1)  git - Use a stable release.
-	Windows:	https://git-scm.com/download/win
-	Ubuntu:		sudo apt-get install git
+    Windows:    https://git-scm.com/download/win
+    Ubuntu:     sudo apt-get install git
 
 2)  Python v2.7
-	Windows:	http://www.python.org/download/releases/2.7.5/#download
+    Windows:    http://www.python.org/download/releases/2.7.5/#download
                 Update the environment variable PATH to include the folder that
                 contain python.exe.
-    Ubuntu:		sudo apt-get install python
+    Ubuntu:     sudo apt-get install python
 
 3)  Doxygen v1.8.0 (older versions will have formatting problems)
-    Windows:	http://www.stack.nl/~dimitri/doxygen/download.html#srcbin
+    Windows:    http://www.stack.nl/~dimitri/doxygen/download.html#srcbin
     Ubuntu:     You cannot use apt-get for doxygen because the version is too
                 old. Instead, get it from the Doxygen download page.
 
 4)  Graphviz v2.30.1
-    Windows:	https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+    Windows:    https://graphviz.gitlab.io/_pages/Download/Download_windows.html
                 Update the environment variable PATH to include the folder that
                 contain dot.exe.
-    Ubuntu:		sudo apt-get install graphviz
+    Ubuntu:     sudo apt-get install graphviz
 
-5)  CMake v2.8      http://www.cmake.org/
-	Windows:	http://www.cmake.org/cmake/resources/software.html
-	Ubuntu:		sudo apt-get install cmake
-				sudo apt-get install cmake-gui
+5)  CMake v2.8  http://www.cmake.org/
+    Windows:    http://www.cmake.org/cmake/resources/software.html
+    Ubuntu:     sudo apt-get install cmake
+                sudo apt-get install cmake-gui
 
 If using Microsoft Windows:
 
 6)  MS Visual Studio 10 (2010) or above
-	The "Express" versions work just fine, although they lack 64-bit compilers.
+    The "Express" versions work just fine, although they lack 64-bit compilers.
     Only the Visual C/C++ parts are necessary.
 
 7)  Windows Driver Development Kit (WinDDK) 7.1.0
@@ -57,10 +57,10 @@ If using Linux:
 6)  GNU Make and GNU G++
     The best way to get these is to get the build-essential package.
     This should be available for most Linux distros.
-    Ubuntu:		sudo apt-get install build-essential
+    Ubuntu:     sudo apt-get install build-essential
 
-7)  libusb    	http://www.libusb.org/
-    Ubuntu:		sudo apt-get install libusb-1.0-0-dev
+7)  libusb      http://www.libusb.org/
+    Ubuntu:     sudo apt-get install libusb-1.0-0-dev
 
 
 Getting the files
@@ -99,7 +99,7 @@ Windows:
 
 
 Linux:
-	Unix Makefiles
+    Unix Makefiles
 
 At this point, all the configuration settings will be red. This is the time to
 make any changes to the settings that are displayed. Not all settings are
@@ -121,9 +121,9 @@ them at your libusb installation.
 There are other configuration settings available:
 
 CMAKE_INSTALL_PREFIX :
-	The installation directory where the CMake install project will install to.
-	This is initiated by building the "INSTALL" project in the VS solution.
-	Default is typically "C:\Program Files (x86)\libfreespace"
+    The installation directory where the CMake install project will install to.
+    This is initiated by building the "INSTALL" project in the VS solution.
+    Default is typically "C:\Program Files (x86)\libfreespace"
 LIBFREESPACE_BACKEND :
     Specify an alternate backend on some paltforms. On Linux, valid values are
     'hidraw' and 'libusb'
