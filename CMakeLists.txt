@@ -248,6 +248,9 @@ add_subdirectory(doc)
 if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
     if (NOT LIBFREESPACE_CODECS_ONLY)
         install(TARGETS freespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        if (LIBFREESPACE_LIB_TYPE STREQUAL "SHARED")
+            install(TARGETS freespace RUNTIME DESTINATION bin LIBRARY DESTINATION bin)
+        endif()
         set_target_properties(freespace PROPERTIES
             VERSION ${PROJECT_VERSION_STRING}
             SOVERSION ${PROJECT_VERSION_MAJOR} )
