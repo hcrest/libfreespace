@@ -199,7 +199,7 @@ LIBFREESPACE_API int freespace_util_getActClass(struct freespace_MotionEngineOut
  *
  * Get the mouse and button values from a MEOut packet.
  *
- * For MEOut Format 0 and 3, X and Y units are mickeys, Z in detents and W in bitmask (0 – not pressed, 1 – pressed).
+ * For MEOut Format 0 and 3, X and Y units are mickeys, Z is detents and W is bitmask (0 - not pressed, 1 - pressed).
  *
  * @param meOutPkt A pointer to the MEOut packet to extract the mouse and buttons from.
  * @param sensor A pointer to where to store the extracted 8-bit values. Uses X - Delta X, Y - Delta Y, Z - Delta Wheel, W - Button bits.
