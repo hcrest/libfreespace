@@ -152,6 +152,10 @@ else()
 
         set_target_properties(freespace PROPERTIES PREFIX "lib")
 
+        if (LIBFREESPACE_LIB_TYPE STREQUAL "SHARED")
+            add_definitions(-DLIBFREESPACE_EXPORTS)
+            set_target_properties(freespace PROPERTIES IMPORT_PREFIX "lib")
+        endif()
 
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
 	        set(_hid ${WINDDK_WIN7_X64_HID_LIB})
