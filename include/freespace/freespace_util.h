@@ -195,6 +195,22 @@ LIBFREESPACE_API int freespace_util_getAngPos(struct freespace_MotionEngineOutpu
 LIBFREESPACE_API int freespace_util_getActClass(struct freespace_MotionEngineOutput const * meOutPkt,
                                                 struct MultiAxisSensor * sensor);
 
+/** @ingroup util
+ *
+ * Get the mouse and button values from a MEOut packet.
+ *
+ * For MEOut Format 0 and 3, X and Y units are mickeys, Z is detents and W is bitmask (0 - not pressed, 1 - pressed).
+ *
+ * @param meOutPkt A pointer to the MEOut packet to extract the mouse and buttons from.
+ * @param sensor A pointer to where to store the extracted 8-bit values. Uses X - Delta X, Y - Delta Y, Z - Delta Wheel, W - Button bits.
+ * @return 0 if successful
+ *         -1 if the format flag was not set for the mouse and buttons field
+ *         -2 if the meOutPkt does not contain mouse or buttons at all
+ *         -3 if the format select number is unrecognized
+ */
+LIBFREESPACE_API int freespace_util_getMouseAndButtons(struct freespace_MotionEngineOutput const * meOutPkt,
+                                                       struct MultiAxisSensor * sensor);
+
 #ifdef __cplusplus
 }
 #endif

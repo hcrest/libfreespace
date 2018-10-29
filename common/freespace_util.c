@@ -493,3 +493,36 @@ LIBFREESPACE_API int freespace_util_getActClass(struct freespace_MotionEngineOut
     return 0;
 }
 
+/******************************************************************************
+ * freespace_util_getMouseAndButtons
+ */
+LIBFREESPACE_API int freespace_util_getMouseAndButtons(struct freespace_MotionEngineOutput const * meOutPkt,
+                                                       struct MultiAxisSensor * sensor) {
+
+    switch (meOutPkt->formatSelect) {
+    case 0:
+        if (meOutPkt->ff0 == 0) {
+            return -1; // Mouse flag not set
+        }
+        break;
+    case 1:
+    case 2:
+        return -2; // No mouse data in this format
+    case 3:
+        if (meOutPkt->ff0 == 0) {
+            return -1; // Mouse flag not set
+        }
+        break;
+    default:
+        return -3; // The format number was unrecognized
+    }
+
+    // Extract and convert the mouse data
+    sensor->x = meOutPkt->meData[1]; // Delta X
+    sensor->y = meOutPkt->meData[3]; // Delta Y
+    sensor->z = meOutPkt->meData[5]; // Delta Wheel
+    sensor->w = meOutPkt->meData[0]; // Button bits
+
+    return 0;
+}
+
