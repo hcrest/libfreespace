@@ -152,6 +152,10 @@ else()
 
         set_target_properties(freespace PROPERTIES PREFIX "lib")
 
+        if (LIBFREESPACE_LIB_TYPE STREQUAL "SHARED")
+            add_definitions(-DLIBFREESPACE_EXPORTS)
+            set_target_properties(freespace PROPERTIES IMPORT_PREFIX "lib")
+        endif()
 
 	    IF (CMAKE_SIZEOF_VOID_P EQUAL 8)   # Means we are using 64-bit
 	        set(_hid ${WINDDK_WIN7_X64_HID_LIB})
@@ -244,6 +248,9 @@ add_subdirectory(doc)
 if (NOT LIBFREESPACE_CUSTOM_INSTALL_RULES)
     if (NOT LIBFREESPACE_CODECS_ONLY)
         install(TARGETS freespace LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        if (LIBFREESPACE_LIB_TYPE STREQUAL "SHARED")
+            install(TARGETS freespace RUNTIME DESTINATION bin LIBRARY DESTINATION bin)
+        endif()
         set_target_properties(freespace PROPERTIES
             VERSION ${PROJECT_VERSION_STRING}
             SOVERSION ${PROJECT_VERSION_MAJOR} )
