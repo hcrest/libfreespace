@@ -31,3 +31,4 @@ install_manifest.txt
 *.lai
 *.la
 *.a
+/build
